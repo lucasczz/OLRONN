@@ -1,5 +1,6 @@
 from typing import Iterable, List
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import numpy as np
 from sklearn.datasets import make_classification
 from scipy.optimize import differential_evolution
@@ -309,6 +310,23 @@ DEFAULT_CONCEPT_PROPS = {
 }
 
 
+def move_arrow_destinations(destinations, origins, margin):
+    # Calculate direction vectors
+    directions = destinations - origins
+
+    # Calculate magnitudes of direction vectors
+    magnitudes = np.linalg.norm(directions, axis=1)
+
+    # Normalize direction vectors
+    normalized_directions = directions / magnitudes[:, np.newaxis]
+
+    # Define the margin by which to move destinations
+    margin = 0.1
+
+    # Update destinations by moving them towards origins by the margin
+    return destinations - normalized_directions * margin
+
+
 def plot_loss_trajectory(
     trajectories: list,
     concepts: dict,
@@ -395,6 +413,11 @@ def plot_loss_trajectory(
                 losses, trajectory["marker_interval"]
             )
             marker_points = points[:, marker_indices]
+            arrow_origins = points[:, marker_indices - 1]
+            arrow_destinations = marker_points
+            # arrow_destinations = move_arrow_destinations(
+            #     marker_points, arrow_origins, 0.001
+            # )
             color = (
                 concept["color"]
                 if trajectory["color"] == "concept"
@@ -422,6 +445,19 @@ def plot_loss_trajectory(
                     edgecolors=color,
                     zorder=3,
                 )
+            if "arrow_size" in trajectory:
+                for origin, dest in zip(arrow_origins.T, arrow_destinations.T):
+                    arrow = patches.FancyArrowPatch(
+                        origin,
+                        dest,
+                        color=color,
+                        arrowstyle="-|>",
+                        mutation_scale=trajectory["arrow_size"],
+                        zorder=3,
+                        linewidth=0,
+                        # linestyle=trajectory['lin']
+                    )
+                    ax.add_patch(arrow)
             if trajectory["marker"] != "none":
                 ax.scatter(
                     *marker_points,

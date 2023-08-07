@@ -32,6 +32,8 @@
 \usepackage{cleveref}
 \usepackage{todonotes}
 \usepackage{varwidth}
+\usepackage{tikz}
+\usepackage{graphicx}
 
 
 \DeclareCaptionStyle{ruled}{labelfont=normalfont,labelsep=colon,strut=off} % DO NOT CHANGE THIS
@@ -178,7 +180,7 @@
 
 	\noindent The selection of an appropriate optimizer plays a crucial role in deep learning, significantly influencing model performance.
 	In the context of batch learning, where all data is available at a time, extensive research has been conducted to understand the implications of different optimizer choices and various optimization techniques for deep learning architectures have emerged.
-	However, when it comes to online learning, where models need to adapt to evolving data streams, the exploration of optimizer choices is still relatively limited.
+	However, when it comes to online learning, where models need to adapt to evolving data streams, the exploration of optimizer choices is still relatively limited. \todo{Decide on which term to use. Online Learning vs. Stream Learning etc. Online sounds better but might be confusing since SGD is technically always an online algo.}
 	This paper focuses on bridging the gap in knowledge by investigating how the choice of optimizer  changes from batch learning to online learning scenarios.
 	Our study conducts an in-depth analysis on the impact of optimizer, learning rate and batch size on the (i) predictive performance as well as the capability of adapting to changes on the underlying data pattern that might occur over time within the evolving data stream.
 	Additionally, we explore practical choices for gradient-based online training of deep architectures, with a specific emphasis on adaptive methods.
@@ -199,13 +201,33 @@ This paper aims to bridge this knowledge gap by investigating how the choice of 
 	\item What are practical choices for gradient-based online training of deep architectures in online learning?
 	\item Are adaptive optimization methods better suited in Online Deep Learning?
 \end{itemize}
-Within the first research question, we explore how the selection of an optimizer differs when moving from the traditional batch learning setting to the dynamic online learning scenario. We examine the suitability of various optimizer choices in online learning and their impact on model performance.
+\todo{Put LR tuning graphic here?}
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		% Upper image
+		\node[inner sep=0pt] (upper) {\includegraphics[width=0.4\textwidth]{figures/adam_trajectory_drift_reset1.pdf}};
+
+		% Lower image
+		\node[inner sep=0pt, below=3mm of upper] (lower){\includegraphics[width=0.4\textwidth]{figures/adam_trajectory_drift_reset2.pdf}};
+
+		\path ([xshift=-8pt]upper) -- ([xshift=-8pt]lower) node[midway] (text){Concept Drift};
+		\draw[->] ([xshift=-5pt, yshift=5pt]upper.south-|text.west) -- ([xshift=-5pt, yshift=-3pt]lower.north-|text.west);
+		\draw[->] ([xshift=5pt, yshift=5pt]upper.south-|text.east) -- ([xshift=5pt, yshift=-3pt]lower.north-|text.east);
+
+	\end{tikzpicture}
+	\caption{Parameter trajectory of Adam~\cite{kingmaAdamMethodStochastic2017b} with or without adaptation to concept drift on synthetic data stream with abrupt concept drift. Marker colors depict the expected prequential loss over the last 16 data instances.}
+\end{figure}
+For the first research question, we explore how the selection of an optimizer differs when moving from the traditional batch learning setting to the dynamic online learning scenario. We examine the suitability of various optimizer choices in online learning and their impact on model performance.
+
 The second research questions investigates practical choices for gradient-based online training of deep architectures.
 We analyze different optimization techniques and explore their effectiveness in adapting to evolving data streams while maintaining model performance.
 The third research question focuses on the performance of adaptive methods in online deep learning scenarios.
 These methods dynamically adjust the learning rate based on gradient characteristics, allowing models to adapt more effectively to changing data patterns. We compare the performance of adaptive methods against other optimization approaches to determine their suitability for online deep learning tasks.
 Through our in-depth analysis and experimentation, we aim to enhance our understanding of optimizer choices in online deep learning.
 By shedding light on the impact of optimizers, learning rates, and batch sizes, and comparing the effectiveness of adaptive methods, we aim to enable researchers and practitioners to make informed decisions when selecting optimization techniques for real-time learning tasks.
+
+
 
 \subsection{Research Questions}
 \begin{itemize}
@@ -312,27 +334,35 @@ Since memory is limited (Requirement~\ref{rq:limited_memory}), it is also not po
 Another difference to conventional batch learning is that the distribution $p_t$ of the data stream might, and in practice most likely will, be subjected to change in the form of concept drift over time.
 Under such circumstances, the optimal parameter values $\theta^*$ move throughout the progression of the stream increasing the distance to the model parameters.
 
-Since the theoretically optimal learning rate $\eta^*$ is proportional to the quadratic distance between initial and optimal parameters $||\theta_1 - \theta^*||^2$ (albeit under some constraints like the absence of noise)~\cite{carmonMakingSGDParameterFree2023}, $\eta$ should be increased if concept drift occurs, increasing the model's ability to adapt to it.
+Since the theoretically optimal learning rate $\eta^*$ is proportional to the quadratic distance between initial and optimal parameters $||\theta_1 - \theta^*||^2$ (albeit under some constraints like the absence of noise)~\cite{carmonMakingSGDParameterFree2023}, it should be larger when concept drift occurs.
 
-Based on this concept, \citet{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that updates the learning rate using
+Based on this notion, \citet{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that updates the learning rate using
 \begin{equation}
-	eta_{t+1} = \eta_t^{1+(\mathcal{L}_t - \bar{\mathcal{L}}_{t-1})},
+	\eta_{t+1} = \eta_t^{1+(\mathcal{L}_t - \bar{\mathcal{L}}_{t-1})},
 \end{equation}
 where $\mathcal{L}_t$ represents the loss for the current sample, and $\bar{\mathcal{L}}_{t-1}$ a rolling mean of past losses.
 By doing so, \citet{kunchevaAdaptiveLearningRate2008} increases in loss lead to increases in the learning rate and vice versa.
 While this approach seems intuitively sound, it bears a high risk of $\eta$ increasing indefinitely, since increases in loss caused by an excessive learning rate would lead to a feedback loop.
 
-We therefore propose a simple adaptation to popular decaying learning rate schedules that operates in a fixed value range and aims to increase the model's plasticity when needed by resetting $\eta$ to its original value if a concept drift has been detected.
-While this does not allow for a continuous adaptation like the technique by \citet{kunchevaAdaptiveLearningRate2008} and might therefore be less suited for less severe drift, it offers more reliability since the initial learning rate cannot be exceeded.
+We therefore propose a simple adaptation to popular decaying learning rate schedules that operates in a fixed value range and increases the model's plasticity when needed by resetting $\eta$ to its original value if a concept drift has occurred.
+To this end we apply an ADWIN drift detector~\cite{bifetLearningTimeChangingData2007} to the underlying model's prequential loss to efficiently detect drifts.
+While this does not allow for a continuous adaptation like the technique by \citet{kunchevaAdaptiveLearningRate2008} and might therefore be less suited for more subtle drift, it offers more reliability since the initial learning rate cannot be exceeded.
 
-In other works, the issue of lacking adaptability due to insufficient learning rates is often times simply avoided by using a less aggressive or cyclic learning rate.\todo{Add Sources}
+A popular type of approach for drift-aware learning rate scheduling in previous work is meta-learning, that aims to optimize $\eta$ with an additional optimization process.
+For instance, \citet{velosoHyperparameterSelftuningData2021} and \citet{fekriDeepLearningLoad2021} use Bayesian optimization while \citet{zhangPOLAOnlineTime2021a} use a secondary gradient descent procedure to estimate the optimal learning rate at each timestep.
+Since these methods require multiple forward passes through the network to be trained, they incur more computational overhead than most other first order optimization techniques, limiting their usefulness in often times performance critical streaming applications, which is why we excluded them from our evaluations.
+Furthermore, several drift-adaptive optimizers were developed for specific areas of application such as time series forecasting~\cite{miyaguchiCograConceptDriftAwareStochastic2019}, federated learning~\cite{canonacoAdaptiveFederatedLearning2021} and recommender systems~\cite{ferreirajoseADADRIFTAdaptiveLearning2020}. 
+Due to our focus for the present work being general data stream applications, we did not further investigate these techniques either. 
 
 Concept drift also complicates the tuning of $\eta$, since even if data is available beforehand drift would eventually cause the stream to diverge from the distribution of data used for tuning.
 In our experiments we investigate to which extent this effect impairs learning rate tuning on data available prior to deployment of a stream-based neural net. In this context we propose simple adaptations to the standard approach of learning rate tuning.
 
+In a conventional batch learning setting, the 
+
+
 \section{Parameter-Free Optimizers}
 
-Due to the large computational cost of conventional learning rate tuning, several Parameter-free variants of SGD that eliminate the learning rate entirely have been developed.
+Due to the high computational cost of conventional learning rate tuning, several Parameter-free variants of SGD that eliminate the learning rate entirely have been developed.
 - schaul et al.
 - orabona et Al.
 - ...
@@ -459,15 +489,11 @@ For SGD with momentum,
 	\caption{Average prequential accuracy [\%] for the three best learning rates.}
 \end{table*}
 
-\begin{figure}
-	\centering
-	\includegraphics[width=.45\textwidth]{figures/runtimes_3hidden.pdf}
-	\caption{Runtimes in seconds per ten thousand samples for MLPs with three hidden layers of variable widths and RBF abrupt as input stream.}\label{fig:runtimes}
-\end{figure}
+
 
 \begin{figure}
 	\centering
-	\includegraphics[width=.45\textwidth]{figures/pretune_1x128_acc_lr_exp_schedule.pdf}
+	\includegraphics[width=.45\textwidth]{figures/pretune_1x64_acc_lr_exp_schedule.pdf}
 	\caption{Pre-tuned LR (LR that maximizes accuracy on pre-tuning data) and resulting accuracy on data streams when using SGD and an exponential learning rate schedule with 500 or 1000 separate tuning samples. Results are averaged over all real-world datasets. The shaded area represents the 1$\sigma$-interval.}\label{fig:pretune_lr_accuracy}
 \end{figure}
 
@@ -479,7 +505,7 @@ For SGD with momentum,
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.47\textwidth]{figures/lr_norms_insects_abrupt.pdf}
+	\includegraphics[width=0.47\textwidth]{figures/lr_norms_optims_insects_abrupt.pdf}
 	\caption{Prequential accuracy, binary cross-entropy loss and LR norms $||\eta_t||$ over time for various optimization algorithms on Insects abrupt. Each dashed vertical line represents a concept drift. Lines are exponentially smoothed with a factor of 0.8.}
 \end{figure}
 \begin{figure}
@@ -496,7 +522,7 @@ For SGD with momentum,
 
 We ran prequential evaluations using basic SGD with variable batch sizes and learning rates for synthetic data streams with and without incremental concept drift, the results of which are displayed in \Cref{fig:batch_size_lr}. For static data, the average prequential accuracy over the entire stream gradually improves when moving up from an inadequately low learning rate until a certain point where training begins to diverge and performance consequently crashes. Based on our results, there seems to be an inverse relationship between batch size and both the optimal learning rate and the optimal accuracy, with larger batch sizes seemingly increasing the risk of divergence.
 
-The primary cause of this relationship can be seen in \Cref{fig:trajectory_batch_sizes_0.5_lr}, which depicts the trajectories of parameters of two identical MLPs trained on a bivariate data stream using batch sizes of either 4 or 16 samples. With a batch size of 16, the model has to “wait” four times longer until it receives new gradient information than the one trained with a batch size of 4. As a result, the gradient information gained from each sample on average becomes less recent and therefore less accurate with a larger batch size. Example: in \Cref{fig:trajectory_batch_sizes_0.5_lr}
+% The primary cause of this relationship can be seen in \Cref{fig:trajectory_batch_sizes_0.5_lr}, which depicts the trajectories of parameters of two identical MLPs trained on a bivariate data stream using batch sizes of either 4 or 16 samples. With a batch size of 16, the model has to “wait” four times longer until it receives new gradient information than the one trained with a batch size of 4. As a result, the gradient information gained from each sample on average becomes less recent and therefore less accurate with a larger batch size. Example: in \Cref{fig:trajectory_batch_sizes_0.5_lr}
 
 \begin{equation}
 \end{equation}
@@ -507,36 +533,21 @@ This effect is much stronger in the presence of concept drift as the results for
 <-could be explained by the fact that the presence of concept drift exacerbates the gradient stochasticity caused by the delay between observation and learning of samples.
 
 
-
-\begin{figure}
+\begin{figure}[ht]
 	\centering
-	\begin{subfigure}[h]{0.2\textwidth}
-		\centering
-		\includegraphics[height=3.4cm, keepaspectratio]{figures/sgd_trajectory_batch_sizes_0.5_lr.pdf}
-		\caption{$\eta = 0.5$}\label{fig:trajectory_batch_sizes_0.5_lr}
-	\end{subfigure}
-	\begin{subfigure}[h]{0.26\textwidth}
-		\centering
-		\includegraphics[height=3.4cm, keepaspectratio]{figures/sgd_trajectory_batch_sizes_best_lr.pdf}
-		\caption{$\eta = \eta^*$}\label{fig:trajectory_batch_sizes_best_lr}
-	\end{subfigure}
-	\caption{Trajectories of parameters $\theta_1, \theta_2$ of a single layer MLP resulting from performing mini-batch SGD on an artificial stream of two-dimensional classification data. Markers are plotted after every 16th observed sample, with colors representing the expected prequential loss since the previous marker.}\label{fig:trajectory_batch_sizes}
-\end{figure}
+	\begin{tikzpicture}
+		% Upper image
+		\node[inner sep=0pt] (upper) {\includegraphics[width=0.4\textwidth]{figures/sgd_trajectory_optims1.pdf}};
 
+		% Lower image
+		\node[inner sep=0pt, below=3mm of upper] (lower){\includegraphics[width=0.4\textwidth]{figures/sgd_trajectory_optims2.pdf}};
 
-\begin{figure}
-	\centering
-	\begin{subfigure}[h]{0.2\textwidth}
-		\centering
-		\includegraphics[height=3.2cm, keepaspectratio]{figures/sgd_trajectory_optims1.pdf}
-		\caption{First Concept}\label{fig:trajectory_batch_sizes_optims1}
-	\end{subfigure}
-	\begin{subfigure}[h]{0.26\textwidth}
-		\centering
-		\includegraphics[height=3.2cm, keepaspectratio]{figures/sgd_trajectory_optims2.pdf}
-		\caption{Second Concept}\label{fig:trajectory_batch_sizes_optims2}
-	\end{subfigure}
-	\caption{Weight trajectories of different adaptive optimizers for a synthetic data stream with an abrupt drift to a different concept after 64 samples. Markers highlight the parameter values after every 16th sample, with colors showing the expected prequential loss over the previous 16 samples. }\label{fig:trajectory_optims}
+		\path ([xshift=-8pt]upper) -- ([xshift=-8pt]lower) node[midway] (text){Concept Drift};
+		\draw[->] ([xshift=-5pt, yshift=5pt]upper.south-|text.west) -- ([xshift=-5pt, yshift=-3pt]lower.north-|text.west);
+		\draw[->] ([xshift=5pt, yshift=5pt]upper.south-|text.east) -- ([xshift=5pt, yshift=-3pt]lower.north-|text.east);
+
+	\end{tikzpicture}
+	\caption{Parameter trajectory of COCOB~\cite{orabonaTrainingDeepNetworks2017}, DoG~\cite{ivgiDoGSGDBest2023} and Adam~\cite{kingmaAdamMethodStochastic2017b} on synthetic data stream with abrupt concept drift. Marker colors depict the expected prequential loss over the last 16 data instances.}
 \end{figure}
 
 \section{Conclusion}
