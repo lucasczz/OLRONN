@@ -1,0 +1,15 @@
+name: project-blueprint
+
+dependencies:
+  - python=3.9
+  - pip: 
+    - -e .
+    - river
+    - torch
+    - numpy
+    - pandas 
+    - matplotlib
+    - scikit-learn
+    - dog-optimizer
+    - dadaptation
+    - tqdm
