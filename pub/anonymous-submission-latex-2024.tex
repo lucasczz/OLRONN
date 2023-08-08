@@ -24,6 +24,7 @@
 
 % User imported packages
 \usepackage{multirow}
+\usepackage{pifont}
 \usepackage{booktabs}
 \usepackage{subcaption}
 \usepackage{bm}
@@ -34,7 +35,8 @@
 \usepackage{varwidth}
 \usepackage{tikz}
 \usepackage{graphicx}
-
+\newcommand{\cmark}{\ding{51}} % checkmark symbol
+\newcommand{\xmark}{\ding{55}} % X-mark symbol
 
 \DeclareCaptionStyle{ruled}{labelfont=normalfont,labelsep=colon,strut=off} % DO NOT CHANGE THIS
 \lstset{%
@@ -328,9 +330,11 @@ Under the requirements described above, however, we must define the task differe
 \end{equation}
 Compared to Problem~\eqref{eq:batch_lr_optim}, the most apparent difference is that there is no separate validation data.
 Instead, due to Requirement~\ref{rq:predict_any_time}, the goal is to minimize $\mathcal{L}$ with respect to the next instances $X_{t+1}, y_{t+1}$ at each timestep $t$.
+
 This means that in contrast to Problem~\eqref{eq:batch_lr_optim}, not only the final parameters $\theta_T$ but every parameter configuration $\theta_t$ in the entire trajectory contributes equally to the objective.
 Therefore, speed of convergence is of much larger importance in the streaming setting, whereas the performance of the final parameters $\theta_T$ has relatively little impact.
 Since memory is limited (Requirement~\ref{rq:limited_memory}), it is also not possible to continue training on previously observed data as long as $\mathcal{L}$ decreases, which puts an even greater emphasis on quick adaptation.
+At the same time, a larger learning rate causing temporary loss increases, due to skipping over sharp minima can be suboptimal with respect to Problem~\ref{eq:stream_lr_optim} even if it eventually yields a lower loss.
 Another difference to conventional batch learning is that the distribution $p_t$ of the data stream might, and in practice most likely will, be subjected to change in the form of concept drift over time.
 Under such circumstances, the optimal parameter values $\theta^*$ move throughout the progression of the stream increasing the distance to the model parameters.
 
@@ -345,32 +349,60 @@ By doing so, \citet{kunchevaAdaptiveLearningRate2008} increases in loss lead to 
 While this approach seems intuitively sound, it bears a high risk of $\eta$ increasing indefinitely, since increases in loss caused by an excessive learning rate would lead to a feedback loop.
 
 We therefore propose a simple adaptation to popular decaying learning rate schedules that operates in a fixed value range and increases the model's plasticity when needed by resetting $\eta$ to its original value if a concept drift has occurred.
-To this end we apply an ADWIN drift detector~\cite{bifetLearningTimeChangingData2007} to the underlying model's prequential loss to efficiently detect drifts.
+To this end we apply an ADWIN drift detector~\cite{bifetLearningTimeChangingData2007} to the underlying model's prequential loss to reduce the drift detection task to a computationally less expensive univariate problem.
 While this does not allow for a continuous adaptation like the technique by \citet{kunchevaAdaptiveLearningRate2008} and might therefore be less suited for more subtle drift, it offers more reliability since the initial learning rate cannot be exceeded.
 
 A popular type of approach for drift-aware learning rate scheduling in previous work is meta-learning, that aims to optimize $\eta$ with an additional optimization process.
 For instance, \citet{velosoHyperparameterSelftuningData2021} and \citet{fekriDeepLearningLoad2021} use Bayesian optimization while \citet{zhangPOLAOnlineTime2021a} use a secondary gradient descent procedure to estimate the optimal learning rate at each timestep.
 Since these methods require multiple forward passes through the network to be trained, they incur more computational overhead than most other first order optimization techniques, limiting their usefulness in often times performance critical streaming applications, which is why we excluded them from our evaluations.
-Furthermore, several drift-adaptive optimizers were developed for specific areas of application such as time series forecasting~\cite{miyaguchiCograConceptDriftAwareStochastic2019}, federated learning~\cite{canonacoAdaptiveFederatedLearning2021} and recommender systems~\cite{ferreirajoseADADRIFTAdaptiveLearning2020}. 
-Due to our focus for the present work being general data stream applications, we did not further investigate these techniques either. 
+Furthermore, several drift-adaptive optimizers were developed for specific areas of application such as time series forecasting~\cite{miyaguchiCograConceptDriftAwareStochastic2019}, federated learning~\cite{canonacoAdaptiveFederatedLearning2021} and recommender systems~\cite{ferreirajoseADADRIFTAdaptiveLearning2020}.
+Due to our focus for the present work being general data stream applications, we did not further investigate these techniques either.
 
 Concept drift also complicates the tuning of $\eta$, since even if data is available beforehand drift would eventually cause the stream to diverge from the distribution of data used for tuning.
-In our experiments we investigate to which extent this effect impairs learning rate tuning on data available prior to deployment of a stream-based neural net. In this context we propose simple adaptations to the standard approach of learning rate tuning.
+% In our experiments we investigate to which extent this effect impairs learning rate tuning on data available prior to deployment of a stream-based neural net. 
+This effect, combined with the previously described differences in the evaluation scheme can cause conventional learning rate tuning to produce unsuitable results for stream-based learning.
+% Alternatively: 
+% Furthermore, in conventional batch learning, the standard practice for learning rate tuning is to optimize for the performance on the validation data~\cite{defazioLearningRateFreeLearningDAdaptation2023a}.
+% As a result, this approach disregards the performance of the model throughout the tuning process and only selects the learning rate with the best final performance potentially yielding a value unsuitable for stream-based learning.
+We therefore propose a slightly different online learning specific tuning approach, that aims to approximately solve Problem~\ref{eq:stream_lr_optim}.
 
-In a conventional batch learning setting, the 
+To emulate
+% a static version of 
+the targeted data stream we continually draw samples with replacement from the tuning data in a bootstrapping procedure instead of training on all data for multiple epochs.
+By doing so we aim to increase data variability% better: randomness?
+, and therefore the resemblance to an actual data stream with random distributional shifts.
+We then optimize $\eta$ with respect to the mean prequential performance over the emulated stream instead of the performance on a validation set.
+For this purpose we use a basic grid-search as is customary in batch learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}.
+We provide a detailed experimental evaluation of our approach in Section~\ref{sec:experiments}.
 
 
 \section{Parameter-Free Optimizers}
 
-Due to the high computational cost of conventional learning rate tuning, several Parameter-free variants of SGD that eliminate the learning rate entirely have been developed.
-- schaul et al.
-- orabona et Al.
-- ...
+While determining the learning rate through a separate tuning phase with parameter searches like grid- or random-search is still the de facto standard in deep learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}, this approach causes significant computational overhead.
+To avoid this overhead, several previous works have developed parameter-free variants of SGD (see Table~\ref{tab:param_free_optims}) that estimate the optimal step size online as training progresses, eliminating the learning rate entirely.
 
-However, all these optimizers target batch learning scenarios, and therefore don't explicitly account for concept drift, making it unclear which of these approaches is suitable for stream-based learning.
+In one of the earlier works, \citet{schaulNoMorePesky2013} propose \textit{vSGD} which uses first and second order moments of the gradients as well as local curvature information~\cite{schaulNoMorePesky2013} to estimate $\eta$.
+The authors obtain the latter by estimating positive diagonal entries of the Hessian with respect to the parameters through a back-propagation formula~\cite{schaulNoMorePesky2013}.
+Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space.
+
+
+However, besides \citet{schaulNoMorePesky2013} none of these optimizers target batch learning scenarios and therefore do not explicitly consider concept drift, which raises the question of whether they are suitable for stream-based learning.
 Previous work on parameter-free optimization of online deep learning models is rather limited, and mostly focused on specific applications.
--Recommender systems
--federated learning
+
+\begin{table}[]
+	\begin{tabular}{@{}lllc@{}}
+		\toprule
+		Optimizer & Complexity                      & Memory & Param. specific \\ \midrule
+		DAdapt    & $\mathcal{O}(6D)$               & $2D$   & \xmark          \\
+		DoG       & $\mathcal{O}(5D)$               & $1D$   & \xmark          \\
+		Mechanic  & $\mathcal{O}(4D)$               & $1D$   & \xmark          \\
+		WNGrad    & $\mathcal{O}(2D)$               & $0$    & \xmark          \\
+		COCOB     & $\mathcal{O}(14D)$              & $4D$   & \cmark          \\
+		vSGD      & $\mathcal{O}(21D)$\footnotemark & $4D$   & \cmark          \\\bottomrule
+	\end{tabular}
+	\caption{Overview of parameter-free first-order optimizers}\label{tab:param_free_optims}
+\end{table}
+\footnotetext[1]{Complexity for feed-forward neural networks. Since \textit{vSGD} requires additional backpropagation steps, its complexity is architecture dependent.}
 
 \section{Adaptive Optimizers}\label{sec:adaptive_optims}
 
@@ -389,7 +421,7 @@ For SGD with momentum,
 
 
 
-\section{Experiments}
+\section{Experiments}\label{sec:experiments}
 
 \begin{table}[ht]
 	\small
@@ -410,7 +442,7 @@ For SGD with momentum,
 	\caption{Datasets used for experimental evaluations.}
 \end{table}
 
-\footnotetext[1]{We used the first 100k from a total of 581k examples only.}
+\footnotetext[2]{We used the first 100k from a total of 581k examples only.}
 % \section{Results}
 
 
