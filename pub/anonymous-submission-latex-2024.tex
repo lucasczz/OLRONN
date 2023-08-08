@@ -350,13 +350,8 @@ While this approach seems intuitively sound, it bears a high risk of $\eta$ incr
 
 We therefore propose a simple adaptation to popular decaying learning rate schedules that operates in a fixed value range and increases the model's plasticity when needed by resetting $\eta$ to its original value if a concept drift has occurred.
 To this end we apply an ADWIN drift detector~\cite{bifetLearningTimeChangingData2007} to the underlying model's prequential loss to reduce the drift detection task to a computationally less expensive univariate problem.
-While this does not allow for a continuous adaptation like the technique by \citet{kunchevaAdaptiveLearningRate2008} and might therefore be less suited for more subtle drift, it offers more reliability since the initial learning rate cannot be exceeded.
-
-A popular type of approach for drift-aware learning rate scheduling in previous work is meta-learning, that aims to optimize $\eta$ with an additional optimization process.
-For instance, \citet{velosoHyperparameterSelftuningData2021} and \citet{fekriDeepLearningLoad2021} use Bayesian optimization while \citet{zhangPOLAOnlineTime2021a} use a secondary gradient descent procedure to estimate the optimal learning rate at each timestep.
-Since these methods require multiple forward passes through the network to be trained, they incur more computational overhead than most other first order optimization techniques, limiting their usefulness in often times performance critical streaming applications, which is why we excluded them from our evaluations.
-Furthermore, several drift-adaptive optimizers were developed for specific areas of application such as time series forecasting~\cite{miyaguchiCograConceptDriftAwareStochastic2019}, federated learning~\cite{canonacoAdaptiveFederatedLearning2021} and recommender systems~\cite{ferreirajoseADADRIFTAdaptiveLearning2020}.
-Due to our focus for the present work being general data stream applications, we did not further investigate these techniques either.
+While our approach does not allow for a continuous adaptation like the technique by \citet{kunchevaAdaptiveLearningRate2008} and might therefore be less suited for more subtle drift, it offers more reliability since the initial learning rate cannot be exceeded.
+\todo{Talk about drift-probability dependent resetting with P-KSWIN?}
 
 Concept drift also complicates the tuning of $\eta$, since even if data is available beforehand drift would eventually cause the stream to diverge from the distribution of data used for tuning.
 % In our experiments we investigate to which extent this effect impairs learning rate tuning on data available prior to deployment of a stream-based neural net. 
@@ -381,26 +376,34 @@ We provide a detailed experimental evaluation of our approach in Section~\ref{se
 While determining the learning rate through a separate tuning phase with parameter searches like grid- or random-search is still the de facto standard in deep learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}, this approach causes significant computational overhead.
 To avoid this overhead, several previous works have developed parameter-free variants of SGD (see Table~\ref{tab:param_free_optims}) that estimate the optimal step size online as training progresses, eliminating the learning rate entirely.
 
-In one of the earlier works, \citet{schaulNoMorePesky2013} propose \textit{vSGD} which uses first and second order moments of the gradients as well as local curvature information~\cite{schaulNoMorePesky2013} to estimate $\eta$.
+In one of the earlier works, \citet{schaulNoMorePesky2013} proposed \textit{vSGD}, which uses first and second order moments of the gradients as well as local curvature information~\cite{schaulNoMorePesky2013} to estimate $\eta$.
 The authors obtain the latter by estimating positive diagonal entries of the Hessian with respect to the parameters through a back-propagation formula~\cite{schaulNoMorePesky2013}.
-Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space.
+Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space. \todo{Did not evaluate vSGD since its old and there is no implementation yet. Is that valid?}
+
+Instead of using curvature information for adapting $\eta$, the \textit{COCOB} optimizer proposed by \citet{orabonaTrainingDeepNetworks2017} 
 
 
-However, besides \citet{schaulNoMorePesky2013} none of these optimizers target batch learning scenarios and therefore do not explicitly consider concept drift, which raises the question of whether they are suitable for stream-based learning.
+Furthermore, several studies developed paramater-free optimizers for specific areas of application such as time series forecasting~\cite{miyaguchiCograConceptDriftAwareStochastic2019,fekriDeepLearningLoad2021, zhangPOLAOnlineTime2021a}, federated learning~\cite{canonacoAdaptiveFederatedLearning2021} and recommender systems~\cite{ferreirajoseADADRIFTAdaptiveLearning2020}.
+Due to our focus for the present work being general data stream applications, we did not further investigate these techniques either.
+
+Besides \citet{schaulNoMorePesky2013} none of these optimizers target batch learning scenarios and therefore do not explicitly consider concept drift, which raises the question of whether they are suitable for stream-based learning.
 Previous work on parameter-free optimization of online deep learning models is rather limited, and mostly focused on specific applications.
 
 \begin{table}[]
+	\centering
 	\begin{tabular}{@{}lllc@{}}
 		\toprule
-		Optimizer & Complexity                      & Memory & Param. specific \\ \midrule
-		DAdapt    & $\mathcal{O}(6D)$               & $2D$   & \xmark          \\
-		DoG       & $\mathcal{O}(5D)$               & $1D$   & \xmark          \\
-		Mechanic  & $\mathcal{O}(4D)$               & $1D$   & \xmark          \\
-		WNGrad    & $\mathcal{O}(2D)$               & $0$    & \xmark          \\
-		COCOB     & $\mathcal{O}(14D)$              & $4D$   & \cmark          \\
-		vSGD      & $\mathcal{O}(21D)$\footnotemark & $4D$   & \cmark          \\\bottomrule
+		Optimizer & Complexity                      & Space             & Param. specific \\ \midrule
+		DAdapt    & $\mathcal{O}(6D)$               & $\mathcal{O}(2D)$ & \xmark          \\
+		DoG       & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \xmark          \\
+		Mechanic  & $\mathcal{O}(4D)$               & $\mathcal{O}(1D)$ & \xmark          \\
+		WNGrad    & $\mathcal{O}(2D)$               & $\mathcal{O}(0)$  & \xmark          \\
+		SGDHD     & $\mathcal{O}{4D}$               & $mathcal{O}{}$    & \xmark          \\
+		COCOB     & $\mathcal{O}(14D)$              & $\mathcal{O}(4D)$ & \cmark          \\
+		vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          \\
+		\bottomrule
 	\end{tabular}
-	\caption{Overview of parameter-free first-order optimizers}\label{tab:param_free_optims}
+	\caption{Overview of additional time- and space-complexity of parameter-free first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$.}\label{tab:param_free_optims}
 \end{table}
 \footnotetext[1]{Complexity for feed-forward neural networks. Since \textit{vSGD} requires additional backpropagation steps, its complexity is architecture dependent.}
 
