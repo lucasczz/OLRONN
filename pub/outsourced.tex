@@ -229,6 +229,39 @@ These methods dynamically adjust the learning rate based on gradient characteris
 Through our in-depth analysis and experimentation, we aim to enhance our understanding of optimizer choices in online deep learning.
 By shedding light on the impact of optimizers, learning rates, and batch sizes, and comparing the effectiveness of adaptive methods, we aim to enable researchers and practitioners to make informed decisions when selecting optimization techniques for real-time learning tasks.
 
+
+
+\subsection{Research Questions}
+\begin{itemize}
+
+	\item How does the choice for the optimizer change from batch to online learning?
+	      -> Batch learning: goal maximize batch size for best performance -> suitable for online learning?
+	      -> Learning Rate
+	      -> In-depth analysis on the influence of the learning rate and batch size on the effectiveness of online stochastic gradient descent
+	      -> Grafik SGD,
+	\item What are practical choices for gradient-based online training of deep architectures in online learning?
+	      -> Description adaptive methods
+	\item Are adaptive methods better suited in Online Deep Learning?
+	      -> Table with results
+\end{itemize}
+
+Motivation:
+\begin{itemize}
+	\item Learning rate is one of the most important hyperparameters when it comes to training deep learning models.
+	\item A small learning rate causes slow convergence, while an excessive learning rate causes instability (observable in the form of oscillations) or even increases in the training objective.
+	\item \citet{bengioPracticalRecommendationsGradientbased2012} goes as far as to say that out of all possible hyperparameters, if any, the learning rate is the one to be tuned.
+	\item This applies arguably even more so to online learning. Unlike in batch learning, for instance, repeating the entire process if training diverges is infeasible, due to the restriction that previously observed data samples can, if at all, only be stored in small numbers.
+	\item Furthermore, the trained model must be ready to predict at any given moment meaning that an inadequate learning rate has an immediate impact on the quality of generated predictions.
+	\item In batch learning it is still common practice to determine the learning rate by running multiple training runs, beginning with a high learning rate and restarting the process with a lower learning rate every time the objective value diverges~\cite{bengioPracticalRecommendationsGradientbased2012}.
+\end{itemize}
+
+Contributions:
+\begin{itemize}
+	\item In-depth analysis on the influence of the learning rate and batch size on the effectiveness of online stochastic gradient descent
+	\item Experimental comparison of different SGD-based optimizers
+	\item Investigation into possible approaches for determining an appropriate learning rate
+\end{itemize}
+
 \section{Learning Rate Scheduling}
 
 In the following, we will briefly outline the most important differences between the influence of the learning rate of first order gradient-based optimization methods in streaming- and in conventional batch learning environments.
