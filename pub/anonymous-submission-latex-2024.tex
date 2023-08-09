@@ -308,6 +308,7 @@ At the same time, a larger learning rate causing temporary loss increases, due t
 Another difference to conventional batch learning is that the distribution $p_t$ of the data stream might, and in practice most likely will, be subjected to change in the form of concept drift over time.
 Under such circumstances, the optimal parameter values $\theta^*$ move throughout the progression of the stream increasing the distance to the model parameters.
 
+\todo{Talk about theoretical convergence bound \cite{cutkoskyMechanicLearningRate2023}}
 Since the theoretically optimal learning rate $\eta^*$ is proportional to the quadratic distance between initial and optimal parameters $||\theta_1 - \theta^*||^2$ (albeit under some constraints like the absence of noise)~\cite{carmonMakingSGDParameterFree2023}, it should be larger when concept drift occurs.
 
 % Based on this notion, \citet{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that updates the learning rate using
@@ -357,16 +358,18 @@ A problem that parameter-free variants of SGD aim to solve by estimating the opt
 
 For instance, \citet{schaulNoMorePesky2013} proposed \textit{vSGD}, which, like Adam, uses first and second order moments of the gradients as well as local curvature information to estimate $\eta$~\cite{schaulNoMorePesky2013}.
 The authors obtain the latter by estimating positive diagonal entries of the Hessian with respect to the parameters through a back-propagation formula~\cite{schaulNoMorePesky2013}.
-Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space. 
+Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space.
 \todo{Did not evaluate vSGD since its old and there is no implementation. Is that valid?}
 
 Instead of using curvature information for adapting $\eta$, the \textit{COCOB} algorithm proposed by~\citet{orabonaTrainingDeepNetworks2017} models parameter optimization as a gambling problem, in which the goal is to maximize the rewards obtained from betting on each gradient.
 The model parameters are then computed based on the rewards accumulated over all previous timesteps~\cite{orabonaTrainingDeepNetworks2017}.
 % Intuitively, this yields the expectation of the optimal value over an infinite number of models operating with different learning rates. <= Add this? \todo{Source: https://discuss.pytorch.org/t/any-cocob-optimizer-implementation-in-pytorch/3780/7}
 
--SGDHD: Meta learning approach optimizing the learning rate itself also using SGD 
+-SGDHD: Meta learning approach optimizing the learning rate itself also using SGD
 -WNGrad: estimates lipschitz constant of gradient of loss function to derive learning rate $\eta$
--Mechanic: can wrap around any first order algorithm, removing the need of tuning $\eta$, % uses an update formula similar to AdaGrad enhanced by an adaptive decay of the second order moment estimate
+-Mechanic: can wrap around any first order algorithm, removing the need of tuning $\eta$, uses a base online convex optimization (OCO) algorithm as well as a meta OCO to optimize the learning rate with respect to the theoretical upper convergence bound of SGD
+-DoG: also optimizes theoretical upper bound by estimating $||\theta_0 - \theta^*||$ as $\max_{i<t}||\theta_0 - \theta_i||$
+-DAdapt: modification of the AdaGrad step size applied to weighted dual averaging \cite{duchiDualAveragingDistributed2012}, together with our key innovation: D lower bounding
 
 
 Furthermore, several studies developed paramater-free optimizers for specific areas of application such as time series forecasting~\cite{miyaguchiCograConceptDriftAwareStochastic2019,fekriDeepLearningLoad2021, zhangPOLAOnlineTime2021a}, federated learning~\cite{canonacoAdaptiveFederatedLearning2021} and recommender systems~\cite{ferreirajoseADADRIFTAdaptiveLearning2020}.
@@ -381,7 +384,7 @@ Previous work on parameter-free optimization of online deep learning models is r
 	\small
 	\begin{tabular}{@{}lllcc@{}}
 		\toprule
-		Optimizer & Runtime                            & Space             & Param. specific & LR free \\ \midrule
+		Optimizer & Runtime                         & Space             & Param. specific & LR free \\ \midrule
 		DAdapt    & $\mathcal{O}(6D)$               & $\mathcal{O}(2D)$ & \xmark          & \cmark  \\
 		DoG       & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
 		Mechanic  & $\mathcal{O}(10D)$              & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
