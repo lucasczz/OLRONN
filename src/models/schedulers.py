@@ -1,4 +1,5 @@
 import inspect
+from river.stats import EWMean
 import numpy as np
 import torch
 from torch import optim
@@ -35,6 +36,19 @@ class DriftProbaLR(lr_scheduler.LRScheduler):
             group["lr"] += (base_lr - group["lr"]) * p_drift * self.lr
 
         self._last_lr = [group["lr"] for group in self.optimizer.param_groups]
+
+class KunchevaLR(lr_scheduler.LRScheduler): 
+    def __init__(self, optimizer: Optimizer, beta=0.99, last_epoch: int = ..., verbose: bool = ...) -> None:
+        super().__init__(optimizer, last_epoch, verbose)
+        self.beta = beta 
+        self.ewm_loss = EWMean(self.beta)
+        self._step_count = 0
+        for group in optimizer.param_groups:
+            group.setdefault("initial_lr", group["lr"])
+        self.base_lrs = [group["initial_lr"] for group in optimizer.param_groups]
+
+    def step(self, metrics, epoch=None): 
+
 
 
 class DriftResetLR(lr_scheduler.LRScheduler):

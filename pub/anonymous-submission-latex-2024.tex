@@ -154,7 +154,7 @@
 \fi
 
 %Example, Multiple Authors, ->> remove \iffalse,\fi and place them surrounding AAAI title to use it
-\title{The Right Learning Rate at the Right Time}
+\title{Learning Rate Optimization for Online Deep Learning}
 \author{
     % Authors
     Lucas Cazzonelli\textsuperscript{\rm 1},
@@ -180,12 +180,15 @@
 
 \begin{abstract}
 
-	\noindent A major factor for deep learning that led to their successfull application is besides the quality and amount of data, or the underlying architecture the appropiate choice of the optimizer.
-	In the context of batch learning, where all data is available at a time, extensive research has been conducted towards this topic and led to massive impacts not only in research. 
-	Due to the widespread use of data streams as well as the increasing need for real-time learning and prediction, e.g. on IoT edge devices or in all types of digital platforms, exploring the optimal choice of the model's optimizer with respect to the evolving environment of data streams becomes crucial.
-	This paper focuses on bridging the gap in knowledge by investigating (i) how the choice of optimizer changes from batch learning to online learning scenarios, (ii) proposes different stratagies for adaptive learning rates and (iii) compares them to already in batch learning established optimizers.
-	Our study, therefore, conducts an in-depth analysis on the impact of the choice of (i) the optimizer, (ii) the learning rate and its adaptation strategy. 
-	We measure this impact based on the (i) predictive performance and (ii) capability of adapting to changes on the underlying data pattern, also referred to as concept drift, that might occur over time within the evolving data stream.
+	\noindent The efficient training via gradient-based optimization techniques is an essential building block of the success of deep learning.
+	These techniques have been enabled in part by extensive research on the impact and the effective estimation of an appropriate learning rate.
+	Despite the proliferation of data streams produced by IoT devices, digital platforms etc., previous research has been largely focused on batch learning, which assumes that all training data is available at once.
+	However, because the gradual emergence and non-stationarity of data, as well as other characteristics, present additional challenges, the insights from batch learning may not be applicable to deep learning in streaming environments.
+	In this work, we seek to address this knowledge gap by (i) evaluating and comparing common learning rate schedules and optimizers, (ii) exploring adaptations of these techniques and (iii) providing insights into effective learning rate tuning in the context of stream-based deep learning.
+
+
+	% Our study, therefore, conducts an in-depth analysis on the impact of the choice of (i) the optimizer, (ii) the learning rate and its adaptation strategy.
+	% We measure this impact based on the (i) predictive performance and (ii) capability of adapting to changes on the underlying data pattern, also referred to as concept drift, that might occur over time within the evolving data stream.
 	%Additionally, we explore practical choices for gradient-based online training of deep architectures, with a specific emphasis on adaptive methods.
 	%These methods dynamically adjust the learning rate based on gradient characteristics, offering potential advantages in online learning scenarios.
 
@@ -307,15 +310,16 @@ Under such circumstances, the optimal parameter values $\theta^*$ move throughou
 
 Since the theoretically optimal learning rate $\eta^*$ is proportional to the quadratic distance between initial and optimal parameters $||\theta_1 - \theta^*||^2$ (albeit under some constraints like the absence of noise)~\cite{carmonMakingSGDParameterFree2023}, it should be larger when concept drift occurs.
 
-Based on this notion, \citet{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that updates the learning rate using
-\begin{equation}
-	\eta_{t+1} = \eta_t^{1+(\mathcal{L}_t - \bar{\mathcal{L}}_{t-1})},
-\end{equation}
-where $\mathcal{L}_t$ represents the loss for the current sample, and $\bar{\mathcal{L}}_{t-1}$ a rolling mean of past losses.
-By doing so, \citet{kunchevaAdaptiveLearningRate2008} increases in loss lead to increases in the learning rate and vice versa.
-While this approach seems intuitively sound, it bears a high risk of $\eta$ increasing indefinitely, since increases in loss caused by an excessive learning rate would lead to a feedback loop.
+% Based on this notion, \citet{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that updates the learning rate using
+% \begin{equation}
+% 	\eta_{t+1} = \eta_t^{1+(\mathcal{L}_t - \bar{\mathcal{L}}_{t-1})},
+% \end{equation}
+% where $\mathcal{L}_t$ represents the loss for the current sample, and $\bar{\mathcal{L}}_{t-1}$ a rolling mean of past losses.
+% By doing so, \citet{kunchevaAdaptiveLearningRate2008} increases in loss lead to increases in the learning rate and vice versa.
+% While this approach seems intuitively sound, it bears a high risk of $\eta$ increasing indefinitely, since increases in loss caused by an excessive learning rate would lead to a feedback loop. 
+% ^^ Does not make sense since direction of adaptations will reverse if $\eta$ increases above 1
 
-We therefore propose a simple adaptation to popular decaying learning rate schedules that operates in a fixed value range and increases the model's plasticity when needed by resetting $\eta$ to its original value if a concept drift has occurred.
+We therefore propose a simple adaptation to decaying learning rate schedules that operates in a fixed value range and restore the model's ability to adapt to changes when needed by resetting $\eta$ to its original value if a concept drift has occurred.
 To this end we apply an ADWIN drift detector~\cite{bifetLearningTimeChangingData2007} to the underlying model's prequential loss to reduce the drift detection task to a computationally less expensive univariate problem.
 While our approach does not allow for a continuous adaptation like the technique by \citet{kunchevaAdaptiveLearningRate2008} and might therefore be less suited for more subtle drift, it offers more reliability since the initial learning rate cannot be exceeded.
 \todo{Talk about drift-probability dependent resetting with P-KSWIN?}
@@ -338,57 +342,59 @@ For this purpose we use a basic grid-search as is customary in batch learning~\c
 We provide a detailed experimental evaluation of our approach in Section~\ref{sec:experiments}.
 
 
-\section{Parameter-Free Optimizers}
+\section{Adaptive Optimizers}
 
 While determining the learning rate through a separate tuning phase with parameter searches like grid- or random-search is still the de facto standard in deep learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}, this approach causes significant computational overhead.
-To avoid this overhead, several previous works have developed parameter-free variants of SGD (see Table~\ref{tab:param_free_optims}) that estimate the optimal step size online as training progresses, eliminating the learning rate entirely.
 
-In one of the earlier works, \citet{schaulNoMorePesky2013} proposed \textit{vSGD}, which uses first and second order moments of the gradients as well as local curvature information~\cite{schaulNoMorePesky2013} to estimate $\eta$.
+To reduce this overhead, several previous works have developed \textit{adaptive optimizers}, which adjust the learning rate based on additional information about the loss landscape obtained from previous gradients at each optimization step, increasing the robustness with respect to the step size~\cite{duchiAdaptiveSubgradientMethods2011}.
+
+One of the earlier optimizers in this category is \textit{AdaGrad}~\cite{duchiAdaptiveSubgradientMethods2011}, which divides the learning rate by the square root of the uncentered total sum of squares over all previous gradients, for each model parameter resulting in a parameter specific learning rate.
+Unlike a single global value, parameter specific learning rates therefore not only influence the length, but also the direction of update steps, in case of AdaGrad by shifting updates in the direction of smaller gradients~\cite{wuWNGradLearnLearning2020}. % Weglassen? 
+Among several other approaches like AdaDelta~\cite[see e.g.]{zeilerADADELTAAdaptiveLearning2012a} and RMSProp~\cite{tielemanLecture5rmspropDivide2012}, \citet{kingmaAdamMethodStochastic2017b} subsequently introduced Adam as an extension of AdaGrad, that additionally takes a momentum term of past gradients into account~\cite[see]{sutskeverImportanceInitializationMomentum2013} to speed up the convergence for parameters with consistent gradients.
+
+While adaptive approaches such as AdaGrad and Adam have been shown to reduce the dependence on the learning rate, they often times still require manual tuning~\cite{wuWNGradLearnLearning2020}.
+A problem that parameter-free variants of SGD aim to solve by estimating the optimal step size online as training progresses, thus eliminating the learning rate altogether.
+
+For instance, \citet{schaulNoMorePesky2013} proposed \textit{vSGD}, which, like Adam, uses first and second order moments of the gradients as well as local curvature information to estimate $\eta$~\cite{schaulNoMorePesky2013}.
 The authors obtain the latter by estimating positive diagonal entries of the Hessian with respect to the parameters through a back-propagation formula~\cite{schaulNoMorePesky2013}.
-Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space. \todo{Did not evaluate vSGD since its old and there is no implementation yet. Is that valid?}
+Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space. 
+\todo{Did not evaluate vSGD since its old and there is no implementation. Is that valid?}
 
-Instead of using curvature information for adapting $\eta$, the \textit{COCOB} optimizer proposed by \citet{orabonaTrainingDeepNetworks2017} 
+Instead of using curvature information for adapting $\eta$, the \textit{COCOB} algorithm proposed by~\citet{orabonaTrainingDeepNetworks2017} models parameter optimization as a gambling problem, in which the goal is to maximize the rewards obtained from betting on each gradient.
+The model parameters are then computed based on the rewards accumulated over all previous timesteps~\cite{orabonaTrainingDeepNetworks2017}.
+% Intuitively, this yields the expectation of the optimal value over an infinite number of models operating with different learning rates. <= Add this? \todo{Source: https://discuss.pytorch.org/t/any-cocob-optimizer-implementation-in-pytorch/3780/7}
+
+-SGDHD: Meta learning approach optimizing the learning rate itself also using SGD 
+-WNGrad: estimates lipschitz constant of gradient of loss function to derive learning rate $\eta$
+-Mechanic: can wrap around any first order algorithm, removing the need of tuning $\eta$, % uses an update formula similar to AdaGrad enhanced by an adaptive decay of the second order moment estimate
 
 
 Furthermore, several studies developed paramater-free optimizers for specific areas of application such as time series forecasting~\cite{miyaguchiCograConceptDriftAwareStochastic2019,fekriDeepLearningLoad2021, zhangPOLAOnlineTime2021a}, federated learning~\cite{canonacoAdaptiveFederatedLearning2021} and recommender systems~\cite{ferreirajoseADADRIFTAdaptiveLearning2020}.
 Due to our focus for the present work being general data stream applications, we did not further investigate these techniques either.
 
-Besides \citet{schaulNoMorePesky2013} none of these optimizers target batch learning scenarios and therefore do not explicitly consider concept drift, which raises the question of whether they are suitable for stream-based learning.
+Despite the fact that this family of optimizers is inherently well-suited for the highly non-stationary streaming data~\cite{schaulNoMorePesky2013}, their application on this kind of data has rarely been investigated.
+Besides \citet{schaulNoMorePesky2013} none of these optimizers target online learning scenarios and therefore do not explicitly consider concept drift, which raises the question of whether they are suitable for stream-based learning.
 Previous work on parameter-free optimization of online deep learning models is rather limited, and mostly focused on specific applications.
 
-\begin{table}[]
+\begin{table}[ht]
 	\centering
-	\begin{tabular}{@{}lllc@{}}
+	\small
+	\begin{tabular}{@{}lllcc@{}}
 		\toprule
-		Optimizer & Complexity                      & Space             & Param. specific \\ \midrule
-		DAdapt    & $\mathcal{O}(6D)$               & $\mathcal{O}(2D)$ & \xmark          \\
-		DoG       & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \xmark          \\
-		Mechanic  & $\mathcal{O}(4D)$               & $\mathcal{O}(1D)$ & \xmark          \\
-		WNGrad    & $\mathcal{O}(2D)$               & $\mathcal{O}(0)$  & \xmark          \\
-		SGDHD     & $\mathcal{O}{4D}$               & $mathcal{O}{}$    & \xmark          \\
-		COCOB     & $\mathcal{O}(14D)$              & $\mathcal{O}(4D)$ & \cmark          \\
-		vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          \\
-		\bottomrule
+		Optimizer & Runtime                            & Space             & Param. specific & LR free \\ \midrule
+		DAdapt    & $\mathcal{O}(6D)$               & $\mathcal{O}(2D)$ & \xmark          & \cmark  \\
+		DoG       & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
+		Mechanic  & $\mathcal{O}(10D)$              & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
+		WNGrad    & $\mathcal{O}(2D)$               & $\mathcal{O}(0)$  & \xmark          & \cmark  \\
+		SGDHD     & $\mathcal{O}(2D)$               & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
+		COCOB     & $\mathcal{O}(14D)$              & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\
+		Adam      & $\mathcal{O}(12D)$              & $\mathcal{O}(2D)$ & \cmark          & \xmark  \\
+		vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\
+		AdaGrad   & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \cmark          & \xmark  \\ \bottomrule
 	\end{tabular}
-	\caption{Overview of additional time- and space-complexity of parameter-free first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$.}\label{tab:param_free_optims}
+	\caption{Overview of additional time- and space-complexity of adaptive first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$. We do not list convergence guarantees because the guarantees given in the original papers of different optimizers are based on different assumptions and are rarely compatible with streaming applications.}\label{tab:param_free_optims}
 \end{table}
 \footnotetext[1]{Complexity for feed-forward neural networks. Since \textit{vSGD} requires additional backpropagation steps, its complexity is architecture dependent.}
-
-\section{Adaptive Optimizers}\label{sec:adaptive_optims}
-
-In the case of adaptive approaches like SGD with momentum~\cite{rumelhartLearningRepresentationsBackpropagating1986a}, AdaGrad~\cite{duchiAdaptiveSubgradientMethods2011} or Adam~\cite{kingmaAdamMethodStochastic2017b} the learning rate also varies with respect to individual model parameters, in which case
-\begin{equation}
-	\eta_t \in \mathbb{R}^{D} \qquad \forall t \in 0,\ldots,T.
-\end{equation}
-For SGD with momentum,
-\begin{equation}
-	\eta_t = \alpha \cdot \sum_{i=1}^{t} \beta^{t-i} \cdot \frac{g_i}{g_t}
-\end{equation}
-
-- Adaptive learning rate optimizers for batch learning \citep{kingmaAdamMethodStochastic2017b,zeilerADADELTAAdaptiveLearning2012a,duchiAdaptiveSubgradientMethods2011,tielemanLecture5rmspropDivide2012}
-- Learning-Rate free optimizers \citep{wuWNGradLearnLearning2020,schaulNoMorePesky2013,orabonaTrainingDeepNetworks2017,miyaguchiCograConceptDriftAwareStochastic2019,
-	vanervenMetaGradMultipleLearning2016a,baydinOnlineLearningRate2018}
-
 
 
 \section{Experiments}\label{sec:experiments}
