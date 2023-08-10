@@ -1,5 +1,6 @@
 import inspect
 from river.stats import EWMean
+from collections import deque
 import numpy as np
 import torch
 from torch import optim
@@ -37,18 +38,35 @@ class DriftProbaLR(lr_scheduler.LRScheduler):
 
         self._last_lr = [group["lr"] for group in self.optimizer.param_groups]
 
-class KunchevaLR(lr_scheduler.LRScheduler): 
-    def __init__(self, optimizer: Optimizer, beta=0.99, last_epoch: int = ..., verbose: bool = ...) -> None:
-        super().__init__(optimizer, last_epoch, verbose)
-        self.beta = beta 
-        self.ewm_loss = EWMean(self.beta)
-        self._step_count = 0
+
+class KunchevaLR(lr_scheduler.LRScheduler):
+    def __init__(
+        self,
+        optimizer: Optimizer,
+        window_size=32,
+        last_epoch: int = ...,
+        verbose: bool = ...,
+    ) -> None:
+        self.optimizer = optimizer
+        self.last_epoch = last_epoch
         for group in optimizer.param_groups:
             group.setdefault("initial_lr", group["lr"])
-        self.base_lrs = [group["initial_lr"] for group in optimizer.param_groups]
+        self.losses = deque([], maxlen=2 * window_size)
+        self.window_size = window_size
+        self._step_count = 0
 
-    def step(self, metrics, epoch=None): 
+    def step(self, metrics, epoch=None):
+        self._step_count += 1
+        self.losses.append(metrics)
+        if len(self.losses) == self.window_size * 2:
+            loss_new = np.mean(list(self.losses)[self.window_size :])
+            loss_old = np.mean(list(self.losses)[: self.window_size])
+            delta_loss = loss_old - loss_new
+            for group in self.optimizer.param_groups:
+                group["lr"] = group["lr"] ** (1 + delta_loss)
+                group["lr"] = min(group["lr"], 1.0)
 
+        self._last_lr = [group["lr"] for group in self.optimizer.param_groups]
 
 
 class DriftResetLR(lr_scheduler.LRScheduler):

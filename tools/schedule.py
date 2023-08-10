@@ -28,15 +28,15 @@ from tools.base import (
 )
 
 # Set up logging path
-run_name = "new_reset"
+run_name = "adam_no_reset"
 save_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 
 # Experiment config
 optimizers = [
-    ("SGD", optim.SGD, [2**-i for i in range(-1, 9)]),
+    # ("SGD", optim.SGD, [2**-i for i in range(-1, 9)]),
     ("Adam", optim.Adam, [2**-i for i in range(3, 13)]),
-    ("DoG", DoG, [1]),
+    # ("DoG", DoG, [1]),
 ]
 
 plateau_schedulers = [
@@ -57,7 +57,7 @@ cyclic_schedulers = [
 ]
 
 schedulers = exp_schedulers + step_schedulers + cyclic_schedulers
-drift_confidences = [1e-4]
+drift_confidences = [0]
 
 
 configs = []

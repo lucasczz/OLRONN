@@ -187,11 +187,6 @@
 	In this work, we seek to address this knowledge gap by (i) evaluating and comparing common learning rate schedules and optimizers, (ii) exploring adaptations of these techniques and (iii) providing insights into effective learning rate tuning in the context of stream-based deep learning.
 
 
-	% Our study, therefore, conducts an in-depth analysis on the impact of the choice of (i) the optimizer, (ii) the learning rate and its adaptation strategy.
-	% We measure this impact based on the (i) predictive performance and (ii) capability of adapting to changes on the underlying data pattern, also referred to as concept drift, that might occur over time within the evolving data stream.
-	%Additionally, we explore practical choices for gradient-based online training of deep architectures, with a specific emphasis on adaptive methods.
-	%These methods dynamically adjust the learning rate based on gradient characteristics, offering potential advantages in online learning scenarios.
-
 \end{abstract}
 
 \section{Introduction}
@@ -238,29 +233,50 @@ In the following, we will briefly outline the most important differences between
 
 First order gradient-based optimization approaches like stochastic gradient descent and its derivatives aim to iteratively minimize the error of a DL model using only first order gradient information at each step $t$. We denote the gradient of the prediction error for a mini-batch of training samples $y_t, X_t \sim p_t$ with respect to model-parameters $\theta$ as
 \begin{equation}
-	g_t(\theta)   =   \nabla_{\theta} \mathcal{L}(y_t, f(X_t; \theta)),
+	g_t = \nabla_{\theta} \mathcal{L}(y_t, f(X_t; \theta)),
 \end{equation}
-where $\mathcal{L}$ represents a loss function (e.g., cross-entropy for classification- or mean squared error for regression tasks). Using this notation, the update performed by SGD with a constant learning rate $\eta$ at each iteration $t$ is given by
+where $\mathcal{L}$ represents a loss function.
+Using this notation, the parameter values that SGD yields at timestep $t$ are given by
 \begin{equation}
-	\theta_{t+1}  = \theta_{t} - \eta \cdot g_t(\theta_t).
+	\theta_{t}  = \theta_{0} - \sum_{i=0}^t \eta_t \cdot g_t,
 \end{equation}
+where $\eta_t$ denotes the learning rate. The task of optimizing the learning rate in a batch learning setting can then be defined as
+\begin{equation}
+	\label{eq:batch_lr_optim}
+	\begin{alignedat}{3}
+		& \!\min_{\eta_0, \ldots, \eta_T} & \, & \sum_{i=1}^{V}\mathcal{L}(y_i, f(X_i; \theta_T)) &    &                              \\
+		& \text{s.t.}                     &    & X_i, y_i  \sim p^{(v)}                           & \  & \forall i \in {1, \ldots, V}
+		,
+	\end{alignedat}
+\end{equation}
+where $p^{(v)}$ is a distribution of held-out validation data and $T$ the total number of training steps.
 
-Many previous works deal with the intricacies of SGD in the context of training deep architectures in a batch learning setting (see \citet{bengioPracticalRecommendationsGradientbased2012,bottouStochasticGradientDescent2012,Goodfellow-et-al-2016}).
-The primary trade-off identified by these works when it comes to  the selection of an appropriate learning rate is that between the speed of convergence and the amount of stochasticity.
-While increasing the learning rate speeds up convergence, it also increases stochasticity and therefore leads to the divergence of the training criterion beyond a certain threshold.
-\Citet{smithBayesianPerspectiveGeneralization2018} for instance, found that when modelling SGD as a stochastic differential equation, the “noise scale” is directly tied to $\eta$~\cite{smithBayesianPerspectiveGeneralization2018}.
+The primary trade-off to consider with respect to the choice of $\eta$ is that increasing the learning rate speeds up convergence, but at the same time also increases stochasticity and therefore leads to the divergence of the training criterion beyond a certain threshold.~\cite{bengioPracticalRecommendationsGradientbased2012}.
+In fact, \citet{smithBayesianPerspectiveGeneralization2018}, found that when modelling SGD as a stochastic differential equation, the “noise scale” is directly tied to $\eta$~\cite{smithBayesianPerspectiveGeneralization2018}.
 In biological terms, increasing the learning rate increases plasticity, whereas decreasing it increases stability. % Maybe remove? I like the biological analogy, but there are no sources supporting the claim. 
 
-
-To get the best out of large and small values for $\eta$, a learning rate schedule $(\eta_1,\ldots,\eta_T)$, which assigns a learning rate to each update step $t \in 1,\ldots,T$ can be used.
-It is for instance common to set a high learning rate initially and decrease it throughout the training process.
-This ensures fast convergence and a higher level of noise at the start of training, which has been claimed to help SGD skip over sharp minima with poor generalization~\cite{hochreiterFlatMinima1997,chaudhariEntropySGDBiasingGradient2017}, while mitigating jumping around potential minima at later stages.
+To ensure fast convergence at the start of training, while mitigating jumping around potential minima at later stages it is common to use a decaying schedule starting with a large learning rate that decreases over time.
+An additional benefit of this approach is that of potentially better generalization, since larger learning rates can help skipping over sharp minima with poor generalization~\cite{hochreiterFlatMinima1997,chaudhariEntropySGDBiasingGradient2017}.
 Some have likened this procedure to simulated annealing, which shifts its focus from exploration at high temperatures to exploitation once temperatures have sufficiently decreased~\cite{smithDonDecayLearning2018}.
 
-A simple way to achieve such a schedule is to exponentially decay $\eta$ after each update by multiplying it with a factor $\gamma < 1$, although some practitioners have come to prefer schedules with sharper drop-offs like step schedules that decrease $\eta$ by a larger margin after a certain number of updates~\cite{smithDonDecayLearning2018}.
-Other popular options include cyclic learning rate schedules which oscillate  $\eta$ between a base- and a maximum or minimum value over a predefined interval.
+Commonly used forms of decay is exponential decay, where $\eta_{t}$ is calculated as
+\begin{equation}
+	\eta_{t} = \eta_0 * \gamma^t,
+\end{equation}
+with $\gamma < 1$, and stepwise decay, which can e.g. be defined as
+\begin{equation}
+	\eta_{t} = \eta_0 * \gamma^{\lfloor t/s \rfloor},
+\end{equation}
+with an interval between steps of $s$.
+
+Other popular options include cyclic learning rate schedules which oscillate $\eta$ between a base- and a maximum or minimum value over a predefined interval.
+For a basic triangular cycle, the learning rate calculates as
+\begin{equation}
+	\eta_t = \eta_0 + \frac{\hat{\eta} - \eta_0}{s} \cdot \min_{i\leq\lceil t/s \rceil} \{|t-i\cdot s|\}
+\end{equation}
 Some studies~\cite{smithCyclicalLearningRates2017, smithSuperConvergenceVeryFast2018a} have found cyclic schedules to significantly speed up the convergence of neural networks even when compared to adaptive techniques like Adam~\cite{kingmaAdamMethodStochastic2017b}.
-\Citet{wuDemystifyingLearningRate2019b} provide a detailed analysis on the effect of learning rate policies like the aforementioned ones.
+While there are many other learning rate schedules, we focus on the use of the three aforementioned schedules within data streaming applications in this work.
+For a comprehensive overview and detailed analysis on learning rate policies, we refer to \citet{wuDemystifyingLearningRate2019b}.
 
 In contrast to the field of conventional batch learning, the impact of the learning rate in stream-based deep learning is a lesser studied issue. According to \citet{bifetMOAMassiveOnline2010} a machine learning model operating in such an environment must be able to
 \begin{center}
@@ -277,20 +293,7 @@ In contrast to the field of conventional batch learning, the impact of the learn
 These requirements lead to significant differences with respect to the problem of learning rate optimization compared to batch learning.
 Nevertheless, only few studies on the impact and tuning of the learning rate in stream-based deep learning exist.
 
-
-In batch learning, the task of finding an optimal schedule for $\eta$ can be defined as
-\begin{equation}
-	\label{eq:batch_lr_optim}
-	\begin{alignedat}{3}
-		& \!\min_{\eta_0, \ldots, \eta_T} & \, & \sum_{i=1}^{V}\mathcal{L}(y_i, f(X_i; \theta_T)) &    &                              \\
-		& \text{s.t.}                     &    & X_i, y_i  \sim p^{(v)}                           & \  & \forall i \in {1, \ldots, V}
-		,
-	\end{alignedat}
-\end{equation}
-where $p^{(v)}$ is a distribution of validation data, usually made up of a dataset split off from the training dataset.
-Verbally, learning rate optimization in batch learning aims to find a schedule $(\eta_0, \ldots, \eta_T)$ leading to parameter values $\theta_T$ at the end of a training run that in turn minimize the prediction error for validation data.
-
-Under the requirements described above, however, we must define the task differently as
+Under the requirements described above, however, we must reformulate Problem~\ref{eq:batch_lr_optim} as
 \begin{equation}
 	\label{eq:stream_lr_optim}
 	\begin{alignedat}{3}
@@ -301,23 +304,24 @@ Under the requirements described above, however, we must define the task differe
 Compared to Problem~\eqref{eq:batch_lr_optim}, the most apparent difference is that there is no separate validation data.
 Instead, due to Requirement~\ref{rq:predict_any_time}, the goal is to minimize $\mathcal{L}$ with respect to the next instances $X_{t+1}, y_{t+1}$ at each timestep $t$.
 
-This means that in contrast to Problem~\eqref{eq:batch_lr_optim}, not only the final parameters $\theta_T$ but every parameter configuration $\theta_t$ in the entire trajectory contributes equally to the objective.
+This means that in contrast to Problem~\eqref{eq:batch_lr_optim}, not only the loss achieved by the final parameters $\theta_T$, but the loss suffered at every timestep of the stream contributes equally to the objective.
 Therefore, speed of convergence is of much larger importance in the streaming setting, whereas the performance of the final parameters $\theta_T$ has relatively little impact.
 Since memory is limited (Requirement~\ref{rq:limited_memory}), it is also not possible to continue training on previously observed data as long as $\mathcal{L}$ decreases, which puts an even greater emphasis on quick adaptation.
 At the same time, a larger learning rate causing temporary loss increases, due to skipping over sharp minima can be suboptimal with respect to Problem~\ref{eq:stream_lr_optim} even if it eventually yields a lower loss.
 Another difference to conventional batch learning is that the distribution $p_t$ of the data stream might, and in practice most likely will, be subjected to change in the form of concept drift over time.
 Under such circumstances, the optimal parameter values $\theta^*$ move throughout the progression of the stream increasing the distance to the model parameters.
 
-\todo{Talk about theoretical convergence bound \cite{cutkoskyMechanicLearningRate2023}}
+
 Since the theoretically optimal learning rate $\eta^*$ is proportional to the quadratic distance between initial and optimal parameters $||\theta_1 - \theta^*||^2$ (albeit under some constraints like the absence of noise)~\cite{carmonMakingSGDParameterFree2023}, it should be larger when concept drift occurs.
 
-% Based on this notion, \citet{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that updates the learning rate using
-% \begin{equation}
-% 	\eta_{t+1} = \eta_t^{1+(\mathcal{L}_t - \bar{\mathcal{L}}_{t-1})},
-% \end{equation}
-% where $\mathcal{L}_t$ represents the loss for the current sample, and $\bar{\mathcal{L}}_{t-1}$ a rolling mean of past losses.
-% By doing so, \citet{kunchevaAdaptiveLearningRate2008} increases in loss lead to increases in the learning rate and vice versa.
-% While this approach seems intuitively sound, it bears a high risk of $\eta$ increasing indefinitely, since increases in loss caused by an excessive learning rate would lead to a feedback loop. 
+Based on this notion, \citet{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that updates the learning rate using
+\begin{equation}
+	\eta_{t+1} = \eta_t^{1+(\mathcal{L}_t - \bar{\mathcal{L}}_{t-1})},
+\end{equation}
+where $\mathcal{L}_t$ represents the loss for the current sample, and $\bar{\mathcal{L}}_{t-1}$ a rolling mean of past losses.
+By doing so, \citet{kunchevaAdaptiveLearningRate2008} increases in loss lead to increases in the learning rate and vice versa.
+While this approach seems intuitively sound, it bears a high risk of $\eta$ increasing indefinitely, since increases in loss caused by an excessive learning rate would lead to a feedback loop.
+Furthermore, strongly
 % ^^ Does not make sense since direction of adaptations will reverse if $\eta$ increases above 1
 
 We therefore propose a simple adaptation to decaying learning rate schedules that operates in a fixed value range and restore the model's ability to adapt to changes when needed by resetting $\eta$ to its original value if a concept drift has occurred.
@@ -359,14 +363,14 @@ A problem that parameter-free variants of SGD aim to solve by estimating the opt
 For instance, \citet{schaulNoMorePesky2013} proposed \textit{vSGD}, which, like Adam, uses first and second order moments of the gradients as well as local curvature information to estimate $\eta$~\cite{schaulNoMorePesky2013}.
 The authors obtain the latter by estimating positive diagonal entries of the Hessian with respect to the parameters through a back-propagation formula~\cite{schaulNoMorePesky2013}.
 Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space.
-\todo{Did not evaluate vSGD since its old and there is no implementation. Is that valid?}
+Due to the lack of publicly available implementations of the non-trivial algorithm, we have not been able to evaluate vSGD at the time of writing. \todo{Did not evaluate vSGD since its old and there is no implementation. Is that valid?}
 
 Instead of using curvature information for adapting $\eta$, the \textit{COCOB} algorithm proposed by~\citet{orabonaTrainingDeepNetworks2017} models parameter optimization as a gambling problem, in which the goal is to maximize the rewards obtained from betting on each gradient.
 The model parameters are then computed based on the rewards accumulated over all previous timesteps~\cite{orabonaTrainingDeepNetworks2017}.
 % Intuitively, this yields the expectation of the optimal value over an infinite number of models operating with different learning rates. <= Add this? \todo{Source: https://discuss.pytorch.org/t/any-cocob-optimizer-implementation-in-pytorch/3780/7}
 
 -SGDHD: Meta learning approach optimizing the learning rate itself also using SGD
--WNGrad: estimates lipschitz constant of gradient of loss function to derive learning rate $\eta$
+-WNGrad: estimates Lipschitz constant of gradients to derive learning rate $\eta$
 -Mechanic: can wrap around any first order algorithm, removing the need of tuning $\eta$, uses a base online convex optimization (OCO) algorithm as well as a meta OCO to optimize the learning rate with respect to the theoretical upper convergence bound of SGD
 -DoG: also optimizes theoretical upper bound by estimating $||\theta_0 - \theta^*||$ as $\max_{i<t}||\theta_0 - \theta_i||$
 -DAdapt: modification of the AdaGrad step size applied to weighted dual averaging \cite{duchiDualAveragingDistributed2012}, together with our key innovation: D lower bounding
@@ -392,7 +396,7 @@ Previous work on parameter-free optimization of online deep learning models is r
 		SGDHD     & $\mathcal{O}(2D)$               & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
 		COCOB     & $\mathcal{O}(14D)$              & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\
 		Adam      & $\mathcal{O}(12D)$              & $\mathcal{O}(2D)$ & \cmark          & \xmark  \\
-		vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\
+		vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\ % Remove since not evaluated?
 		AdaGrad   & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \cmark          & \xmark  \\ \bottomrule
 	\end{tabular}
 	\caption{Overview of additional time- and space-complexity of adaptive first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$. We do not list convergence guarantees because the guarantees given in the original papers of different optimizers are based on different assumptions and are rarely compatible with streaming applications.}\label{tab:param_free_optims}

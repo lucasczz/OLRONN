@@ -1,4 +1,5 @@
 from functools import partial
+import inspect
 from dog import DoG, PolynomialDecayAverager
 import itertools
 import zipfile
@@ -94,7 +95,7 @@ def run_prequential(
     # Initialize optimizer and tracking of optimization metrics
     optim, averager, scheduler = init_optim(optim_fn, scheduler_fn, base_lr, net)
 
-    # sched_uses_metric = "metrics" in inspect.signature(scheduler.step).parameters
+    sched_uses_metric = "metrics" in inspect.signature(scheduler.step).parameters
     exp_tracker = ExperimentLogger(
         optim=optim,
         parameters=parameters,
@@ -118,19 +119,23 @@ def run_prequential(
         # Perform backward pass
         optim.zero_grad()
         loss_sum.backward()
+        loss_sum = loss_sum.cpu().item()
         optim.step()
         if averager is not None:
             averager.step()
         exp_tracker.update(y=y, y_pred=y_pred, loss=loss)
 
         if scheduler_fn is not None:
-            scheduler.step()
+            if sched_uses_metric:
+                scheduler.step(loss_sum)
+            else:
+                scheduler.step()
         if isinstance(drift_detector, OneTailedPKSWIN): 
-            p_drift = drift_detector.update(loss_sum.cpu().item())
+            p_drift = drift_detector.update(loss_sum)
             for group in optim.param_groups:
                 group["lr"] += (base_lr - group["lr"]) * p_drift 
-        if drift_detector is not None:
-            drift_detected = drift_detector.update(loss_sum.cpu().item()).drift_detected
+        elif drift_detector is not None:
+            drift_detected = drift_detector.update(loss_sum).drift_detected
             if drift_detected:
                 if reset_weights:
                     net = net_fn(

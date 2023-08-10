@@ -1,35 +1,4 @@
 import torch
-from dog import DoG
-
-
-class DDoG(DoG):
-    def _update_group_state(self, group, init):
-        # treat all layers as one long vector
-        if self._first_step:
-            group["rbar"] = group["reps_rel"] * (
-                1 + torch.stack([p.norm() for p in group["params"]]).norm()
-            )
-            group["G"] = (
-                torch.stack(
-                    [(p.grad.detach() ** 2).sum() for p in group["params"]]
-                ).sum()
-                + group["eps"]
-            )
-        else:
-            curr_d = torch.stack(
-                [torch.norm(p.detach() - pi) for p, pi in zip(group["params"], init)]
-            ).norm()
-            group["rbar"] = torch.maximum(group["rbar"], curr_d) * 0.999
-            group["G"] += torch.stack(
-                [(p.grad.detach() ** 2).sum() for p in group["params"]]
-            ).sum()
-            group["G"] *= 0.999
-        assert (
-            group["G"] > 0
-        ), f'DoG cannot work when G is not strictly positive. got: {group["G"]}'
-        group["eta"] = [group["lr"] * group["rbar"] / torch.sqrt(group["G"])] * len(
-            group["params"]
-        )
 
 
 class WNGrad(torch.optim.Optimizer):

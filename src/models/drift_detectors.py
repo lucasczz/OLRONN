@@ -990,13 +990,13 @@ class OneTailedKSWIN:
 
 
 class OneTailedPKSWIN:
-    def __init__(self, alpha=0.005, window_size=100, stat_size=30, seed=42) -> None:
+    def __init__(self, bias=0.5, window_size=100, stat_size=30, seed=42) -> None:
         self.window = collections.deque([], maxlen=window_size)
         self.window_size = window_size
         self.stat_size = stat_size
         self.n = 0
         self._rng = random.Random(seed)
-        self.alpha = alpha
+        self.bias = bias
         self.drift_detected = False
 
     def update(self, value):
@@ -1037,9 +1037,8 @@ class OneTailedPKSWIN:
                 _, p = stats.ks_2samp(
                     rnd_window, most_recent, alternative="greater", method="auto"
                 )
-                self.drift_detected = p < self.alpha
 
-        return 1 - p
+        return (1 - p) * self.bias
 
 
 class Manual:
