@@ -269,7 +269,7 @@ In fact, \citet{smithBayesianPerspectiveGeneralization2018}, found that when mod
 In biological terms, increasing the learning rate increases plasticity, whereas decreasing it increases stability.
 % Maybe remove? I like the biological analogy, but its usually used to describe plasticity and stability w.r.t. forgetting.
 
-\section{Learning Rate Schedules}
+\subsection{Learning Rate Schedules}
 
 While using a single fixed learning rate $\eta_t = \eta$ for all iterations simplifies the learning selection and can often yield sufficient performance, results can generally be improved with a schedule with step sizes specific to each iteration~\cite{wuDemystifyingLearningRate2019b}. 
 To ensure fast convergence at the start of training, while mitigating jumping around potential minima at later stages it is, for instance, common to use a decaying schedule starting with a large learning rate that decreases over time.
@@ -295,7 +295,7 @@ Some studies~\cite{smithCyclicalLearningRates2017, smithSuperConvergenceVeryFast
 While there are many other learning rate schedules, we focus on the use of the three aforementioned schedules within data streaming applications in this work.
 For a comprehensive overview and detailed analysis on learning rate policies, we refer to \citet{wuDemystifyingLearningRate2019b}.
 
-\section{Adaptive Learning Rates}
+\subsection{Adaptive Learning Rates}
 
 While determining the learning rate through a separate tuning phase with parameter searches like grid- or random-search is still the de facto standard in deep learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}, this approach causes significant computational overhead.
 
@@ -316,12 +316,14 @@ Due to the lack of publicly available implementations of the non-trivial algorit
 
 Instead of using curvature information for adapting $\eta$, the \textit{COCOB} algorithm proposed by~\citet{orabonaTrainingDeepNetworks2017} models parameter optimization as a gambling problem, in which the goal is to maximize the rewards obtained from betting on each gradient.
 The model parameters are then computed based on the rewards accumulated over all previous timesteps~\cite{orabonaTrainingDeepNetworks2017}.
+Intuitively, this corresponds to running a meta optimization algorithm, that estimates the expected optimal learning rate in parallel with the actual parameter optimization process.
 
+Similar 
 
 -Hypergradient Descent \cite{baydinOnlineLearningRate2018}: optimizes the learning rate of stochastic optimizers like SGD using a meta-gradient descent procedure.
 -WNGrad \cite{wuWNGradLearnLearning2020}: adapts the dynamic update of AdaGrad to a single learning rate.
 
-
+Another popular fram
 In OCO literature it is well known that under the assumption of convexity of the loss function w.r.t. $\theta$, the worst-case optimal fixed learning rate is
 \begin{equation}
 	\eta^* = \frac{\theta^* - \theta_0}{\sqrt{\sum_{t=0}^{T} ||g_t||^2}},
