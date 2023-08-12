@@ -191,6 +191,21 @@ In the context of batch learning, where all data is available at a time, extensi
 Numerous methods have emerged to effectively update the weights of these architectures
 However, the investigation of optimizer choices in online learning, where models must adapt to evolving data streams, remains relatively limited.
 
+\todo{Online Learning Req. in Kontext einbetten!}
+% In contrast to conventional batch learning, the impact of the learning rate in stream-based deep learning is a lesser studied issue.
+According to \citet{bifetMOAMassiveOnline2010} a machine learning model operating in such an environment must be able to
+\begin{center}
+	\begin{varwidth}{0.5\textwidth}
+		\begin{description}
+			\item[R1:] process a single instance at a time,\label{rq:single_instance}
+			\item[R2:] process each instance in a limited amount of time,\label{rq:limited_time}
+			\item[R3:] use a limited amount of memory,\label{rq:limited_memory}
+			\item[R4:] predict at any time,\label{rq:predict_any_time}
+			\item[R5:] adapt to changes in the data distribution.\label{rq:adapt_to_drift}
+		\end{description}
+	\end{varwidth}
+\end{center}
+
 This paper aims to bridge this knowledge gap by investigating how the choice of optimizer changes when transitioning from batch learning to online learning scenarios. Specifically, we address the following research questions:
 \begin{itemize}
 	\item How does the choice for the optimizer change from batch to online learning?
@@ -223,44 +238,45 @@ These methods dynamically adjust the learning rate based on gradient characteris
 Through our in-depth analysis and experimentation, we aim to enhance our understanding of optimizer choices in online deep learning.
 By shedding light on the impact of optimizers, learning rates, and batch sizes, and comparing the effectiveness of adaptive methods, we aim to enable researchers and practitioners to make informed decisions when selecting optimization techniques for real-time learning tasks.
 
-\section{Learning Rate Scheduling}
+\section{Learning Rate in First Order Stochastic Optimization}
 
-In the following, we will explain the theoretical background of first-order stochastic optimization and the differences between its application in traditional batch learning and online learning in terms of impact of the learning rate and its optimization. 
+In the following, we will explain the theoretical background of first-order stochastic optimization enabling modern deep learning models.
+We will also outline the differences between the application of these techniques in traditional batch learning and online learning in terms of impact of the learning rate and its optimization.
 
-First-order stochastic optimization techniques like 
-
-First order gradient-based optimization approaches like stochastic gradient descent and its derivatives aim to iteratively minimize the error of a DL model using stochastic gradients of a loss function $\mathcal{L}()$ at each step $t$.
-We denote the gradient \todo{Change to sub-gradient? Literature always uses sub-gradient}
-of the prediction error for data samples $(X_t, y_t) \sim p_t$ with respect to model-parameters $\theta$ as
+First-order stochastic optimization algorithms like stochastic gradient descent typically aim to solve
 \begin{equation}
-	g_t = \nabla_{\theta} \mathcal{L}(y_t, f(X_t; \theta)),
-\end{equation} \todo{Change notation to $\mathcal{L}_t$?}
-where $\mathcal{L}$ represents a loss function.
-Based on these gradients, SGD yields parameter values
-\begin{equation}
-	\theta_{t}  = \theta_{0} - \sum_{i=0}^t \eta_t \cdot g_t,
+	\min_{\theta} \mathbb{E}_{x \sim p(x)} [\mathcal{L}(x, \theta)],
 \end{equation}
-where $\eta_t$ denotes the learning rate at timestep $t$.
-The task of optimizing the learning rate in a batch learning setting can then be defined as
+where $\mathcal{L}(x, \theta)$ represents a loss function that quantifies the predictive error of the model given a mini-batch of data samples $x$ and model parameters $\theta$.
+The blueprint process of solving this problem via first order stochastic optimization consists of the following steps for each iteration $t \in 0, \ldots, T$:
+\begin{enumerate}
+	\item Draw a mini-batch of samples $x_t$ from distribution $p(x)$.
+	\item Calculate the loss $\mathcal{L}_t = \mathcal{L}(x_t, \theta_t)$ for $x_t$ and current parameters $\theta_t$.
+	\item Compute the gradient $g_t = \nabla_{\theta_t} \mathcal{L}_t$ with respect to the parameters.
+	\item Update the parameters for the next iteration using $g_t$ and potentially information from past iterations.
+\end{enumerate}
+
+For basic SGD, we can define the parameter update performed at the end of each iteration as
 \begin{equation}
-	\label{eq:batch_lr_optim}
-	\begin{alignedat}{3}
-		& \!\min_{\eta_0, \ldots, \eta_T} & \, & \sum_{i=1}^{V}\mathcal{L}(y_i, f(X_i; \theta_T)) &    &                              \\
-		& \text{s.t.}                     &    & X_i, y_i  \sim p^{(v)}                           & \  & \forall i \in {1, \ldots, V}
-		,
-	\end{alignedat}
+	\theta_{t}  = \theta_{t} - \eta_t \cdot g_t,
 \end{equation}
-where $p^{(v)}$ is a distribution of held-out validation data and $T$ the total number of training steps.
+where $\eta_t$ denotes the step size or \textit{learning rate} at timestep $t$.
+
+As previously described, the learning rate has an immense impact on the performance of the optimization process and therefore on the performance of a deep learning model as a whole.
 
 The primary trade-off to consider with respect to the choice of $\eta$ is that increasing the learning rate speeds up convergence, but at the same time also increases stochasticity and therefore leads to the divergence of the training criterion beyond a certain threshold.~\cite{bengioPracticalRecommendationsGradientbased2012}.
 In fact, \citet{smithBayesianPerspectiveGeneralization2018}, found that when modelling SGD as a stochastic differential equation, the “noise scale” is directly tied to $\eta$~\cite{smithBayesianPerspectiveGeneralization2018}.
-In biological terms, increasing the learning rate increases plasticity, whereas decreasing it increases stability. % Maybe remove? I like the biological analogy, but there are no sources supporting the claim. 
+In biological terms, increasing the learning rate increases plasticity, whereas decreasing it increases stability.
+% Maybe remove? I like the biological analogy, but its usually used to describe plasticity and stability w.r.t. forgetting.
 
-To ensure fast convergence at the start of training, while mitigating jumping around potential minima at later stages it is common to use a decaying schedule starting with a large learning rate that decreases over time.
+\section{Learning Rate Schedules}
+
+While using a single fixed learning rate $\eta_t = \eta$ for all iterations simplifies the learning selection and can often yield sufficient performance, results can generally be improved with a schedule with step sizes specific to each iteration~\cite{wuDemystifyingLearningRate2019b}. 
+To ensure fast convergence at the start of training, while mitigating jumping around potential minima at later stages it is, for instance, common to use a decaying schedule starting with a large learning rate that decreases over time.
 An additional benefit of this approach is that of potentially better generalization, since larger learning rates can help skipping over sharp minima with poor generalization~\cite{hochreiterFlatMinima1997,chaudhariEntropySGDBiasingGradient2017}.
 Some have likened this procedure to simulated annealing, which shifts its focus from exploration at high temperatures to exploitation once temperatures have sufficiently decreased~\cite{smithDonDecayLearning2018}.
 
-Commonly used forms of decay is exponential decay, where $\eta_{t}$ is calculated as
+A commonly used forms of decay are exponential decay, where $\eta_{t}$ calculates as
 \begin{equation}
 	\eta_{t} = \eta_0 \cdot \gamma^t,
 \end{equation}
@@ -279,31 +295,94 @@ Some studies~\cite{smithCyclicalLearningRates2017, smithSuperConvergenceVeryFast
 While there are many other learning rate schedules, we focus on the use of the three aforementioned schedules within data streaming applications in this work.
 For a comprehensive overview and detailed analysis on learning rate policies, we refer to \citet{wuDemystifyingLearningRate2019b}.
 
-In contrast to conventional batch learning, the impact of the learning rate in stream-based deep learning is a lesser studied issue.
-According to \citet{bifetMOAMassiveOnline2010} a machine learning model operating in such an environment must be able to
-\begin{center}
-	\begin{varwidth}{0.5\textwidth}
-		\begin{description}
-			\item[R1:] process a single instance at a time,\label{rq:single_instance}
-			\item[R2:] process each instance in a limited amount of time,\label{rq:limited_time}
-			\item[R3:] use a limited amount of memory,\label{rq:limited_memory}
-			\item[R4:] predict at any time,\label{rq:predict_any_time}
-			\item[R5:] adapt to changes in the data distribution.\label{rq:adapt_to_drift}
-		\end{description}
-	\end{varwidth}
-\end{center}
+\section{Adaptive Learning Rates}
 
-These requirements give rise to the \textit{prequential} scheme of evaluating machine learning models~\cite{bifetMOAMassiveOnline2010}, in which each instance $(X_t, y_t)$ in the data stream is first used to test and then to train the model ensuring that testing is done exclusively on unseen data.
-Training in such a scenario can be accurately modeled as an \textit{online convex optimization} (OCO) problem~\cite{shalev-shwartzOnlineLearningOnline2011,hazanIntroductionOnlineConvex2016}, where the optimizer suffers a loss $\mathcal{L}_t(\theta_t) = \mathcal{L}(y_t, f(X_t; \theta_{t}))$ and produces updated parameters $\theta_{t+1}$ at each iteration of the optimization process.
+While determining the learning rate through a separate tuning phase with parameter searches like grid- or random-search is still the de facto standard in deep learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}, this approach causes significant computational overhead.
+
+To reduce this overhead, several previous works have developed \textit{adaptive optimizers}, which adjust the learning rate based on additional information about the loss landscape obtained from previous gradients at each optimization step, increasing the robustness with respect to the step size~\cite{duchiAdaptiveSubgradientMethods2011}.
+
+One of the earlier optimizers in this category is \textit{AdaGrad}~\cite{duchiAdaptiveSubgradientMethods2011}, which divides the learning rate by the square root of the uncentered total sum of squares over all previous gradients, for each model parameter resulting in a parameter specific learning rate.
+Unlike a single global value, parameter specific learning rates therefore not only influence the length, but also the direction of update steps, in case of AdaGrad by shifting updates in the direction of smaller gradients~\cite{wuWNGradLearnLearning2020}. % Weglassen? 
+
+Among several other approaches like AdaDelta~\cite[see e.g.]{zeilerADADELTAAdaptiveLearning2012a} and RMSProp~\cite{tielemanLecture5rmspropDivide2012}, \citet{kingmaAdamMethodStochastic2017b} subsequently introduced Adam as an extension of AdaGrad, that additionally takes a momentum term of past gradients into account~\cite[see]{sutskeverImportanceInitializationMomentum2013} to speed up the convergence for parameters with consistent gradients.
+
+While adaptive approaches such as AdaGrad and Adam have been shown to reduce the dependence on the learning rate, they often times still require manual tuning~\cite{wuWNGradLearnLearning2020}.
+A problem that parameter-free variants of SGD aim to solve by estimating the optimal step size online as training progresses, thus eliminating the learning rate altogether.
+
+For instance, \citet{schaulNoMorePesky2013} proposed \textit{vSGD}, which, like Adam, uses first and second order moments of the gradients as well as local curvature information to estimate $\eta$~\cite{schaulNoMorePesky2013}.
+The authors obtain the latter by estimating positive diagonal entries of the Hessian with respect to the parameters through a back-propagation formula~\cite{schaulNoMorePesky2013}.
+Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space.
+Due to the lack of publicly available implementations of the non-trivial algorithm, we have not been able to evaluate vSGD at the time of writing. \todo{Did not evaluate vSGD since its old and there is no implementation. Is that valid?}
+
+Instead of using curvature information for adapting $\eta$, the \textit{COCOB} algorithm proposed by~\citet{orabonaTrainingDeepNetworks2017} models parameter optimization as a gambling problem, in which the goal is to maximize the rewards obtained from betting on each gradient.
+The model parameters are then computed based on the rewards accumulated over all previous timesteps~\cite{orabonaTrainingDeepNetworks2017}.
+
+
+-Hypergradient Descent \cite{baydinOnlineLearningRate2018}: optimizes the learning rate of stochastic optimizers like SGD using a meta-gradient descent procedure.
+-WNGrad \cite{wuWNGradLearnLearning2020}: adapts the dynamic update of AdaGrad to a single learning rate.
+
+
+In OCO literature it is well known that under the assumption of convexity of the loss function w.r.t. $\theta$, the worst-case optimal fixed learning rate is
+\begin{equation}
+	\eta^* = \frac{\theta^* - \theta_0}{\sqrt{\sum_{t=0}^{T} ||g_t||^2}},
+\end{equation}
+
+-Mechanic \cite{cutkoskyMechanicLearningRate2023}: can wrap around any first order algorithm, removing the need of tuning $\eta$. Uses a base online convex optimization algorithm as well as a meta OCO algorithm to optimize the learning rate with respect to the theoretical upper convergence bound of SGD
+-DoG \cite{ivgiDoGSGDBest2023}: also optimizes theoretical upper bound by estimating $||\theta_0 - \theta^*||$ as $\max_{i<t}||\theta_0 - \theta_i||$
+-D-Adaptation~\cite{defazioLearningRateFreeLearningDAdaptation2023a}: can modify popular optimizers by estimating $D$ with weighted dual averaging~\cite{duchiDualAveragingDistributed2012}
+
+
+Furthermore, several studies developed parameter-free optimizers for specific areas of application such as time series forecasting~\cite{miyaguchiCograConceptDriftAwareStochastic2019,fekriDeepLearningLoad2021, zhangPOLAOnlineTime2021a}, federated learning~\cite{canonacoAdaptiveFederatedLearning2021} and recommender systems~\cite{ferreirajoseADADRIFTAdaptiveLearning2020}.
+Due to our focus for the present work being general data stream applications, we did not further investigate these techniques.
+
+Despite the fact that parameter-free stochastic optimization techniques are inherently well-suited for the highly non-stationary streaming data~\cite{schaulNoMorePesky2013} and in some cases even developed based on online convex optimization, their application on this kind of data has rarely been investigated.
+This raises the question, whether they are suitable for stream-based learning (ii).
+
+
+\begin{table}[ht]
+	\centering
+	\small
+	\begin{tabular}{@{}lllcc@{}}
+		\toprule
+		Optimizer & Runtime                         & Space             & Param. specific & LR free \\ \midrule
+		DAdapt    & $\mathcal{O}(6D)$               & $\mathcal{O}(2D)$ & \xmark          & \cmark  \\
+		DoG       & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
+		Mechanic  & $\mathcal{O}(10D)$              & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
+		WNGrad    & $\mathcal{O}(2D)$               & $\mathcal{O}(0)$  & \xmark          & \cmark  \\
+		SGDHD     & $\mathcal{O}(2D)$               & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
+		COCOB     & $\mathcal{O}(14D)$              & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\
+		Adam      & $\mathcal{O}(12D)$              & $\mathcal{O}(2D)$ & \cmark          & \xmark  \\
+		vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\ % Remove since not evaluated?
+		AdaGrad   & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \cmark          & \xmark  \\ \bottomrule
+	\end{tabular}
+	\caption{Overview of additional time- and space-complexity of adaptive first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$. We do not list convergence guarantees because the guarantees given in the original papers of different optimizers are based on different assumptions and are rarely compatible with streaming applications.}\label{tab:param_free_optims}
+\end{table}
+\footnotetext[1]{Complexity for feed-forward neural networks. Since \textit{vSGD} requires additional backpropagation steps, its complexity is architecture dependent.}
+
+\section{Differences between Batch and Online Learning}
+
+In a batch learning setting, optimizing the learning rate comes down to finding values that minimize the expected loss on a hold-out set of validation data at the end of the training process.
+Formally, we can denote this task as
+\begin{equation}
+	\label{eq:batch_lr_optim}
+	\min_{\eta_0, \ldots, \eta_T} \mathbb{E}_{x \sim p_v(x)}[\mathcal{L}(x, \theta_T)],
+\end{equation}
+where $p_v$ is a distribution of held-out validation data and $\theta_T$ the parameters at the end of training, which for basic SGD are given by
+\begin{equation}
+	\theta_T = \sum_{t=0}^{T} \eta_t \cdot g_t.
+\end{equation}
+
+In online learning where data is generated incrementally, this notion of learning rate optimization is infeasible.
+Due to requirements \textbf{RQ1-RQ5} models operating in an online streaming environment must be evaluated in a \textit{prequential} manner~\cite{bifetMOAMassiveOnline2010}, where each instance $x_t$ in the data stream is first used to test and then to train the model ensuring that testing is done exclusively on unseen data.
+
+Training in such a scenario can therefore be more accurately modeled as an \textit{online convex optimization} (OCO) problem~\cite{shalev-shwartzOnlineLearningOnline2011,hazanIntroductionOnlineConvex2016}, where the optimizer suffers a loss $\mathcal{L}_t(\theta_t) = \mathcal{L}(x_t, \theta_{t})$ and produces updated parameters $\theta_{t+1}$ at each iteration of the data stream.
 
 The task of finding an optimal learning rate schedule in this setting, can be formulated as
 \begin{equation}
 	\label{eq:stream_lr_optim}
-	\begin{alignedat}{3}
-		& \!\min_{\eta_0, \ldots, \eta_T} & \, & \sum_{t=0}^{T}\mathcal{L}(y_t, f(X_t; \theta_{t})) &    &                               \\
-		& \text{s.t.}                     &    & X_t, y_t  \sim p_t                           & \  & \forall t \in {1, \ldots, T}.
-	\end{alignedat}
+	\min_{\eta_0, \ldots, \eta_T} \sum_{t=0}^{T} \mathcal{L}(x_t, \theta_t),
 \end{equation}
+where data samples $x_t$ are drawn from a distribution $p_t(x)$.
 
 Compared to Problem~\eqref{eq:batch_lr_optim}, Problem~\eqref{eq:stream_lr_optim} features some key differences.
 Due to Requirement~\ref{rq:predict_any_time}, the goal is to minimize the total sum of losses incurred over all timesteps of the prequential evaluation process,  instead of minimizing the only the validation loss for the final parameters $\theta_T$.
@@ -312,15 +391,31 @@ Therefore, speed of convergence is of larger importance in the streaming setting
 Since memory is limited (Requirement~\ref{rq:limited_memory}), it is also not possible to continue training on previously observed data as long as $\mathcal{L}$ decreases, which puts an even greater emphasis on quick adaptation.
 At the same time, a larger learning rate causing temporary loss increases, due to skipping over local minima can be suboptimal with respect to Problem~\ref{eq:stream_lr_optim} even if it eventually yields a lower loss.
 
-In OCO literature it is well known that under the assumption of convexity of the loss function w.r.t. $\theta$, the worst-case optimal fixed learning rate is
-\begin{equation}
-	\eta^* = \frac{\theta^* - \theta_0}{\sqrt{\sum_{t=0}^{T} ||g_t||^2}},
-\end{equation}
-
-
-Another difference to conventional batch learning is that the distribution $p_t$ of the data stream might, and in practice most likely will, be subjected to change in the form of \textit{concept drift}\footnote{We use concept drift as an umbrella term for any form of distributional shift.} over time.
+Another difference to conventional batch learning is that the distribution $p_t$ is time dependent, due to the fact that data streams might, and in practice most likely will, be subjected to change in the form of \textit{concept drift}\footnote{We use concept drift as an umbrella term for any form of distributional shift.} over time.
 Under such circumstances, the optimal parameter values $\theta^*$ move throughout the progression of the stream requiring the model parameters to adapt.
-To enhance the model's ability to do so, it appears intuitive, to increase the learning rate whenever distributional change occurs.
+% To enhance the model's ability to do so, it appears intuitive, to increase the learning rate whenever distributional change occurs.
+
+
+
+\subsection{Learning Rate Tuning}
+
+Concept drift also complicates the tuning of $\eta$, since even if data is available beforehand drift would eventually cause the stream to diverge from the distribution of data used for tuning.
+This effect, combined with the previously described differences in the evaluation scheme can cause conventional learning rate tuning to produce unsuitable results for stream-based learning.
+% Alternatively: 
+% Furthermore, in conventional batch learning, the standard practice for learning rate tuning is to optimize for the performance on the validation data~\cite{defazioLearningRateFreeLearningDAdaptation2023a}.
+% As a result, this approach disregards the performance of the model throughout the tuning process and only selects the learning rate with the best final performance potentially yielding a value unsuitable for stream-based learning.
+We therefore propose a slightly different online learning specific tuning approach, that aims to approximately solve Problem~\ref{eq:stream_lr_optim}.
+
+To emulate
+% a static version of 
+the targeted data stream we continually draw samples with replacement from the tuning data in a bootstrapping procedure instead of training on all data for multiple epochs.
+By doing so we aim to increase data variability% better: randomness?
+, and therefore the resemblance to an actual data stream with random distributional shifts.
+We then optimize $\eta$ with respect to the mean prequential performance over the emulated stream instead of the performance on a validation set.
+For this purpose we use a basic grid-search as is customary in batch learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}.
+We provide a detailed experimental evaluation of our approach in Section~\ref{sec:experiments}.
+
+
 
 Based on this notion, \citet{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that uses the predictive losses as an indicator for concept drift.
 Their approach updates the learning rate using
@@ -357,80 +452,7 @@ where $\alpha \in (0, 1]$ is a hyperparameter.
 We obtain $\hat{p}$ by performing a Kolmogorov-Smirnoff test on two time shifted rolling windows of prediction losses as is also done by the \textit{KSWIN} drift detector~\cite{raabReactiveSoftPrototype2020a}.
 With this confidence estimate we aim to achieve smaller steps that depend on the severity of drift and therefore cause more granular adaptation.
 
-Concept drift also complicates the tuning of $\eta$, since even if data is available beforehand drift would eventually cause the stream to diverge from the distribution of data used for tuning.
-This effect, combined with the previously described differences in the evaluation scheme can cause conventional learning rate tuning to produce unsuitable results for stream-based learning.
-% Alternatively: 
-% Furthermore, in conventional batch learning, the standard practice for learning rate tuning is to optimize for the performance on the validation data~\cite{defazioLearningRateFreeLearningDAdaptation2023a}.
-% As a result, this approach disregards the performance of the model throughout the tuning process and only selects the learning rate with the best final performance potentially yielding a value unsuitable for stream-based learning.
-We therefore propose a slightly different online learning specific tuning approach, that aims to approximately solve Problem~\ref{eq:stream_lr_optim}.
 
-To emulate
-% a static version of 
-the targeted data stream we continually draw samples with replacement from the tuning data in a bootstrapping procedure instead of training on all data for multiple epochs.
-By doing so we aim to increase data variability% better: randomness?
-, and therefore the resemblance to an actual data stream with random distributional shifts.
-We then optimize $\eta$ with respect to the mean prequential performance over the emulated stream instead of the performance on a validation set.
-For this purpose we use a basic grid-search as is customary in batch learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}.
-We provide a detailed experimental evaluation of our approach in Section~\ref{sec:experiments}.
-
-
-\section{Adaptive Optimizers}
-
-While determining the learning rate through a separate tuning phase with parameter searches like grid- or random-search is still the de facto standard in deep learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}, this approach causes significant computational overhead.
-
-To reduce this overhead, several previous works have developed \textit{adaptive optimizers}, which adjust the learning rate based on additional information about the loss landscape obtained from previous gradients at each optimization step, increasing the robustness with respect to the step size~\cite{duchiAdaptiveSubgradientMethods2011}.
-
-One of the earlier optimizers in this category is \textit{AdaGrad}~\cite{duchiAdaptiveSubgradientMethods2011}, which divides the learning rate by the square root of the uncentered total sum of squares over all previous gradients, for each model parameter resulting in a parameter specific learning rate.
-Unlike a single global value, parameter specific learning rates therefore not only influence the length, but also the direction of update steps, in case of AdaGrad by shifting updates in the direction of smaller gradients~\cite{wuWNGradLearnLearning2020}. % Weglassen? 
-
-Among several other approaches like AdaDelta~\cite[see e.g.]{zeilerADADELTAAdaptiveLearning2012a} and RMSProp~\cite{tielemanLecture5rmspropDivide2012}, \citet{kingmaAdamMethodStochastic2017b} subsequently introduced Adam as an extension of AdaGrad, that additionally takes a momentum term of past gradients into account~\cite[see]{sutskeverImportanceInitializationMomentum2013} to speed up the convergence for parameters with consistent gradients.
-
-While adaptive approaches such as AdaGrad and Adam have been shown to reduce the dependence on the learning rate, they often times still require manual tuning~\cite{wuWNGradLearnLearning2020}.
-A problem that parameter-free variants of SGD aim to solve by estimating the optimal step size online as training progresses, thus eliminating the learning rate altogether.
-
-For instance, \citet{schaulNoMorePesky2013} proposed \textit{vSGD}, which, like Adam, uses first and second order moments of the gradients as well as local curvature information to estimate $\eta$~\cite{schaulNoMorePesky2013}.
-The authors obtain the latter by estimating positive diagonal entries of the Hessian with respect to the parameters through a back-propagation formula~\cite{schaulNoMorePesky2013}.
-Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space.
-Due to the lack of publicly available implementations of the non-trivial algorithm, we have not been able to evaluate vSGD at the time of writing. \todo{Did not evaluate vSGD since its old and there is no implementation. Is that valid?}
-
-Instead of using curvature information for adapting $\eta$, the \textit{COCOB} algorithm proposed by~\citet{orabonaTrainingDeepNetworks2017} models parameter optimization as a gambling problem, in which the goal is to maximize the rewards obtained from betting on each gradient.
-The model parameters are then computed based on the rewards accumulated over all previous timesteps~\cite{orabonaTrainingDeepNetworks2017}.
-
-
--Hypergradient Descent \cite{baydinOnlineLearningRate2018}: optimizes the learning rate of stochastic optimizers like SGD using a meta-gradient descent procedure.
--WNGrad \cite{wuWNGradLearnLearning2020}: adapts the dynamic update of AdaGrad to a single learning rate.
--A
--Mechanic \cite{cutkoskyMechanicLearningRate2023}: can wrap around any first order algorithm, removing the need of tuning $\eta$. Uses a base online convex optimization algorithm as well as a meta OCO algorithm to optimize the learning rate with respect to the theoretical upper convergence bound of SGD
--DoG \cite{ivgiDoGSGDBest2023}: also optimizes theoretical upper bound by estimating $||\theta_0 - \theta^*||$ as $\max_{i<t}||\theta_0 - \theta_i||$
--D-Adaptation~\cite{defazioLearningRateFreeLearningDAdaptation2023a}: can modify popular optimizers by estimating $D$ with weighted dual averaging~\cite{duchiDualAveragingDistributed2012}
-
-
-Furthermore, several studies developed parameter-free optimizers for specific areas of application such as time series forecasting~\cite{miyaguchiCograConceptDriftAwareStochastic2019,fekriDeepLearningLoad2021, zhangPOLAOnlineTime2021a}, federated learning~\cite{canonacoAdaptiveFederatedLearning2021} and recommender systems~\cite{ferreirajoseADADRIFTAdaptiveLearning2020}.
-Due to our focus for the present work being general data stream applications, we did not further investigate these techniques.
-
-Despite the fact that parameter-free stochastic optimization techniques are inherently well-suited for the highly non-stationary streaming data~\cite{schaulNoMorePesky2013} and in some cases even developed based on online convex optimization, their application on this kind of data has rarely been investigated.
-This raises the question, whether they are suitable for stream-based learning (ii).
-
-
-\begin{table}[ht]
-	\centering
-	\small
-	\begin{tabular}{@{}lllcc@{}}
-		\toprule
-		Optimizer & Runtime                         & Space             & Param. specific & LR free \\ \midrule
-		DAdapt    & $\mathcal{O}(6D)$               & $\mathcal{O}(2D)$ & \xmark          & \cmark  \\
-		DoG       & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
-		Mechanic  & $\mathcal{O}(10D)$              & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
-		WNGrad    & $\mathcal{O}(2D)$               & $\mathcal{O}(0)$  & \xmark          & \cmark  \\
-		SGDHD     & $\mathcal{O}(2D)$               & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
-		COCOB     & $\mathcal{O}(14D)$              & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\
-		Adam      & $\mathcal{O}(12D)$              & $\mathcal{O}(2D)$ & \cmark          & \xmark  \\
-		vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\ % Remove since not evaluated?
-		AdaGrad   & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \cmark          & \xmark  \\ \bottomrule
-	\end{tabular}
-	\caption{Overview of additional time- and space-complexity of adaptive first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$. We do not list convergence guarantees because the guarantees given in the original papers of different optimizers are based on different assumptions and are rarely compatible with streaming applications.}\label{tab:param_free_optims}
-\end{table}
-\footnotetext[1]{Complexity for feed-forward neural networks. Since \textit{vSGD} requires additional backpropagation steps, its complexity is architecture dependent.}
 
 
 \section{Experiments}\label{sec:experiments}
