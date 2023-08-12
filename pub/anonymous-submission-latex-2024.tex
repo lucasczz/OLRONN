@@ -187,9 +187,18 @@
 
 \section{Introduction}
 Deep learning models have demonstrated exceptional performance in various domains, with the choice of optimizer playing a crucial role in achieving outstanding results.
-In the context of batch learning, where all data is available at a time, extensive research has been conducted to explore different optimization techniques for deep learning architectures.
-Numerous methods have emerged to effectively update the weights of these architectures
-However, the investigation of optimizer choices in online learning, where models must adapt to evolving data streams, remains relatively limited.
+In the context of batch learning, where all data is available at a time, extensive research has been conducted to explore optimization techniques for deep learning architectures and numerous methods have emerged to effectively update the weights of these architectures.
+Further, the recent development of deep learning frameworks for online learning scenarios foster the application and the research of deep learning models in dynamic scenarios such as on data streams. 
+However, with the application of deep learning models on data streams new challenges arise, as data streams evolve over time the models are affected by potential changes in the underlying data structure, that is also referred to as concept drift. 
+In order to achieve high predictive performance and a fast adaptation of the networks weights to new data patterns a suitable choice of the underlying optimizer becomes crucial.
+This paper aims to bridge this knowledge gap by investigating how the choice of optimizer changes when transitioning from batch learning to online learning scenarios and discusses different optimization strategies when applying deep learning models in online learning scenarios.
+Specifically, we address the following research questions:
+\begin{enumerate}
+	\item How does the choice for the optimizer change from batch to online learning?
+	\item What are practical choices for gradient-based online training of deep architectures in online learning?
+	\item Are adaptive optimization methods better suited in Online Deep Learning?
+\end{enumerate}
+
 
 \todo{Online Learning Req. in Kontext einbetten!}
 % In contrast to conventional batch learning, the impact of the learning rate in stream-based deep learning is a lesser studied issue.
@@ -206,12 +215,6 @@ According to \citet{bifetMOAMassiveOnline2010} a machine learning model operatin
 	\end{varwidth}
 \end{center}
 
-This paper aims to bridge this knowledge gap by investigating how the choice of optimizer changes when transitioning from batch learning to online learning scenarios. Specifically, we address the following research questions:
-\begin{itemize}
-	\item How does the choice for the optimizer change from batch to online learning?
-	\item What are practical choices for gradient-based online training of deep architectures in online learning?
-	\item Are adaptive optimization methods better suited in Online Deep Learning?
-\end{itemize}
 \todo{Put LR tuning graphic here?}
 \begin{figure}[ht]
 	\centering
@@ -229,14 +232,6 @@ This paper aims to bridge this knowledge gap by investigating how the choice of 
 	\end{tikzpicture}
 	\caption{Parameter trajectory of Adam~\cite{kingmaAdamMethodStochastic2017b} with or without drift adaptation on synthetic data stream with abrupt concept drift. Marker colors depict the expected prequential loss over the last 16 data instances.}
 \end{figure}
-For the first research question, we explore how the selection of an optimizer differs when moving from the traditional batch learning setting to the dynamic online learning scenario. We examine the suitability of various optimizer choices in online learning and their impact on model performance.
-
-The second research question investigates practical choices for gradient-based online training of deep architectures.
-We analyze different optimization techniques and explore their effectiveness in adapting to evolving data streams while maintaining model performance.
-The third research question focuses on the performance of adaptive methods in online deep learning scenarios.
-These methods dynamically adjust the learning rate based on gradient characteristics, allowing models to adapt more effectively to changing data patterns. We compare the performance of adaptive methods against other optimization approaches to determine their suitability for online deep learning tasks.
-Through our in-depth analysis and experimentation, we aim to enhance our understanding of optimizer choices in online deep learning.
-By shedding light on the impact of optimizers, learning rates, and batch sizes, and comparing the effectiveness of adaptive methods, we aim to enable researchers and practitioners to make informed decisions when selecting optimization techniques for real-time learning tasks.
 
 \section{Learning Rate in First Order Stochastic Optimization}
 
