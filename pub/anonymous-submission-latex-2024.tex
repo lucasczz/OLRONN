@@ -356,7 +356,7 @@ However, since we focus on general data stream applications in this paper, we di
 		vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\ % Remove since not evaluated?
 		AdaGrad   & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \cmark          & \xmark  \\ \bottomrule
 	\end{tabular}
-	\caption{Overview of additional time- and space-complexity of adaptive first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$. We do not list convergence guarantees because the guarantees given in the original papers of different optimizers are based on different assumptions and are rarely compatible with streaming applications.}\label{tab:param_free_optims}
+	\caption{Overview of additional time- and space-complexity of adaptive first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$ and based on the pseudo-codes provided in the original works. We do not list convergence guarantees because the guarantees given in the original papers of different optimizers are based on different assumptions and are rarely compatible with streaming applications. Note that this is in no way a comprehensive list of all adaptive optimizers, but rather a collection of some of the more prominent ones.}\label{tab:param_free_optims}
 \end{table}
 \footnotetext[1]{Complexity for feed-forward neural networks. Since \textit{vSGD} requires additional backpropagation steps, its complexity is architecture dependent.}
 
@@ -462,6 +462,28 @@ With this confidence estimate we aim to achieve smaller steps that depend on the
 
 
 \section{Experiments}\label{sec:experiments}
+
+To evaluate our hypotheses we performed computational experiments using the following setup:
+
+architecture unless otherwise stated:
+-single hidden-layer MLP, since in our experience smaller models are often preferable for online learning due to their fast convergence
+-number of hidden-units equal to number of input features to account for different dimensionality of data streams
+-training with a batch size of 4, which we find to be more realistic than using individual samples due to the approximately four-times faster evaluation and nearly identical performance
+-for simplicity no dropout or weight decay
+
+datasets:
+-both synthetic and real-world data streams
+-only classification problems, as this is the most common type of
+-various sizes and types of concepts drift
+-rbf datasets created with Random Radial Basis Function generator using River, drift created by incrementally moving all centroids or switching abruptly between random seeds after 10k samples
+-Electricity and Covertype available through River and UCI ML Repository: commonly used datasets for analyzing online learning models
+-Insects: multiple datasets with specific types of concept drift; intentionally created to analyze the capability to adapt to concept drift
+
+implementation:
+-in python 3.9
+-neural nets implemented with PyTorch
+-reported numbers are the means over 5 random seeds
+
 
 \begin{table}[ht]
 	\small
