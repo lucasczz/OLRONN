@@ -1,15 +1,12 @@
 \begin{tabular}{llllllll}
-\toprule
- & RBF abrupt & RBF incr. & Covertype & Electricity & Insects abrupt & Insects gradual & Insects incr. \\
- & accuracy & accuracy & accuracy & accuracy & accuracy & accuracy & accuracy \\
-resetter &  &  &  &  &  &  &  \\
-\midrule
-ADWIN & 94.86±.20 & \bfseries 73.77±.98 & 83.28±.43 & \bfseries 73.85±.64 & \bfseries 71.75±.22 & \bfseries 75.56±.28 & 60.78±.15 \\
-ADWIN Weight Reset & 69.96±.38 & 65.13±.80 & 83.12±.13 & 70.08±1.66 & 51.52±.90 & 62.55±2.34 & 34.11±.44 \\
-Ground Truth & \bfseries 95.12±.21 & nan±nan & nan±nan & nan±nan & \bfseries 71.88±.26 & nan±nan & nan±nan \\
-KSWIN & \bfseries 95.09±.22 & \bfseries 72.79±2.10 & \bfseries 83.39±.11 & \bfseries 73.75±.30 & \bfseries 71.84±.10 & \bfseries 75.59±.10 & \bfseries 61.20±.27 \\
-Kuncheva & 70.60±6.24 & 42.37±1.31 & 76.98±.15 & 67.06±.01 & 67.45±.50 & 72.43±.61 & 54.17±.30 \\
-OneTailedADWIN & 94.83±.26 & \bfseries 73.38±2.32 & 82.99±.20 & \bfseries 73.79±.62 & 71.73±.20 & \bfseries 75.52±.12 & 60.77±.08 \\
-P-KSWIN_0.5 & \bfseries 94.98±.26 & \bfseries 73.08±2.24 & \bfseries 83.37±.59 & \bfseries 73.91±.43 & 71.67±.19 & 75.20±.39 & 60.54±.09 \\
-\bottomrule
+    \toprule
+    Schedule        & RBF abrupt            & RBF incr.            & Covertype             & Electricity           & Insects abrupt      & Insects gradual     & Insects incr.       \\
+    \midrule
+    LR Reset Oracle & 95.12±.21             & ---                  & ---                   & ---                   & 71.88±.26           & ---                 & ---                 \\
+    LR Reset (Ours) & \underline{94.83±.26} & \bfseries 73.38±2.32 & \underline{82.99±.20} & \bfseries 73.79±.62   & 71.73±.20           & 75.52±.12           & 60.77±.08           \\
+    Kuncheva        & 70.60±6.24            & 42.37±1.31           & 76.98±.15             & 67.06±.01             & 67.45±.50           & 72.43±.61           & 54.17±.30           \\
+    Weight Reset    & 69.96±.38             & 65.13±.80            & \underline{83.12±.13} & 70.08±1.66            & 51.52±.90           & 62.55±2.34          & 34.11±.44           \\
+    Fixed           & \underline{94.79±.32} & 70.95±2.89           & \bfseries 83.42±.50   & \underline{73.77±.40} & 71.50±.08           & 75.31±.21           & 60.48±.20           \\
+    Exponential     & \bfseries 94.85±.29   & 70.23±2.40           & \underline{82.95±.26} & \underline{73.51±.48} & \bfseries 72.19±.37 & \bfseries 75.91±.14 & \bfseries 61.28±.16 \\
+    \bottomrule
 \end{tabular}

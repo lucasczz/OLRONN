@@ -424,7 +424,7 @@ Based on this notion, \citet{kunchevaAdaptiveLearningRate2008} introduced an ada
 Their approach updates the learning rate using
 \begin{equation}
 	\eta_{t+1} = \eta_t^{1+	\bar{\mathcal{L}}_{t-M} - \bar{\mathcal{L}}_{t}},
-\end{equation}
+\end{equation}\label{eq:kuncheva_lr}
 where $\bar{\mathcal{L}}_{t}$ is the running mean of $M$ previous losses.
 By doing so, the authors aim to achieve higher stability, when data is stationary and losses decline and higher adaptability, when data is drifting and losses rise.
 While this approach seems intuitively sound, for an initial learning rate $\eta_0 \leq 1$ it bears a high risk of increasing up to a value of 1, since increases in loss caused by an excessive learning rate would lead to a feedback loop.
@@ -451,39 +451,46 @@ However, we hypothesize that this approach is not well suited for deep learning 
 For all but the most severe drifts, this seems highly unlikely.
 Nevertheless, we experimentally compare our approach with this mechanism in Section~\ref{sec:experiments}.
 
-A limitation of our learning rate resetting technique can, however, be seen in the fact, that it is insensitive to drifts that are not significant enough to be detected by ADWIN.
-To address this, we develop a \textit{soft resetting} adaptation approach that only partly resets the learning rate based on an estimate of the drift probability $\hat{p}$ by using
-\begin{equation}
-	\eta_{t+1} = (\eta_t + \alpha\cdot \hat{p}(\eta_0 - \eta_t)) \cdot \gamma,
-\end{equation}\label{eq:soft_drift_reset}
-where $\alpha \in (0, 1]$ is a hyperparameter.
-We obtain $\hat{p}$ by performing a Kolmogorov-Smirnoff test on two time shifted rolling windows of prediction losses as is also done by the \textit{KSWIN} drift detector~\cite{raabReactiveSoftPrototype2020a}.
-With this confidence estimate we aim to achieve smaller steps that depend on the severity of drift and therefore cause more granular adaptation.
+% A limitation of our learning rate resetting technique can, however, be seen in the fact, that it is insensitive to drifts that are not significant enough to be detected by ADWIN.
+% To address this, we develop a \textit{soft resetting} adaptation approach that only partly resets the learning rate based on an estimate of the drift probability $\hat{p}$ by using
+% \begin{equation}
+% 	\eta_{t+1} = (\eta_t + \alpha\cdot \hat{p}(\eta_0 - \eta_t)) \cdot \gamma,
+% \end{equation}\label{eq:soft_drift_reset}
+% where $\alpha \in (0, 1]$ is a hyperparameter.
+% We obtain $\hat{p}$ by performing a Kolmogorov-Smirnoff test on two time shifted rolling windows of prediction losses as is also done by the \textit{KSWIN} drift detector~\cite{raabReactiveSoftPrototype2020a}.
+% With this confidence estimate we aim to achieve smaller steps that depend on the severity of drift and therefore cause more granular adaptation.
 
 
 \section{Experiments}\label{sec:experiments}
 
 To evaluate our hypotheses we performed computational experiments using the following setup:
 
-architecture unless otherwise stated:
--single hidden-layer MLP, since in our experience smaller models are often preferable for online learning due to their fast convergence
--number of hidden-units equal to number of input features to account for different dimensionality of data streams
--training with a batch size of 4, which we find to be more realistic than using individual samples due to the approximately four-times faster evaluation and nearly identical performance
--for simplicity no dropout or weight decay
-
-datasets:
--both synthetic and real-world data streams
--only classification problems, as this is the most common type of
+Datasets:
+-both synthetic and public real-world datasets
+-only classification problems, as this is the most common case
 -various sizes and types of concepts drift
--rbf datasets created with Random Radial Basis Function generator using River, drift created by incrementally moving all centroids or switching abruptly between random seeds after 10k samples
+-RBF datasets created with Random Radial Basis Function generator using River, drift created by incrementally moving all centroids or switching abruptly between random seeds after 10k samples
 -Electricity and Covertype available through River and UCI ML Repository: commonly used datasets for analyzing online learning models
 -Insects: multiple datasets with specific types of concept drift; intentionally created to analyze the capability to adapt to concept drift
 
-implementation:
+
+Architecture unless otherwise stated:
+-single hidden-layer MLP, since in our experience smaller models are often preferable for online learning due to their fast convergence
+-binary crossentropy as loss function
+-number of hidden-units equal to number of input features to account for different dimensionality of data streams
+-training with a batch size of 4, which we find to be more realistic than using individual samples due to the approximately four-times faster evaluation and nearly identical performance
+-for simplicity no dropout or weight decay
+-for selecting the decay factor $\gamma$ in decaying learning rate schedules, we ran a grid search with three geometrically spaced values. We then used the value yielding the best accuracy for most datasets and the next smaller value for schedules with our resetting mechanism.
+-to ensure a minimal level of adaptability even for longer streams, we set a lower bound at 10\% of the base learning rate
+-unless stated otherwise we tuned the base learning rate $\eta_0$ using a grid search of six geometrically spaced values. For more details refer to Appendix~\ref{app:hyperparams}.
+-for our resetting mechanism we set the confidence level of ADWIN to 0.0001
+
+Implementation:
 -in python 3.9
 -neural nets implemented with PyTorch
+-we logged metrics every 100 instances
 -reported numbers are the means over 5 random seeds
-
+-since the prequential binary crossentropy can contain large outliers, we focus solely on accuracy as a performance metric
 
 \begin{table}[ht]
 	\small
@@ -507,68 +514,125 @@ implementation:
 \footnotetext[2]{We used the first 100k from a total of 581k examples only.}
 
 
+\subsection{Drift Adaptation}
+
+To evaluate the effectiveness of our learning rate resetting mechanism for drift adaptation (see Equation~\ref{eq:drift_reset}), we compare its average prequential accuracy to that of the adaptation algorithm by \citet{kunchevaAdaptiveLearningRate2008}(see Equation~\ref{eq:kuncheva_lr}) and complete model resetting, commonly used in online learning.
+As can be seen in Table~\ref{tab:lr_resetting}, our approach clearly outperforms both other drift adaptation techniques by a wide margin on all but Covertype, where weight resetting yielded slightly higher accuracy.
+It also compares favorably against a fixed and exponential schedule on the RBF, Covertype and Electricity datasets, where it achieved the best or within the standard deviation range of the best accuracy.
+However, the accuracy increases are not statistically significant and the accuracy of the basic exponential schedule is higher for all Insects datasets.
+This is also reflected in Figure~\ref{fig:prequential_schedulers_insects}, where the standard exponential schedule's accuracy initially rises faster and also recovers faster after the first concept drift, which is likely caused by its larger step size in the first half of the stream.
+Although the resetting mechanism was frequently triggered when no concept drift occurred, our results for the oracle resetting approach that was triggered only for timesteps with drift show that this performance gap is not caused by the drift detector.
+Rather, it appears that using a larger initial learning rate and slower decay is sufficient for assuring adequate adaptability to concept drift throughout most data streams while granting better stability at later stages.
+
+The logical choice for a learning rate schedule therefore seems to be a slow exponential decay, unless severe concept drift like in RBF incremental can be expected, in which case using our proposed learning rate resetting can increase performance.
+
 \begin{figure}
+	\centering
+	\includegraphics[width=.47\textwidth]{figures/lr_norms_schedules_insects_abrupt.pdf}
+	\caption{Prequential metrics for our drift resetting approach (see Equation~\eqref{eq:drift_reset}), drift adaptation by~\citet{kunchevaAdaptiveLearningRate2008} and different basic schedules on Insects abrupt. Concept drifts are marked by dashed lines. Loss and accuracy are exponentially smoothed with.}
+	\label{fig:prequential_schedulers_insects}
+\end{figure}
+
+\begin{table*}[ht]
+	\centering
+	\small
+	\begin{tabular}{lccccccc}
+		\toprule
+		Schedule        & RBF abrupt             & RBF incr.            & Covertype              & Electricity            & Insects abrupt       & Insects gradual      & Insects incr.        \\
+		\midrule
+		Fixed           & \underline{94.79±0.32} & 70.95±2.89           & \bfseries 83.42±0.50   & \underline{73.77±0.40} & 71.50±0.08           & 75.31±0.21           & 60.48±0.20           \\
+		Exponential     & \bfseries 94.85±0.29   & 70.23±2.40           & \underline{82.95±0.26} & \underline{73.51±0.48} & \bfseries 72.19±0.37 & \bfseries 75.91±0.14 & \bfseries 61.28±0.16 \\ \midrule
+		Weight Reset    & 69.96±0.38             & 65.13±0.80           & \underline{83.12±0.13} & 70.08±1.66             & 51.52±0.90           & 62.55±2.34           & 34.11±0.44           \\
+		Kuncheva        & 70.60±6.24             & 42.37±1.31           & 76.98±0.15             & 67.06±0.01             & 67.45±0.50           & 72.43±0.61           & 54.17±0.30           \\
+		LR Reset (Ours) & \underline{94.83±0.26} & \bfseries 73.38±2.32 & \underline{82.99±0.20} & \bfseries 73.79±0.62   & 71.73±0.20           & 75.52±0.12           & 60.77±0.08           \\
+		LR Reset Oracle & 95.12±0.21             & ---                  & ---                    & ---                    & 71.88±0.26           & ---                  & ---                  \\
+		\bottomrule
+	\end{tabular}
+	\caption{Average prequential accuracy for (drift-adaptive) learning rate schedules on Insects abrupt. For LR Reset Oracle we manually reset the learning rate at timesteps where concept drift occurs.}
+	\label{tab:lr_resetting}
+\end{table*}
+
+\subsection{Adaptive Learning Rates}
+
+Table~\ref{tab:all_results} shows the 
+\begin{figure}
+	\centering
+	\includegraphics[width=.47\textwidth]{figures/lr_norms_optims_insects_abrupt.pdf}
+	\caption{Prequential metrics for adaptive optimizers on Insects abrupt. Concept drifts are marked by dashed lines. Loss and accuracy are exponentially smoothed with.}
+	\label{fig:prequential_schedulers_insects}
+\end{figure}
+\begin{table*}
+	\centering
+	\small
+	\begin{tabular}{lllllllll}
+		\toprule
+		Optimizer                & Schedule   & RBF abrupt             & RBF incr.           & Covertype           & Electricity         & Insects abrupt      & Insects gradual       & Insects incr.         \\
+		\midrule
+		\multirow[c]{8}{*}{SGD}  & Fixed      & \underline{94.79±.32}  & 70.95±2.89          & 83.42±.50           & 73.77±.40           & 71.50±.08           & 75.31±.21             & 60.48±.20             \\
+		                         & Exp.       & \underline {94.85±.29} & 70.23±2.40          & 82.95±.26           & 73.51±.48           & 72.19±.37           & 75.91±.14             & 61.28±.16             \\
+		                         & Exp. reset & \bfseries 94.90±.22    & 73.90±1.70          & 83.31±.45           & 73.96±.68           & 71.64±.10           & 75.53±.12             & 60.72±.09             \\
+		                         & Step       & \underline{94.87±.28}  & 70.19±3.02          & 82.89±.37           & 73.62±.53           & 72.23±.27           & 75.83±.21             & 61.18±.11             \\
+		                         & Step reset & \underline{94.84±.23}  & 70.95±2.89          & 83.26±.71           & 73.72±.76           & 71.59±.04           & 75.32±.21             & 60.56±.14             \\
+		                         & Cyclic     & \underline{94.79±.32}  & \bfseries 74.96±.86 & \bfseries 83.44±.08 & 68.38±.81           & 71.74±.39           & 75.64±.06             & 60.48±.20             \\ \midrule
+		\multirow[c]{2}{*}{Adam} & Fixed      & 93.45±.30              & 69.26±5.14          & 79.01±.27           & 69.79±.54           & \bfseries 75.38±.24 & 75.78±.74             & \bfseries 64.17±.13   \\
+		                         & Reset      & 93.25±.67              & 65.18±3.77          & 78.52±.20           & 69.91±.55           & 74.12±.45           & 74.63±.45             & \underline{64.17±.15} \\ \midrule
+		AdaGrad                  & Fixed      & 92.45±1.37             & 52.87±6.62          & 81.68±.35           & 76.99±1.20          & 74.87±.40           & \bfseries 77.15±.27   & 62.51±.59             \\
+		COCOB                    & Fixed      & 93.40±.38              & 63.52±2.70          & 82.27±.46           & \bfseries 84.30±.56 & 74.75±.11           & \underline{77.00±.05} & 63.65±.16             \\
+		SGDHD                    & Fixed      & 93.92±.31              & 72.29±2.90          & 83.36±.25           & 73.83±.32           & 70.67±.06           & 73.37±.21             & 59.92±.18             \\
+		WNGrad                   & Fixed      & 87.30±.68              & 44.92±.73           & 76.98±.15           & 70.80±.59           & 66.25±.19           & 66.75±.40             & 56.14±.21             \\
+		DAdaptSGD                & Fixed      & 74.91±4.22             & 45.47±2.75          & 76.69±.79           & 66.03±1.75          & 50.05±11.26         & 48.21±10.62           & 36.00±11.81           \\
+		DoG                      & Fixed      & 92.72±.59              & 73.17±2.72          & 83.07±.64           & 71.53±.70           & 70.59±.26           & 74.01±.21             & 59.66±.22             \\
+		Mechanic                 & Fixed      & 88.94±.58              & 49.26±1.44          & 78.67±.18           & 50.73±7.60          & 55.31±21.47         & 65.80±.53             & 47.89±17.46           \\
+		\bottomrule
+	\end{tabular}
+	\caption{Average prequential accuracy for different learning rate schedules and adaptive optimizers.}
+	\label{tab:all_results}
+\end{table*}
+
+\subsection{Learning Rate Tuning}
+
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=.45\textwidth]{figures/pretune_1x64_acc_lr_exp_schedule.pdf}
 	\caption{Pre-tuned LR (LR that maximizes accuracy on pre-tuning data) and resulting accuracy on data streams when using SGD and an exponential learning rate schedule with 500 or 1000 separate tuning samples. Results are averaged over all real-world datasets. The shaded area represents the 1$\sigma$-interval.}\label{fig:pretune_lr_accuracy}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[hb]
 	\centering
 	\includegraphics[width=.47\textwidth]{figures/pretune_1x64_fixed_vs_exp_schedule.pdf}
 	\caption{Accuracy achieved by pre-tuning on 500 or 1000 samples when using SGD with a fixed LR schedule (top) or an exponential schedule (bottom), averaged over all real-world datasets. The shaded area represents the 1$\sigma$-interval.}\label{fig:pretune_fixed_vs_exp_lr}
 \end{figure}
 
-% \begin{figure}
+
+
+% \begin{figure}[ht]
 % 	\centering
-% 	\includegraphics[width=0.47\textwidth]{figures/lr_norms_optims_insects_abrupt.pdf}
-% 	\caption{Prequential accuracy, binary cross-entropy loss and LR norms $||\eta_t||$ over time for various optimization algorithms on Insects abrupt. Each dashed vertical line represents a concept drift. Lines are exponentially smoothed with a factor of 0.8.}
+% 	\begin{tikzpicture}
+% 		% Upper image
+% 		\node[inner sep=0pt] (upper) {\includegraphics[width=0.4\textwidth]{figures/sgd_trajectory_optims1.pdf}};
+
+% 		% Lower image
+% 		\node[inner sep=0pt, below=3mm of upper] (lower){\includegraphics[width=0.4\textwidth]{figures/sgd_trajectory_optims2.pdf}};
+
+% 		\path ([xshift=-8pt]upper) -- ([xshift=-8pt]lower) node[midway] (text){Concept Drift};
+% 		\draw[->] ([xshift=-5pt, yshift=5pt]upper.south-|text.west) -- ([xshift=-5pt, yshift=-3pt]lower.north-|text.west);
+% 		\draw[->] ([xshift=5pt, yshift=5pt]upper.south-|text.east) -- ([xshift=5pt, yshift=-3pt]lower.north-|text.east);
+
+% 	\end{tikzpicture}
+% 	\caption{Parameter trajectory of COCOB~\cite{orabonaTrainingDeepNetworks2017}, DoG~\cite{ivgiDoGSGDBest2023} and Adam~\cite{kingmaAdamMethodStochastic2017b} on synthetic data stream with abrupt concept drift. Marker colors depict the expected prequential loss over the last 16 data instances.}
 % \end{figure}
-% \begin{figure}
-% 	\centering
-% 	\includegraphics[width=.47\textwidth]{figures/batch_size_lr_wstd.pdf}
-% 	\caption{Average accuracy over static and incrementally drifting synthetic data streams in relation to SGD mini-batch size and learning rate $\eta$. Shaded areas mark the 1$\sigma$ interval.}\label{fig:batch_size_lr}
-% \end{figure}
-
-% \begin{figure}
-% 	\centering
-% 	\includegraphics[width=.47\textwidth]{figures/accuracy_vs_time.pdf}
-% 	\caption{Prequential accuracy for different batch sizes on RBF abrupt data stream.}
-% \end{figure}
-
-We ran prequential evaluations using basic SGD with variable batch sizes and learning rates for synthetic data streams with and without incremental concept drift, the results of which are displayed in \Cref{fig:batch_size_lr}. For static data, the average prequential accuracy over the entire stream gradually improves when moving up from an inadequately low learning rate until a certain point where training begins to diverge and performance consequently crashes. Based on our results, there seems to be an inverse relationship between batch size and both the optimal learning rate and the optimal accuracy, with larger batch sizes seemingly increasing the risk of divergence.
-
-% The primary cause of this relationship can be seen in \Cref{fig:trajectory_batch_sizes_0.5_lr}, which depicts the trajectories of parameters of two identical MLPs trained on a bivariate data stream using batch sizes of either 4 or 16 samples. With a batch size of 16, the model has to “wait” four times longer until it receives new gradient information than the one trained with a batch size of 4. As a result, the gradient information gained from each sample on average becomes less recent and therefore less accurate with a larger batch size. Example: in \Cref{fig:trajectory_batch_sizes_0.5_lr}
-
-\begin{equation}
-\end{equation}
-
-
-This effect is much stronger in the presence of concept drift as the results for RBF Incremental show.
-
-<-could be explained by the fact that the presence of concept drift exacerbates the gradient stochasticity caused by the delay between observation and learning of samples.
-
-
-\begin{figure}[ht]
-	\centering
-	\begin{tikzpicture}
-		% Upper image
-		\node[inner sep=0pt] (upper) {\includegraphics[width=0.4\textwidth]{figures/sgd_trajectory_optims1.pdf}};
-
-		% Lower image
-		\node[inner sep=0pt, below=3mm of upper] (lower){\includegraphics[width=0.4\textwidth]{figures/sgd_trajectory_optims2.pdf}};
-
-		\path ([xshift=-8pt]upper) -- ([xshift=-8pt]lower) node[midway] (text){Concept Drift};
-		\draw[->] ([xshift=-5pt, yshift=5pt]upper.south-|text.west) -- ([xshift=-5pt, yshift=-3pt]lower.north-|text.west);
-		\draw[->] ([xshift=5pt, yshift=5pt]upper.south-|text.east) -- ([xshift=5pt, yshift=-3pt]lower.north-|text.east);
-
-	\end{tikzpicture}
-	\caption{Parameter trajectory of COCOB~\cite{orabonaTrainingDeepNetworks2017}, DoG~\cite{ivgiDoGSGDBest2023} and Adam~\cite{kingmaAdamMethodStochastic2017b} on synthetic data stream with abrupt concept drift. Marker colors depict the expected prequential loss over the last 16 data instances.}
-\end{figure}
 
 \section{Conclusion}
 
 
 \bibliography{aaai24}
+
+\appendix
+
+\section{Hyperparameter values}\label{app:hyperparams}
+
+\section{Network Sizes in Learning Rate Tuning}\label{app:pretune_model_sizes}
+
+
 
 \end{document}

@@ -112,5 +112,7 @@ def run(
 
 
 if __name__ == "__main__":
-    test_configs(run, ['Insects incr.', 'Insects gradual'], configs=configs, debug=False)
+    test_configs(
+        run, ["Insects incr.", "Insects gradual"], configs=configs, debug=False
+    )
     zip_csv(save_path)
