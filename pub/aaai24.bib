@@ -30,7 +30,23 @@
   urldate       = {2023-04-13},
   archiveprefix = {arxiv},
   langid        = {english}
-}@inproceedings{bifetLearningTimeChangingData2007,
+}@inproceedings{bifetAdaptiveLearningEvolving2009,
+  title      = {Adaptive {{Learning}} from {{Evolving Data Streams}}},
+  booktitle  = {Advances in {{Intelligent Data Analysis VIII}}},
+  author     = {Bifet, Albert and Gavald{\`a}, Ricard},
+  editor     = {Adams, Niall M. and Robardet, C{\'e}line and Siebes, Arno and Boulicaut, Jean-Fran{\c c}ois},
+  year       = {2009},
+  series     = {Lecture {{Notes}} in {{Computer Science}}},
+  pages      = {249--260},
+  publisher  = {{Springer}},
+  address    = {{Berlin, Heidelberg}},
+  doi        = {10.1007/978-3-642-03915-7_22},
+  isbn       = {978-3-642-03915-7},
+  langid     = {english},
+  annotation = {370 citations (Semantic Scholar/DOI) [2023-08-11]}
+}
+
+@inproceedings{bifetLearningTimeChangingData2007,
   title      = {Learning from {{Time-Changing Data}} with {{Adaptive Windowing}}},
   booktitle  = {Proceedings of the 2007 {{SIAM International Conference}} on {{Data Mining}}},
   author     = {Bifet, Albert and Gavald{\`a}, Ricard},
@@ -84,7 +100,6 @@
   archiveprefix = {arxiv},
   langid        = {english}
 }
-
 @incollection{bottouStochasticGradientDescent2012,
   title     = {Stochastic {{Gradient Descent Tricks}}},
   booktitle = {Neural {{Networks}}: {{Tricks}} of the {{Trade}}: {{Second Edition}}},
@@ -110,6 +125,7 @@
   issn      = {2161-4407},
   doi       = {10.1109/IJCNN52387.2021.9533710}
 }
+
 @misc{carmonMakingSGDParameterFree2023,
   title         = {Making {{SGD Parameter-Free}}},
   author        = {Carmon, Yair and Hinder, Oliver},
@@ -158,7 +174,6 @@
   langid        = {english},
   annotation    = {0 citations (Semantic Scholar/arXiv) [2023-06-07]}
 }
-
 @misc{defazioLearningRateFreeLearningDAdaptation2023a,
   title         = {Learning-{{Rate-Free Learning}} by {{D-Adaptation}}},
   author        = {Defazio, Aaron and Mishchenko, Konstantin},
@@ -185,6 +200,8 @@
   pages      = {2121--2159},
   annotation = {MAG ID: 2146502635}
 }
+
+
 @article{duchiDualAveragingDistributed2012,
   title      = {Dual {{Averaging}} for {{Distributed Optimization}}: {{Convergence Analysis}} and {{Network Scaling}}},
   shorttitle = {Dual {{Averaging}} for {{Distributed Optimization}}},
@@ -200,7 +217,6 @@
   urldate    = {2023-08-09},
   langid     = {english}
 }
-
 
 @article{fekriDeepLearningLoad2021,
   title      = {Deep Learning for Load Forecasting with Smart Meter Data: {{Online Adaptive Recurrent Neural Network}}},
@@ -234,13 +250,25 @@
   annotation = {3 citations (Semantic Scholar/DOI) [2023-08-07]}
 }
 
-@book{Goodfellow-et-al-2016,
+@article{gamaSurveyConceptDrift2014,
+  title   = {A Survey on Concept Drift Adaptation},
+  author  = {Gama, Jo{\~a}o and {\v Z}liobait{\.e}, Indr{\.e} and Bifet, Albert and Pechenizkiy, Mykola and Bouchachia, Abdelhamid},
+  year    = {2014},
+  month   = apr,
+  journal = {ACM Computing Surveys},
+  volume  = {46},
+  number  = {4},
+  pages   = {1--37},
+  issn    = {0360-0300, 1557-7341},
+  doi     = {10.1145/2523813},
+  urldate = {2023-08-04},
+  langid  = {english}
+}@book{Goodfellow-et-al-2016,
   title     = {Deep Learning},
   author    = {Goodfellow, Ian and Bengio, Yoshua and Courville, Aaron},
   year      = {2016},
   publisher = {{MIT Press}}
 }
-
 @misc{goyalAccurateLargeMinibatch2018,
   title         = {Accurate, {{Large Minibatch SGD}}: {{Training ImageNet}} in 1 {{Hour}}},
   shorttitle    = {Accurate, {{Large Minibatch SGD}}},
@@ -255,7 +283,15 @@
   urldate       = {2023-04-13},
   archiveprefix = {arxiv},
   langid        = {english}
-}@article{hazanIntroductionOnlineConvex2016,
+}
+@article{harriesSPLICE2ComparativeEvaluation2003,
+  title      = {{{SPLICE-2 Comparative Evaluation}}: {{Electricity Pricing}}},
+  shorttitle = {{{SPLICE-2 Comparative Evaluation}}},
+  author     = {Harries, Michael and {Nsw-cse-tr}, U and Wales, New},
+  year       = {2003},
+  month      = may
+}
+@article{hazanIntroductionOnlineConvex2016,
   title     = {Introduction to {{Online Convex Optimization}}},
   author    = {Hazan, Elad},
   year      = {2016},
@@ -269,8 +305,7 @@
   doi       = {10.1561/2400000013},
   urldate   = {2023-08-11},
   langid    = {english}
-}
-@article{hochreiterFlatMinima1997,
+}@article{hochreiterFlatMinima1997,
   title    = {Flat {{Minima}}},
   author   = {Hochreiter, Sepp and Schmidhuber, J{\"u}rgen},
   year     = {1997},
@@ -284,8 +319,7 @@
   urldate  = {2023-07-28},
   abstract = {We present a new algorithm for finding low-complexity neural networks with high generalization capability. The algorithm searches for a ``flat'' minimum of the error function. A flat minimum is a large connected region in weight space where the error remains approximately constant. An MDL-based, Bayesian argument suggests that flat minima correspond to ``simple'' networks and low expected overfitting. The argument is based on a Gibbs algorithm variant and a novel way of splitting generalization error into underfitting and overfitting error. Unlike many previous approaches, ours does not require gaussian assumptions and does not depend on a ``good'' weight prior. Instead we have a prior over input output functions, thus taking into account net architecture and training set. Although our algorithm requires the computation of second-order derivatives, it has backpropagation's order of complexity. Automatically, it effectively prunes units, weights, and input lines. Various experiments with feedforward and recurrent nets are described. In an application to stock market prediction, flat minimum search outperforms conventional backprop, weight decay, and ``optimal brain surgeon/optimal brain damage.''},
   langid   = {english}
-}
-@misc{ivgiDoGSGDBest2023,
+}@misc{ivgiDoGSGDBest2023,
   title         = {{{DoG}} Is {{SGD}}'s {{Best Friend}}: {{A Parameter-Free Dynamic Step Size Schedule}}},
   shorttitle    = {{{DoG}} Is {{SGD}}'s {{Best Friend}}},
   author        = {Ivgi, Maor and Hinder, Oliver and Carmon, Yair},
@@ -300,6 +334,7 @@
   archiveprefix = {arxiv},
   langid        = {english}
 }
+
 @misc{kingmaAdamMethodStochastic2017b,
   title         = {Adam: {{A Method}} for {{Stochastic Optimization}}},
   shorttitle    = {Adam},
@@ -314,7 +349,9 @@
   archiveprefix = {arxiv},
   langid        = {english},
   annotation    = {9990 citations (Semantic Scholar/arXiv) [2023-05-25]}
-}@incollection{kunchevaAdaptiveLearningRate2008,
+}
+
+@incollection{kunchevaAdaptiveLearningRate2008,
   title     = {Adaptive {{Learning Rate}} for {{Online Linear Discriminant Classifiers}}},
   booktitle = {Structural, {{Syntactic}}, and {{Statistical Pattern Recognition}}},
   author    = {Kuncheva, Ludmila I. and Plumpton, Catrin O.},
@@ -360,6 +397,13 @@
   isbn      = {978-1-4503-1285-1}
 }
 
+@misc{misc_covertype_31,
+  title        = {Covertype},
+  author       = {Blackard, Jock},
+  year         = {1998},
+  howpublished = {UCI Machine Learning Repository}
+}
+
 @article{miyaguchiCograConceptDriftAwareStochastic2019,
   title      = {Cogra: {{Concept-Drift-Aware Stochastic Gradient Descent}} for {{Time-Series Forecasting}}},
   shorttitle = {Cogra},
@@ -377,28 +421,29 @@
   langid     = {english},
   annotation = {5 citations (Semantic Scholar/DOI) [2023-02-24]}
 }
-@inproceedings{orabonaTrainingDeepNetworks2017,
+
+@article{montiel2021river,
+  title  = {River: Machine Learning for Streaming Data in {{Python}}},
+  author = {Montiel, Jacob and Halford, Max and Mastelini, Saulo Martiello and Bolmier, Geoffrey and Sourty, Raphael and Vaysse, Robin and Zouitine, Adil and Gomes, Heitor Murilo and Read, Jesse and Abdessalem, Talel and others},
+  year   = {2021}
+}@inproceedings{orabonaTrainingDeepNetworks2017,
   title     = {Training {{Deep Networks}} without {{Learning Rates Through Coin Betting}}},
   booktitle = {{{NIPS}}},
   author    = {Orabona, Francesco and Tommasi, Tatiana},
   year      = {2017},
   langid    = {english}
-}@inproceedings{bifetAdaptiveLearningEvolving2009,
-  title = {Adaptive {{Learning}} from {{Evolving Data Streams}}},
-  booktitle = {Advances in {{Intelligent Data Analysis VIII}}},
-  author = {Bifet, Albert and Gavald{\`a}, Ricard},
-  editor = {Adams, Niall M. and Robardet, C{\'e}line and Siebes, Arno and Boulicaut, Jean-Fran{\c c}ois},
-  year = {2009},
-  series = {Lecture {{Notes}} in {{Computer Science}}},
-  pages = {249--260},
-  publisher = {{Springer}},
-  address = {{Berlin, Heidelberg}},
-  doi = {10.1007/978-3-642-03915-7_22},
-  isbn = {978-3-642-03915-7},
-  langid = {english},
-  annotation = {370 citations (Semantic Scholar/DOI) [2023-08-11]}
 }
 
+@inproceedings{paszkePyTorchImperativeStyle2019,
+  title     = {{{PyTorch}}: {{An Imperative Style}}, {{High-Performance Deep Learning Library}}},
+  booktitle = {{{NeurIPS Proceedings}}},
+  author    = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and Kopf, Andreas and Yang, Edward and DeVito, Zachary and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
+  editor    = {Wallach, H. and Larochelle, H. and Beygelzimer, A. and d'{\aftergroup\ignorespaces} {Alch{\'e}-Buc}, F. and Fox, E. and Garnett, R.},
+  year      = {2019},
+  pages     = {8024--8035},
+  publisher = {{Curran Associates, Inc.}},
+  url       = {http://papers.neurips.cc/paper/9015-pytorch-an-imperative-style-high-performance-deep-learning-library.pdf}
+}
 @article{raabReactiveSoftPrototype2020a,
   title   = {Reactive {{Soft Prototype Computing}} for {{Concept Drift Streams}}},
   author  = {Raab, Christoph and Heusinger, Moritz and Schleif, Frank-Michael},
@@ -411,20 +456,6 @@
   doi     = {10.1016/j.neucom.2019.11.111},
   urldate = {2023-08-11},
   langid  = {english}
-}
-@article{gamaSurveyConceptDrift2014,
-  title = {A Survey on Concept Drift Adaptation},
-  author = {Gama, Jo{\~a}o and {\v Z}liobait{\.e}, Indr{\.e} and Bifet, Albert and Pechenizkiy, Mykola and Bouchachia, Abdelhamid},
-  year = {2014},
-  month = apr,
-  journal = {ACM Computing Surveys},
-  volume = {46},
-  number = {4},
-  pages = {1--37},
-  issn = {0360-0300, 1557-7341},
-  doi = {10.1145/2523813},
-  urldate = {2023-08-04},
-  langid = {english}
 }
 
 @article{rumelhartLearningRepresentationsBackpropagating1986a,
@@ -524,8 +555,7 @@
   archiveprefix = {arxiv},
   langid        = {english},
   annotation    = {770 citations (Semantic Scholar/arXiv) [2023-02-17]}
-}
-@misc{smithSuperConvergenceVeryFast2018a,
+}@misc{smithSuperConvergenceVeryFast2018a,
   title         = {Super-{{Convergence}}: {{Very Fast Training}} of {{Neural Networks Using Large Learning Rates}}},
   shorttitle    = {Super-{{Convergence}}},
   author        = {Smith, Leslie N. and Topin, Nicholay},
@@ -541,7 +571,7 @@
   langid        = {english}
 }
 
-@article{souzaChallengesBenchmarkingStream2020c,
+@article{souzaChallengesBenchmarkingStream2020,
   title         = {Challenges in {{Benchmarking Stream Learning Algorithms}} with {{Real-world Data}}},
   author        = {Souza, Vinicius M. A. and dos Reis, Denis M. and Maletzke, Andre G. and Batista, Gustavo E. A. P. A.},
   year          = {2020},
@@ -558,6 +588,7 @@
   archiveprefix = {arxiv}
 }
 
+
 @inproceedings{sutskeverImportanceInitializationMomentum2013,
   title     = {On the Importance of Initialization and Momentum in Deep Learning},
   booktitle = {Proceedings of the 30th {{International Conference}} on {{Machine Learning}}},
@@ -570,6 +601,7 @@
   urldate   = {2023-05-31},
   langid    = {english}
 }
+
 @incollection{tielemanLecture5rmspropDivide2012,
   title     = {Lecture 6.5-Rmsprop: {{Divide}} the Gradient by a Running Average of Its Recent Magnitude},
   booktitle = {{{COURSERA}}: {{Neural Networks}} for {{Machine Learning}}},
@@ -578,7 +610,6 @@
   year      = {2012},
   month     = apr
 }
-
 @misc{vanervenMetaGradMultipleLearning2016a,
   title         = {{{MetaGrad}}: {{Multiple Learning Rates}} in {{Online Learning}}},
   shorttitle    = {{{MetaGrad}}},
@@ -593,6 +624,24 @@
   urldate       = {2023-05-30},
   archiveprefix = {arxiv},
   annotation    = {74 citations (Semantic Scholar/arXiv) [2023-05-30]}
+}
+
+@article{vanschorenOpenMLNetworkedScience2014,
+  title         = {{{OpenML}}: Networked Science in Machine Learning},
+  shorttitle    = {{{OpenML}}},
+  author        = {Vanschoren, Joaquin and {van Rijn}, Jan N. and Bischl, Bernd and Torgo, Luis},
+  year          = {2014},
+  month         = jun,
+  journal       = {ACM SIGKDD Explorations Newsletter},
+  volume        = {15},
+  number        = {2},
+  eprint        = {1407.7722},
+  primaryclass  = {cs},
+  pages         = {49--60},
+  issn          = {1931-0145, 1931-0153},
+  doi           = {10.1145/2641190.2641198},
+  urldate       = {2023-08-14},
+  archiveprefix = {arxiv}
 }
 @article{velosoHyperparameterSelftuningData2021,
   title   = {Hyperparameter Self-Tuning for Data Streams},

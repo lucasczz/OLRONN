@@ -94,7 +94,7 @@
 % \vspace{- -- No negative value may be used in proximity of a caption, figure, table, section, subsection, subsubsection, or reference
 % \vskip{- -- No negative value may be used to alter spacing above or below a caption, figure, table, section, subsection, subsubsection, or reference
 
-\setcounter{secnumdepth}{0} %May be changed to 1 or 2 if section numbers are desired.
+\setcounter{secnumdepth}{2} %May be changed to 1 or 2 if section numbers are desired.
 
 % The file aaai24.sty is the style file for AAAI Press
 % proceedings, working notes, and technical reports.
@@ -215,24 +215,6 @@ According to \citet{bifetMOAMassiveOnline2010} a machine learning model operatin
 	\end{varwidth}
 \end{center}
 
-\todo{Put LR tuning graphic here?}
-\begin{figure}[ht]
-	\centering
-	\begin{tikzpicture}
-		% Upper image
-		\node[inner sep=0pt] (upper) {\includegraphics[width=0.4\textwidth]{figures/adam_trajectory_drift_reset1.pdf}};
-
-		% Lower image
-		\node[inner sep=0pt, below=3mm of upper] (lower){\includegraphics[width=0.4\textwidth]{figures/adam_trajectory_drift_reset2.pdf}};
-
-		\path ([xshift=-8pt]upper) -- ([xshift=-8pt]lower) node[midway] (text){Concept Drift};
-		\draw[->] ([xshift=-5pt, yshift=5pt]upper.south-|text.west) -- ([xshift=-5pt, yshift=-3pt]lower.north-|text.west);
-		\draw[->] ([xshift=5pt, yshift=5pt]upper.south-|text.east) -- ([xshift=5pt, yshift=-3pt]lower.north-|text.east);
-
-	\end{tikzpicture}
-	\caption{Parameter trajectory of Adam~\cite{kingmaAdamMethodStochastic2017b} with or without drift adaptation on synthetic data stream with abrupt concept drift. Marker colors depict the expected prequential loss over the last 16 data instances.}
-	\label{fig:adam_reset}
-\end{figure}
 
 \section{Learning Rate in First Order Stochastic Optimization}
 
@@ -302,14 +284,15 @@ Unlike a single global value, parameter specific learning rates therefore not on
 
 Among several other approaches like AdaDelta~\cite[see e.g.]{zeilerADADELTAAdaptiveLearning2012a} and RMSProp~\cite{tielemanLecture5rmspropDivide2012}, \citet{kingmaAdamMethodStochastic2017b} subsequently introduced Adam as an extension of AdaGrad, that additionally takes a momentum term of past gradients into account~\cite[see]{sutskeverImportanceInitializationMomentum2013} to speed up the convergence for parameters with consistent gradients.
 
+Another optimizer building on AdaGrad is \textit{WNGrad}~\cite{wuWNGradLearnLearning2020}, which adaptively scales each parameter update based on the squared sum of past gradients.
+By doing so, WNGrad achieves a single, step size robust, learning rate~\cite{wuWNGradLearnLearning2020}.
+
 While adaptive approaches such as AdaGrad and Adam have been shown to reduce the dependence on the learning rate, they often times still require manual tuning~\cite{wuWNGradLearnLearning2020}.
 A problem that parameter-free variants of SGD aim to solve by estimating the optimal step size online as training progresses, thus eliminating the learning rate altogether.
 
-Similar to AdaGrad, \textit{WNGrad}~\cite{wuWNGradLearnLearning2020} for instance, adaptively scales each parameter update based on the squared sum of past gradients.
-By doing so, WNGrad achieves a single, step size robust, learning rate~\cite{wuWNGradLearnLearning2020}.
-
 In one of the earlier works on parameter-free optimization, \citet{schaulNoMorePesky2013} proposed \textit{vSGD}, which, like Adam, uses first and second order moments of the gradients as well as local curvature information to estimate $\eta$~\cite{schaulNoMorePesky2013}.
 The authors obtain the latter by estimating positive diagonal entries of the Hessian with respect to the parameters through a back-propagation formula~\cite{schaulNoMorePesky2013}.
+Due to the age and higher complexity compared to similar approaches, we did not include vSGD in our evaluations.
 % Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space.
 % Due to the lack of publicly available implementations of the non-trivial algorithm, we have not been able to evaluate vSGD at the time of writing. \todo{Did not evaluate vSGD since its old and there is no implementation. Is that valid?}
 
@@ -318,7 +301,7 @@ The model parameters are then computed based on the rewards accumulated over all
 Intuitively, this corresponds to running a meta optimization algorithm, that estimates the expected optimal learning rate in parallel with the actual parameter optimization process.
 
 Several other contributions~\cite{vanervenMetaGradMultipleLearning2016a,baydinOnlineLearningRate2018,cutkoskyMechanicLearningRate2023} have also used the idea of learning $\eta$ via a meta-optimization process.
-The \textit{hypergradient descent} approach~\cite{baydinOnlineLearningRate2018} for instance adapts the learning rate of a base optimizers like SGD using a meta-gradient descent procedure.
+The \textit{hypergradient descent} (HD) approach~\cite{baydinOnlineLearningRate2018} for instance adapts the learning rate of a base optimizers like SGD using a meta-gradient descent procedure, although this does not remove the learning rate completely but replaces it with a less sensitive hypergradient step size.
 Mechanic~\cite{cutkoskyMechanicLearningRate2023} pursues the same goal using a meta \textit{online convex optimization} (OCO) algorithm.
 
 Research has shown that in an OCO problem setting with stationary data, the worst-case optimal fixed learning rate for SGD is
@@ -345,20 +328,21 @@ However, since we focus on general data stream applications in this paper, we di
 	\small
 	\begin{tabular}{@{}lllcc@{}}
 		\toprule
-		Optimizer & Runtime                         & Space             & Param. specific & LR free \\ \midrule
-		DAdapt    & $\mathcal{O}(6D)$               & $\mathcal{O}(2D)$ & \xmark          & \cmark  \\
-		DoG       & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
-		Mechanic  & $\mathcal{O}(10D)$              & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
-		WNGrad    & $\mathcal{O}(2D)$               & $\mathcal{O}(0)$  & \xmark          & \cmark  \\
-		SGDHD     & $\mathcal{O}(2D)$               & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
-		COCOB     & $\mathcal{O}(14D)$              & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\
-		Adam      & $\mathcal{O}(12D)$              & $\mathcal{O}(2D)$ & \cmark          & \xmark  \\
-		vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\ % Remove since not evaluated?
-		AdaGrad   & $\mathcal{O}(5D)$               & $\mathcal{O}(1D)$ & \cmark          & \xmark  \\ \bottomrule
+		Optimizer                & Runtime            & Space             & Param. specific & LR free \\ \midrule
+		AdaGrad                  & $\mathcal{O}(5D)$  & $\mathcal{O}(1D)$ & \cmark          & \xmark  \\
+		Adam                     & $\mathcal{O}(12D)$ & $\mathcal{O}(2D)$ & \cmark          & \xmark  \\
+		WNGrad                   & $\mathcal{O}(2D)$  & $\mathcal{O}(0)$  & \xmark          & \xmark  \\
+		COCOB                    & $\mathcal{O}(14D)$ & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\
+		HD \footnotemark[1]      & $\mathcal{O}(2D)$  & $\mathcal{O}(1D)$ & \xmark          & \xmark  \\
+		Mechanic                 & $\mathcal{O}(10D)$ & $\mathcal{O}(1D)$ & \cmark          & \cmark  \\
+		DoG   \footnotemark[1]   & $\mathcal{O}(5D)$  & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
+		DAdapt  \footnotemark[1] & $\mathcal{O}(6D)$  & $\mathcal{O}(2D)$ & \xmark          & \cmark  \\
+		% vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\ % Remove since not evaluated?
+		\bottomrule
 	\end{tabular}
-	\caption{Overview of additional time- and space-complexity of adaptive first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$ and based on the pseudo-codes provided in the original works. We do not list convergence guarantees because the guarantees given in the original papers of different optimizers are based on different assumptions and are rarely compatible with streaming applications. Note that this is in no way a comprehensive list of all adaptive optimizers, but rather a collection of some of the more prominent ones.}\label{tab:param_free_optims}
+	\caption{Overview of additional time- and space-complexity of evaluated adaptive first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$ and based on pseudo-codes provided in the original works. Due to lack of comparability, we do not list provided convergence guarantees. Note that this is not a comprehensive list but an overview of some of the most prominent algorithms.}\label{tab:param_free_optims}
 \end{table}
-\footnotetext[1]{Complexity for feed-forward neural networks. Since \textit{vSGD} requires additional backpropagation steps, its complexity is architecture dependent.}
+\footnotetext[1]{Variant with SGD as the base algorithm.}
 
 \section{Differences between Batch and Online Learning}\label{sec:diffs_batch_online}
 
@@ -390,21 +374,21 @@ Due to Requirement~\ref{rq:predict_any_time}, the goal is to minimize the total 
 This means that not only the loss achieved by the final parameters $\theta_T$, but the loss suffered at every timestep of the stream contributes equally to the objective.
 Therefore, speed of convergence is of larger importance in the streaming setting, whereas the performance of the final parameters $\theta_T$ has relatively little impact.
 Since memory is limited (Requirement~\ref{rq:limited_memory}), it is also not possible to continue training on previously observed data as long as $\mathcal{L}$ decreases, which puts an even greater emphasis on quick adaptation.
-At the same time, a larger learning rate causing temporary loss increases, due to skipping over local minima can be suboptimal with respect to Problem~\ref{eq:stream_lr_optim} even if it eventually yields a lower loss.
+At the same time, a larger learning rate causing temporary loss increases, due to skipping over local minima can be suboptimal with respect to Problem~\eqref{eq:stream_lr_optim} even if it eventually yields a lower loss.
 
 Another difference to conventional batch learning is that the distribution $p_t$ is time dependent, due to the fact that data streams might, and in practice most likely will, be subjected to change in the form of \textit{concept drift}\footnote{We use concept drift as an umbrella term for any form of distributional shift.} over time.
 Under such circumstances, the optimal parameter values $\theta^*$ move throughout the progression of the stream requiring the model parameters to adapt.
 
 
 
-\subsection{Learning Rate Tuning}
+\subsection{Learning Rate Tuning} \label{subsec:pre-tuning}
 
 Concept drift also complicates the tuning of $\eta$, since even if data is available beforehand drift would eventually cause the stream to diverge from the distribution of data used for tuning.
 This effect, combined with the previously described differences in the evaluation scheme can cause conventional learning rate tuning to produce unsuitable results for stream-based learning.
 % Alternatively: 
 % Furthermore, in conventional batch learning, the standard practice for learning rate tuning is to optimize for the performance on the validation data~\cite{defazioLearningRateFreeLearningDAdaptation2023a}.
 % As a result, this approach disregards the performance of the model throughout the tuning process and only selects the learning rate with the best final performance potentially yielding a value unsuitable for stream-based learning.
-We therefore propose a slightly different online learning specific tuning approach, that aims to approximately solve Problem~\ref{eq:stream_lr_optim}.
+We therefore propose a slightly different online learning specific tuning approach approximating Problem~\eqref{eq:stream_lr_optim}, which we call \textit{learning rate pre-tuning} in the following.
 
 To emulate
 % a static version of 
@@ -441,13 +425,14 @@ As a result, feedback-loops are avoided assuming $\eta_0$ is small enough to not
 For the purpose of drift detection we apply ADWIN~\cite{bifetLearningTimeChangingData2007} to the prequential losses.
 To avoid mistakenly detecting drops in loss as concept drifts, we use a one-tailed ADWIN variant that tests only for increases.
 
-We further hypothesize, that our approach could also be beneficial to the performance of adaptive optimizers like Adam, that make use of momentum terms.
-As Figure~\ref{fig:adam_reset}, which shows the trajectory of Adam for a logistic regression toy problem, demonstrates, if an abrupt concept drift occurs, momentum accumulated over the previous concept can cause the parameters to continue their previous trajectory for some time.
-When resetting the optimizers state once the drift occurs on the other hand, the parameters immediately begin moving towards the new minimum.
-This results in considerably better expected prequential losses, as shown by the marker colors.
+% We further hypothesize, that our approach could also be beneficial to the performance of adaptive optimizers like Adam, that make use of momentum terms.
+% As Figure~\ref{fig:adam_reset}, which shows the trajectory of Adam for a logistic regression toy problem, demonstrates, if an abrupt concept drift occurs, momentum accumulated over the previous concept can cause the parameters to continue their previous trajectory for some time.
+% When resetting the optimizers state once the drift occurs on the other hand, the parameters immediately begin moving towards the new minimum.
+% This results in considerably better expected prequential losses, as shown by the marker colors.
 
 Our approach is similar to some \textit{forgetting mechanisms}~\cite{gamaSurveyConceptDrift2014} commonly employed in conventional non-deep online learning, which improve model plasticity by partly~\cite{bifetAdaptiveLearningEvolving2009} or resetting the current model's parameters to their initial values.
-However, we hypothesize that this approach is not well suited for deep learning purposes because, under the assumption of convexity, it requires that the newly initiated parameters be closer to the optimal parameters $\theta^*$ than the current parameters to be beneficial.
+However, we hypothesize that this approach is not well suited for deep learning purposes.
+The reason for this is that, under the assumption of convexity, it requires that the newly initiated parameters be closer to the optimal parameters $\theta^*$ than the current parameters to be beneficial.
 For all but the most severe drifts, this seems highly unlikely.
 Nevertheless, we experimentally compare our approach with this mechanism in Section~\ref{sec:experiments}.
 
@@ -463,52 +448,50 @@ Nevertheless, we experimentally compare our approach with this mechanism in Sect
 
 \section{Experiments}\label{sec:experiments}
 
-To evaluate our hypotheses we performed computational experiments using the following setup:
+To evaluate our hypotheses we performed computational experiments using the following setup\footnote{Our code is available at \url{anonymous.4open.science/r/LODL-D458/}.}:
 
-Datasets:
--both synthetic and public real-world datasets
--only classification problems, as this is the most common case
--various sizes and types of concepts drift
--RBF datasets created with Random Radial Basis Function generator using River, drift created by incrementally moving all centroids or switching abruptly between random seeds after 10k samples
--Electricity and Covertype available through River and UCI ML Repository: commonly used datasets for analyzing online learning models
--Insects: multiple datasets with specific types of concept drift; intentionally created to analyze the capability to adapt to concept drift
+We used both synthetic and publicly available real-world classification datasets, with different sizes and types of concept drift, listed in Table~\ref{tab:datasets}.
+
+With the purpose of generating similar datasets with different types of concept drift, we generated Random Radial Basis Function (RBF) datasets using the online learning framework River~\cite{montiel2021river}. We then caused concept drift by either incrementally moving all RBF centroids or abruptly switching the random seed of the generator in the center of the stream.
+
+We further employed the Electricity and Covertype~\cite{misc_covertype_31} datasets, which are commonly used to evaluate online learning models, as well as the Insects datasets~\cite{souzaChallengesBenchmarkingStream2020} with known types of concept drift.
+Covertype is accessible through the OpenML Platform~\cite{vanschorenOpenMLNetworkedScience2014}, while the remaining datasets are part of River.
+
+As the model architecture, we used a single hidden layer MLP implemented in PyTorch~\cite{paszkePyTorchImperativeStyle2019}.
+To account for the different dimensionality of the selected data streams, with the number of hidden units equal to number of input features.
+This choice was informed by our experience that smaller models exhibit faster convergence and are therefore usually preferable over larger ones in online learning scenarios.
+
+For selecting the decay factor $\gamma$ in decaying learning rate schedules, we ran a grid search with three geometrically spaced values.
+We then used the value yielding the best accuracy for most datasets and the next smaller value for schedules with our resetting mechanism.
+To ensure a minimal level of adaptability even for longer streams, we set a lower bound at 10\% of the base learning rate.
+Unless stated otherwise, we tuned the base learning rate $\eta_0$ of all but the parameter-free approaches using a grid search of ten geometrically spaced values.
+For the proposed learning rate resetting mechanism, we set the confidence level $\delta$ of ADWIN to $10^{-4}$.
+For more details on our hyperparameter setup, refer to Appendix~\ref{app:hyperparams}.
+
+For our evaluations we processed each dataset sequentially, emulating streams of mini-batches with four instances each, while recording the prequential accuracy and other metrics in intervals of 25 iterations.
+We report our results averaged over five random seeds.
+Since the prequential binary crossentropy used for training, can contain large outliers, we focus on the classification accuracy as a performance metric.
 
 
-Architecture unless otherwise stated:
--single hidden-layer MLP, since in our experience smaller models are often preferable for online learning due to their fast convergence
--binary crossentropy as loss function
--number of hidden-units equal to number of input features to account for different dimensionality of data streams
--training with a batch size of 4, which we find to be more realistic than using individual samples due to the approximately four-times faster evaluation and nearly identical performance
--for simplicity no dropout or weight decay
--for selecting the decay factor $\gamma$ in decaying learning rate schedules, we ran a grid search with three geometrically spaced values. We then used the value yielding the best accuracy for most datasets and the next smaller value for schedules with our resetting mechanism.
--to ensure a minimal level of adaptability even for longer streams, we set a lower bound at 10\% of the base learning rate
--unless stated otherwise we tuned the base learning rate $\eta_0$ using a grid search of six geometrically spaced values. For more details refer to Appendix~\ref{app:hyperparams}.
--for our resetting mechanism we set the confidence level of ADWIN to 0.0001
-
-Implementation:
--in python 3.9
--neural nets implemented with PyTorch
--we logged metrics every 100 instances
--reported numbers are the means over 5 random seeds
--since the prequential binary crossentropy can contain large outliers, we focus solely on accuracy as a performance metric
 
 \begin{table}[ht]
 	\small
 	\begin{tabular}{@{}clcccc@{}}
 		\toprule
-		Type                    & Data Stream            & Samples & Features & Classes \\
+		Type                    & Data Stream            & Instances & Features & Classes \\
 		\midrule
-		\multirow{2}{*}{Synth.} & RBF abrupt             & 20000   & 20       & 5       \\
-		                        & RBF incremental        & 20000   & 20       & 5       \\
+		\multirow{2}{*}{Synth.} & RBF abrupt             & 20000     & 20       & 5       \\
+		                        & RBF incremental        & 20000     & 20       & 5       \\
 		\midrule
-		\multirow{5}{*}{Real}   & Insects abrupt         & 52848   & 33       & 6       \\
-		                        & Insects incremental    & 57018   & 33       & 6       \\
-		                        & Insects incr.-grad.    & 24150   & 33       & 6       \\
-		                        & Covertype\footnotemark & 100000  & 54       & 7       \\
-		                        & Electricity            & 45312   & 8        & 2       \\
+		\multirow{5}{*}{Real}   & Insects abrupt         & 52848     & 33       & 6       \\
+		                        & Insects incremental    & 57018     & 33       & 6       \\
+		                        & Insects gradual        & 24150     & 33       & 6       \\
+		                        & Covertype\footnotemark & 100000    & 54       & 7       \\
+		                        & Electricity            & 45312     & 8        & 2       \\
 		\bottomrule
-	\end{tabular}\label{tab:datasets}
+	\end{tabular}
 	\caption{Datasets used for experimental evaluations.}
+	\label{tab:datasets}
 \end{table}
 
 \footnotetext[2]{We used the first 100k from a total of 581k examples only.}
@@ -516,88 +499,141 @@ Implementation:
 
 \subsection{Drift Adaptation}
 
-To evaluate the effectiveness of our learning rate resetting mechanism for drift adaptation (see Equation~\ref{eq:drift_reset}), we compare its average prequential accuracy to that of the adaptation algorithm by \citet{kunchevaAdaptiveLearningRate2008}(see Equation~\ref{eq:kuncheva_lr}) and complete model resetting, commonly used in online learning.
+To evaluate the effectiveness of our learning rate resetting mechanism for drift adaptation (see Equation~\eqref{eq:drift_reset}), we compare its average prequential accuracy to that of the adaptation algorithm by \citet{kunchevaAdaptiveLearningRate2008} (see Equation~\eqref{eq:kuncheva_lr}) and complete model resetting, commonly used in online learning.
+
 As can be seen in Table~\ref{tab:lr_resetting}, our approach clearly outperforms both other drift adaptation techniques by a wide margin on all but Covertype, where weight resetting yielded slightly higher accuracy.
-It also compares favorably against a fixed and exponential schedule on the RBF, Covertype and Electricity datasets, where it achieved the best or within the standard deviation range of the best accuracy.
-However, the accuracy increases are not statistically significant and the accuracy of the basic exponential schedule is higher for all Insects datasets.
+It also compares favorably against static exponential decay on the RBF incremental, Covertype and Electricity datasets.
+However, aside from the results on RBF incremental the accuracy increases are negligible.
+Furthermore, learning rate resetting did not yield improvements for the Insects datasets regardless of the type of drift.
 This is also reflected in Figure~\ref{fig:prequential_schedulers_insects}, where the standard exponential schedule's accuracy initially rises faster and also recovers faster after the first concept drift, which is likely caused by its larger step size in the first half of the stream.
 Although the resetting mechanism was frequently triggered when no concept drift occurred, our results for the oracle resetting approach that was triggered only for timesteps with drift show that this performance gap is not caused by the drift detector.
 Rather, it appears that using a larger initial learning rate and slower decay is sufficient for assuring adequate adaptability to concept drift throughout most data streams while granting better stability at later stages.
 
-The logical choice for a learning rate schedule therefore seems to be a slow exponential decay, unless severe concept drift like in RBF incremental can be expected, in which case using our proposed learning rate resetting can increase performance.
+Overall, a slower static decay and a larger initial learning rate seems to be preferable over a more aggressive schedule with our drift resetting mechanism, unless severe concept drift as in RBF incremental can be expected.
 
-\begin{figure}
+With accuracy values within the standard deviation range of one another on all evaluated streams, step-wise decay displays almost identical performance to exponential decay.
+The cyclic schedule's accuracy for RBF incremental and Covertype on the other hand significantly exceeded that of the other static and adaptive schedules but lacks behind on all other streams.
+We also did not find improvements in convergence speed by an order of magnitude as observed by~\cite{smithSuperConvergenceVeryFast2018a} for the investigated scenario.
+Based on our results, the usefulness of cyclic learning rates for online learning applications therefore seems to be more data dependent than conventional decaying schedules.
+
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=.47\textwidth]{figures/lr_norms_schedules_insects_abrupt.pdf}
-	\caption{Prequential metrics for our drift resetting approach (see Equation~\eqref{eq:drift_reset}), drift adaptation by~\citet{kunchevaAdaptiveLearningRate2008} and different basic schedules on Insects abrupt. Concept drifts are marked by dashed lines. Loss and accuracy are exponentially smoothed with.}
+	\caption{Prequential accuracy and learning rate for our drift resetting approach (see Equation~\eqref{eq:drift_reset}), drift adaptation by~\citet{kunchevaAdaptiveLearningRate2008} and different basic schedules on Insects abrupt. Concept drifts are marked by dashed lines. The accuracy is exponentially smoothed with a decay factor of 0.75.}
 	\label{fig:prequential_schedulers_insects}
 \end{figure}
 
-\begin{table*}[ht]
+\begin{table*}[h]
 	\centering
 	\small
-	\begin{tabular}{lccccccc}
+	\begin{tabular}{llccccccc}
 		\toprule
-		Schedule        & RBF abrupt             & RBF incr.            & Covertype              & Electricity            & Insects abrupt       & Insects gradual      & Insects incr.        \\
+		                                                    & Schedule        & RBF abrupt            & RBF incr.           & Covertype             & Electricity           & Insects abrupt        & Insects gradual       & Insects incr.         \\
 		\midrule
-		Fixed           & \underline{94.79±0.32} & 70.95±2.89           & \bfseries 83.42±0.50   & \underline{73.77±0.40} & 71.50±0.08           & 75.31±0.21           & 60.48±0.20           \\
-		Exponential     & \bfseries 94.85±0.29   & 70.23±2.40           & \underline{82.95±0.26} & \underline{73.51±0.48} & \bfseries 72.19±0.37 & \bfseries 75.91±0.14 & \bfseries 61.28±0.16 \\ \midrule
-		Weight Reset    & 69.96±0.38             & 65.13±0.80           & \underline{83.12±0.13} & 70.08±1.66             & 51.52±0.90           & 62.55±2.34           & 34.11±0.44           \\
-		Kuncheva        & 70.60±6.24             & 42.37±1.31           & 76.98±0.15             & 67.06±0.01             & 67.45±0.50           & 72.43±0.61           & 54.17±0.30           \\
-		LR Reset (Ours) & \underline{94.83±0.26} & \bfseries 73.38±2.32 & \underline{82.99±0.20} & \bfseries 73.79±0.62   & 71.73±0.20           & 75.52±0.12           & 60.77±0.08           \\
-		LR Reset Oracle & 95.12±0.21             & ---                  & ---                    & ---                    & 71.88±0.26           & ---                  & ---                  \\
+		\multirow{4}{*}{\rotatebox[origin=c]{90}{Static}}   & Fixed           & \underline{94.79±.32} & 70.95±2.89          & \underline{83.42±.50} & \underline{73.77±.40} & 71.50±.08             & 75.31±.21             & 60.48±.20             \\
+		                                                    & Step            & \bfseries 94.87±.28   & 70.19±3.02          & 82.89±.37             & \underline{73.62±.53} & \bfseries 72.23±.27   & \underline{75.83±.21} & \underline{61.18±.11} \\
+		                                                    & Cyclic          & \underline{94.79±.32} & \bfseries 74.96±.86 & \bfseries 83.44±.08   & 68.38±.81             & 71.74±.39             & 75.64±.06             & 60.48±.20             \\
+		                                                    & Exponential     & \underline{94.85±.29} & 70.23±2.40          & 82.95±.26             & \underline{73.51±.48} & \underline{72.19±.37} & \bfseries 75.91±.14   & \bfseries 61.28±.16   \\ \midrule
+		\multirow{4}{*}{\rotatebox[origin=c]{90}{Adaptive}} & Weight Reset    & 69.96±.38             & 65.13±.80           & 83.12±.13             & 70.08±1.66            & 51.52±.90             & 62.55±2.34            & 34.11±.44             \\
+		                                                    & Kuncheva        & 70.60±6.24            & 42.37±1.31          & 76.98±.15             & 67.06±.01             & 67.45±.50             & 72.43±.61             & 54.17±.30             \\
+		                                                    & LR Reset (Ours) & \underline{94.83±.26} & 73.38±2.32          & 82.99±.20             & \bfseries 73.79±.62   & 71.73±.20             & 75.52±.12             & 60.77±.08             \\
+		                                                    & LR Reset Oracle & 95.12±.21             & ---                 & ---                   & ---                   & 71.88±.26             & ---                   & ---                   \\
 		\bottomrule
 	\end{tabular}
-	\caption{Average prequential accuracy for (drift-adaptive) learning rate schedules on Insects abrupt. For LR Reset Oracle we manually reset the learning rate at timesteps where concept drift occurs.}
+	\caption{Average prequential accuracy [\%] for static (top) and drift adaptive learning rate schedules (bottom) with SGD. For LR Reset Oracle we manually reset the learning rate at timesteps where concept drift occurs.}
 	\label{tab:lr_resetting}
 \end{table*}
 
 \subsection{Adaptive Learning Rates}
 
-Table~\ref{tab:all_results} shows the 
-\begin{figure}
+To make inferences about the usefulness of different adaptive first-order optimization techniques for online deep learning, we performed prequential evaluations for the methods listed in Table~\ref{tab:param_free_optims}.
+
+From the results displayed in Table~\ref{tab:results_adaptive_optims}, it can be deduced that none of the approaches that require tuning a step size parameter stands out as generally superior for the investigated datasets.
+Rather, each of SGD, AdaGrad, and Adam achieve the best accuracy on two of the seven datasets.  This once again underlines the data dependency of the optimizer performance.
+However, since SGD yields the best accuracy on RBF abrupt but is clearly surpassed on Insects abrupt, the type of concept drift does not seem to play a significant role.
+
+Due to its simplicity and favorable computational efficiency, it appears that standard SGD should be selected out of the non-parameter-free approaches if the characteristics of the targeted data stream are unknown.
+The SGD variant of Hypergradient Descent~\cite{baydinOnlineLearningRate2018} and WNGrad~\cite{wuWNGradLearnLearning2020} on the other hand seem to rarely be optimal choices.
+
+In the category of learning rate free optimizers COCOB~\cite{orabonaTrainingDeepNetworks2017}, outperformed its competitors on all but two datasets.
+Its accuracy also comes close to that or even exceeds that of the best tuned approaches.
+As the second best parameter-free method, DoG also comes within reach of the accuracy of the tuned methods, while offering much better runtime and memory efficiency compared to COCOB (see Table~\ref{tab:param_free_optims}).
+WNGrad~\cite{wuWNGradLearnLearning2020} as well as the Mechanist~\cite{cutkoskyMechanicLearningRate2023} and DAdaptation~\cite{defazioLearningRateFreeLearningDAdaptation2023a} SGD variants on the other hand performed significantly worse than all other optimization approaches.
+
+To gain additional insights into the investigated adaptive optimizers, we calculated their effective learning rates as $\frac{||\eta_t||}{\sqrt{D}}$, where $\eta_t \in \mathbb{R}^D$ is the vector of parameter specific learning rates.
+The resulting learning rate curves shown in Figure~\ref{fig:prequential_schedulers_insects}, provide an indication regarding the reason for the poor performance of WNGrad and DAdaption.
+Whereas the learning rate of DoG quickly approaches the tuned SGD learning rate, the two parameter-free methods diverge considerably from it.
+A possible cause for this could be the higher level of gradient noise introduced by the small mini-batches and concept drift associated with the online learning setting.
+
+Another interesting observation that can be made in Figure~\ref{fig:prequential_optims_insects} is that the learning rate of the best performing Adam features spikes for most change points, suggesting some form of adaptability to drift.
+Since the much worse performing Mechanic shows similar spikes, this is however unlikely to be a significant contributing factor to Adams high accuracy on Insects abrupt.
+
+It may also be noted that the learning rates of the COCOB, Adam and Mechanic optimizers with parameter specific learning rates exceed those of single value step sizes by multiple orders of magnitude.
+This is an effect of AdaGrad-like scaling, which creates larger learning rates for parameters with small and consistent gradients \cite{cutkoskyMechanicLearningRate2023}.
+Therefore, the parameter updates generated by these approaches are not necessarily larger.
+
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=.47\textwidth]{figures/lr_norms_optims_insects_abrupt.pdf}
-	\caption{Prequential metrics for adaptive optimizers on Insects abrupt. Concept drifts are marked by dashed lines. Loss and accuracy are exponentially smoothed with.}
-	\label{fig:prequential_schedulers_insects}
+	\caption{Prequential accuracy and learning rate for adaptive optimizers on Insects abrupt. Concept drifts are marked by dashed lines. Accuracy is exponentially smoothed with a decay factor of 0.75.}
+	\label{fig:prequential_optims_insects}
 \end{figure}
-\begin{table*}
+\begin{table*}[h]
 	\centering
 	\small
-	\begin{tabular}{lllllllll}
+	\begin{tabular}{llcccccccc}
 		\toprule
-		Optimizer                & Schedule   & RBF abrupt             & RBF incr.           & Covertype           & Electricity         & Insects abrupt      & Insects gradual       & Insects incr.         \\
+		                                                   & Optimizer & RBF abrupt          & RBF incr.            & Covertype             & Electricity          & Insects abrupt      & Insects gradual     & Insects incr.       \\
 		\midrule
-		\multirow[c]{8}{*}{SGD}  & Fixed      & \underline{94.79±.32}  & 70.95±2.89          & 83.42±.50           & 73.77±.40           & 71.50±.08           & 75.31±.21             & 60.48±.20             \\
-		                         & Exp.       & \underline {94.85±.29} & 70.23±2.40          & 82.95±.26           & 73.51±.48           & 72.19±.37           & 75.91±.14             & 61.28±.16             \\
-		                         & Exp. reset & \bfseries 94.90±.22    & 73.90±1.70          & 83.31±.45           & 73.96±.68           & 71.64±.10           & 75.53±.12             & 60.72±.09             \\
-		                         & Step       & \underline{94.87±.28}  & 70.19±3.02          & 82.89±.37           & 73.62±.53           & 72.23±.27           & 75.83±.21             & 61.18±.11             \\
-		                         & Step reset & \underline{94.84±.23}  & 70.95±2.89          & 83.26±.71           & 73.72±.76           & 71.59±.04           & 75.32±.21             & 60.56±.14             \\
-		                         & Cyclic     & \underline{94.79±.32}  & \bfseries 74.96±.86 & \bfseries 83.44±.08 & 68.38±.81           & 71.74±.39           & 75.64±.06             & 60.48±.20             \\ \midrule
-		\multirow[c]{2}{*}{Adam} & Fixed      & 93.45±.30              & 69.26±5.14          & 79.01±.27           & 69.79±.54           & \bfseries 75.38±.24 & 75.78±.74             & \bfseries 64.17±.13   \\
-		                         & Reset      & 93.25±.67              & 65.18±3.77          & 78.52±.20           & 69.91±.55           & 74.12±.45           & 74.63±.45             & \underline{64.17±.15} \\ \midrule
-		AdaGrad                  & Fixed      & 92.45±1.37             & 52.87±6.62          & 81.68±.35           & 76.99±1.20          & 74.87±.40           & \bfseries 77.15±.27   & 62.51±.59             \\
-		COCOB                    & Fixed      & 93.40±.38              & 63.52±2.70          & 82.27±.46           & \bfseries 84.30±.56 & 74.75±.11           & \underline{77.00±.05} & 63.65±.16             \\
-		SGDHD                    & Fixed      & 93.92±.31              & 72.29±2.90          & 83.36±.25           & 73.83±.32           & 70.67±.06           & 73.37±.21             & 59.92±.18             \\
-		WNGrad                   & Fixed      & 87.30±.68              & 44.92±.73           & 76.98±.15           & 70.80±.59           & 66.25±.19           & 66.75±.40             & 56.14±.21             \\
-		DAdaptSGD                & Fixed      & 74.91±4.22             & 45.47±2.75          & 76.69±.79           & 66.03±1.75          & 50.05±11.26         & 48.21±10.62           & 36.00±11.81           \\
-		DoG                      & Fixed      & 92.72±.59              & 73.17±2.72          & 83.07±.64           & 71.53±.70           & 70.59±.26           & 74.01±.21             & 59.66±.22             \\
-		Mechanic                 & Fixed      & 88.94±.58              & 49.26±1.44          & 78.67±.18           & 50.73±7.60          & 55.31±21.47         & 65.80±.53             & 47.89±17.46           \\
+		\multirow{5}{*}{\rotatebox[origin=c]{90}{Tuned}}   & SGD       & \bfseries 94.79±.32 & 70.95±2.89           & \bfseries 83.42±.50   & 73.77±.40            & 71.50±.08           & 75.31±.21           & 60.48±.20           \\
+		                                                   & Adam      & 93.45±.30           & 69.26±5.14           & 79.01±.27             & 69.79±.54            & \bfseries 75.38±.24 & 75.78±.74           & \bfseries 64.17±.13 \\
+		                                                   & AdaGrad   & 92.45±1.37          & 52.87±6.62           & 81.68±.35             & \bfseries 76.99±1.20 & 74.87±.40           & \bfseries 77.15±.27 & 62.51±.59           \\
+		                                                   & WNGrad    & 87.30±.68           & 44.92±.73            & 76.98±.15             & 70.80±.59            & 66.25±.19           & 66.75±.40           & 56.14±.21           \\
+		                                                   & HD        & 93.92±.31           & \bfseries 72.29±2.90 & \underline{83.36±.25} & 73.83±.32            & 70.67±.06           & 73.37±.21           & 59.92±.18           \\ \midrule
+		\multirow{4}{*}{\rotatebox[origin=c]{90}{LR-Free}} & COCOB     & \bfseries 93.40±.38 & 63.52±2.70           & 82.27±.46             & \bfseries 84.30±.56  & \bfseries 74.75±.11 & \bfseries 77.00±.05 & \bfseries 63.65±.16 \\
+		                                                   & DoG       & 92.72±.59           & \bfseries 73.17±2.72 & \bfseries 83.07±.64   & 71.53±.70            & 70.59±.26           & 74.01±.21           & 59.66±.22           \\
+		                                                   & DAdapt    & 74.91±4.22          & 45.47±2.75           & 76.69±.79             & 66.03±1.75           & 50.05±11.26         & 48.21±10.62         & 36.00±11.81         \\
+		                                                   & Mechanic  & 88.94±.58           & 49.26±1.44           & 78.67±.18             & 50.73±7.60           & 55.31±21.47         & 65.80±.53           & 47.89±17.46         \\
 		\bottomrule
 	\end{tabular}
-	\caption{Average prequential accuracy for different learning rate schedules and adaptive optimizers.}
-	\label{tab:all_results}
+	\caption{Average prequential accuracy [\%] for different adaptive optimizers and SGD.}
+	\label{tab:results_adaptive_optims}
 \end{table*}
 
 \subsection{Learning Rate Tuning}
 
-\begin{figure}[ht]
+We evaluated our proposed learning rate pre-tuning approach for MLPs with either one or three hidden layers and 64 or 128 hidden units per layer.
+To this end, we performed prequential evaluation runs with multiple values for the initial learning rate $\eta_0$ as well as the exponential decay factor $\gamma$, bootstrapping samples from a subset of 500 or 1000 instances from the beginning of each data stream, held out from the remaining data.
+At each iteration of this process we determine the hyperparameters with the best mean prequential accuracy.
+We use accuracy instead of loss as the selection criterion, due to the fact that the binary crossentropy employed for training commonly decreases by orders of magnitude throughout optimization.
+A selection based on the prequential loss would therefore only consider the initial iterations of the tuning process.
+
+Figure~\ref{fig:pretune_lr_accuracy} shows the learning rate resulting from the pre-tuning process at each tuning step averaged over all real-world datasets.
+The bottom row of the figure displays the mean accuracy achieved when using this learning rate on the remaining data stream not used for tuning.
+Since we find our tuning procedure to be robust to the model size (see Appendix~\ref{app:pretune_model_sizes}) we focus on the results for the smallest network.
+
+It can be seen that after overshooting initially, the tuned learning rate converges in the vicinity of optimal learning rate after 1000 iterations.
+While tuning with 1000 samples yields a better approximation of the optimal value, both subset sizes on average achieve significantly better learning rates for more than 1000 pre-tuning steps, than conventional tuning performed with 800 training and 200 validation samples.
+This is also clearly reflected in the accuracy scores, which already exceed conventional tuning after 500 iterations.
+Although our approach maintains a larger deviation from the optimal learning rate, it notably surpasses DoG in terms of accuracy.
+This advantage seemingly stems from the fact that excessively low learning rates have a more negative impact than excessively high ones for the evaluated scenario.
+
+Figure~\ref{fig:pretune_fixed_vs_exp_lr} shows that when provided with sufficient data, pre-tuning also significantly outperforms DoG for a fixed learning rate.
+However, its performance benefit compared to DoG is considerably larger with a decaying schedule.
+
+In conclusion, our proposed tuning approach enables significantly better learning rate selection for prequential evaluation on data streams compared to both conventional tuning as well as DoG.
+Additionally, pre-tuning has the benefit that once completed, no additional memory or runtime costs are incurred. 
+In streaming applications, where computing resources are often times a limiting factor, this could be a critical advantage. 
+Although, if computational efficiency is insignificant, the highly performant but expensive COCOB~\cite{orabonaTrainingDeepNetworks2017} or the slightly less performant and much less expensive DoG~\cite{ivgiDoGSGDBest2023} may be more appropriate. 
+
+
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=.45\textwidth]{figures/pretune_1x64_acc_lr_exp_schedule.pdf}
 	\caption{Pre-tuned LR (LR that maximizes accuracy on pre-tuning data) and resulting accuracy on data streams when using SGD and an exponential learning rate schedule with 500 or 1000 separate tuning samples. Results are averaged over all real-world datasets. The shaded area represents the 1$\sigma$-interval.}\label{fig:pretune_lr_accuracy}
 \end{figure}
 
-\begin{figure}[hb]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=.47\textwidth]{figures/pretune_1x64_fixed_vs_exp_schedule.pdf}
 	\caption{Accuracy achieved by pre-tuning on 500 or 1000 samples when using SGD with a fixed LR schedule (top) or an exponential schedule (bottom), averaged over all real-world datasets. The shaded area represents the 1$\sigma$-interval.}\label{fig:pretune_fixed_vs_exp_lr}
@@ -624,6 +660,15 @@ Table~\ref{tab:all_results} shows the
 
 \section{Conclusion}
 
+In this work, we investigate the influence and selection of the learning rate and optimization procedure with respect to deep learning in streaming environments.
+We first provide theoretical background on discrepancies between learning rate optimization in conventional batch learning and online learning.
+Based on these differences, we derive a simple mechanism adapting the learning rate on concept drift occurrences.
+We then give an overview learning rate free algorithms popular in batch learning, which we compare experimentally on multiple synthetic and real-world datasets,
+finding both COCOB~\cite{orabonaTrainingDeepNetworks2017} and DoG~\cite{ivgiDoGSGDBest2023} to come close to the performance of optimizers with tuned learning rates.
+Lastly, we introduce a streaming specific learning rate tuning approach that grants significant performance increases over conventional tuning via a train-validation split.
+
+
+
 
 \bibliography{aaai24}
 
@@ -631,8 +676,48 @@ Table~\ref{tab:all_results} shows the
 
 \section{Hyperparameter values}\label{app:hyperparams}
 
-\section{Network Sizes in Learning Rate Tuning}\label{app:pretune_model_sizes}
+In our experiments we used the following hyperparameter settings.
 
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ll}
+		\toprule
+		Schedule    & Static                            \\ \midrule
+		Exponential & $\gamma=1-2^{-13}$                \\
+		Exp. Reset  & $\gamma=1-2^{-12}, \delta=0.0001$ \\
+		Step        & $\gamma=0.75, s=2000$             \\
+		Cyclic      & $\hat{\eta}=0.25, s=8000$         \\ \bottomrule
+	\end{tabular}
+	\caption{Learning Rate Schedule Hyperparameters.}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ll}
+		\toprule
+		Optimizer & Learning Rate                                  \\
+		\midrule
+		SGD       & $\{2^{1}, 2^{0}, \ldots, 2^{-8}\}$             \\
+		Adam      & $\{2^{-3}, 2^{-4}, \ldots, 2^{-12}\}$          \\
+		AdaGrad   & $\{2^{1}, 2^{0}, \ldots, 2^{-8}\}$             \\
+		WNGrad    & $\{10^{1.25}, 10^{0.75}, \ldots, 10^{-7.75}\}$ \\
+		SGD-HD    & $\{2^{-3}, 2^{-4}, \ldots, 2^{-12}\}$          \\ \midrule
+		COCOB     & $100$                                          \\
+		DoG       & $1$                                            \\
+		DAdaptSGD & $1$                                            \\
+		Mechanic  & $0.01$                                         \\
+		\bottomrule
+	\end{tabular}
+	\caption{Search spaces for learning rates of different optimizers.}
+\end{table}
+
+\section{Model Sizes in Learning Rate Tuning}\label{app:pretune_model_sizes}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=.47\textwidth]{figures/pretune_architectures_exp_schedule.pdf}
+	\caption{Accuracy achieved by pre-tuning on 500 or 1000 samples when using SGD with an exponential schedule on different network sizes, averaged over all real-world datasets. The shaded area represents the 1$\sigma$-interval.}
+\end{figure}
 
 
 \end{document}
