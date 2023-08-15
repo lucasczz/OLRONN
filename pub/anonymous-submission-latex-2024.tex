@@ -187,9 +187,15 @@ Deep learning models have demonstrated exceptional performance in various domain
 One of the main factors leading to such outstanding results is the choice of the optimization method used to train the target model.
 Nearly all modern deep learning applications, use first-order stochastic optimization methods like \text{stochastic gradient descent}, which iteratively update the parameters of the underlying model based on gradient information, for this purpose.
 One of the most important variables of such algorithms is the step size or \textit{learning rate} (LR).
-This applies arguably even more so to online learning in data stream environments, since in such circumstances training cannot simply be repeated if the learning rate proves to be suboptimal.
 
-According to \citet{bifetMOAMassiveOnline2010} an online learning model operating on data streams must be able to
+As a result, many techniques for setting and optimizing the learning rate have emerged over the years (see Figure~\ref{fig:lr_overview}).
+Based on prior knowledge, the learning rate can for instance be set as a fixed value or a schedule altering the step size over time.
+Alternatively, one could use an adaptive learning rate technique, which considers historical gradient information to modify the learning rate at each iteration. 
+
+In batch learning scenario where all training data is assumed to be available a priori, the aforementioned methods are well researched.
+Despite the increasing prevalence of data streams, their use in online learning has however received little attention in research. 
+
+According to \citet{bifetMOAMassiveOnline2010} an online learning model operating on a data stream must be able to
 \begin{center}
 	\begin{varwidth}{0.5\textwidth}
 		\begin{description}
@@ -202,16 +208,11 @@ According to \citet{bifetMOAMassiveOnline2010} an online learning model operatin
 	\end{varwidth}
 \end{center}
 
-These requirements introduce additional challenges when it comes to the selection of an appropriate optimizer and learning rate compared to a batch learning scenario where all training data is assumed to be available a priori.
+These requirements introduce additional challenges when it comes to the selection of an appropriate optimizer and learning rate.
 
-Despite the increasing prevalence of data streams, this issue has received little attention in research.
-In this paper, we therefore provide insight into the key differences between batch and online learning in light of the learning rate in first-order optimization based on which we provide the following contributions:
-
-\begin{enumerate}
-	\item An in-depth experimental comparison between learning rate schedules and optimizers with adaptive learning rates on synthetic and real-world data streams.
-	\item An investigation into the adaptation of the learning rate to drifting data.
-	\item An effective approach for learning rate tuning for deep learning models operating in streaming environments.
-\end{enumerate}
+To enable more informed decisions when it comes to learning rate optimization, we provide insight into these challenges and empirically evaluate commonly used optimization techniques in an online learning setting (i).
+We further introduce a \textit{drift reset} mechanism (see Figure~\ref{fig:lr_overview}) to adapt the learning rate to concept drifts, that commonly occur in streaming environments (ii). 
+Lastly, we propose a \textit{pre-tuning} approach for effectively optimizing the learning rate of deep learning models operating in streaming environments on data available prior to deployment (iii).
 
 \begin{figure}
 	\centering
