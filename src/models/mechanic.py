@@ -1,3 +1,5 @@
+# Taken from https://github.com/acutkosky/mechanic/blob/main/mechanic.py
+
 import logging
 from typing import Tuple, Any, Callable, Dict
 import torch

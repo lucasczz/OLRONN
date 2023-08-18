@@ -1,9 +1,6 @@
-import base64
 from pathlib import Path
-import os
 import time
-from typing import Callable, Dict, List, Union
-import zipfile
+from typing import Callable, Dict, List
 import numpy as np
 import torch
 import csv
@@ -17,34 +14,29 @@ def one_hot(arr):
     return np.eye(len(unique_values))[np.searchsorted(unique_values, arr)]
 
 
-def save_array(array, filename, step):
-    with zipfile.ZipFile(filename, mode="a", compression=zipfile.ZIP_DEFLATED) as zf:
-        tmpfilename = f"{step}.npy"
-        np.save(tmpfilename, array)
-        zf.write(tmpfilename)
-        os.remove(tmpfilename)
-
-
 class ExperimentLogger:
     def __init__(
         self,
         optim: torch.optim.Optimizer,
         metric_fns: List[Callable],
         parameters: Dict,
-        save_path: str,
+        log_path: str,
         logged_variables: List[str] = [],
         log_lr_norms: bool = False,
         log_interval: int = 100,
     ) -> None:
         self.optim = optim
-        self.logged_vars = logged_variables
+        self.logged_vars = (
+            logged_variables
+            if isinstance(logged_variables, (list, tuple))
+            else [logged_variables]
+        )
         self.metric_fns = metric_fns
         self.parameters = parameters
-        self.save_path = Path(save_path)
-        self.array_path = Path(save_path).with_suffix(".npz")
+        self.save_path = Path(log_path)
         self.save_path.parent.mkdir(parents=True, exist_ok=True)
         self.log_interval = log_interval
-        self.tmp_variables = {var_name: [] for var_name in logged_variables}
+        self.tmp_variables = {var_name: [] for var_name in self.logged_vars}
         self.tmp_variables["loss"] = []
         self.history = []
         self.params = []
@@ -64,7 +56,7 @@ class ExperimentLogger:
             ).numpy(force=True)
         self.last_time = time.time()
 
-    def update(self, y, y_pred, loss):
+    def update(self, y: torch.Tensor, y_pred: torch.Tensor, loss: torch.Tensor):
         if self.step + y.shape[0] > self.last_log_step + self.log_interval:
             cutoff = (self.step + y.shape[0]) % self.log_interval
             args0 = y[:-cutoff], y_pred[:-cutoff], loss[:-cutoff]
@@ -146,7 +138,7 @@ class ExperimentLogger:
         self.last_log_step = self.step
         self.last_time = time.time()
 
-    def _write_step(self, results):
+    def _write_step(self, results: Dict):
         # Check if file to write to has a .csv header already
         has_header = False
         if self.save_path.exists():

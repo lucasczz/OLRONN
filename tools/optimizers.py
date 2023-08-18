@@ -1,90 +1,56 @@
-from functools import partial
-from src.models.mechanic import get_mechanic_sgd, mechanize
-from itertools import product
-from torch import optim
+from src.models.mechanic import get_mechanic_sgd
 from pathlib import Path
-from src.models.optimizers import COCOB, DDoG, WNGrad
+from src.models.optimizers import COCOB, WNGrad
 from hypergrad import SGDHD
 from dadaptation import DAdaptSGD, DAdaptAdam, DAdaptLion
-from torch.optim import SGD, Adagrad
-from dog import DoG, PolynomialDecayAverager
+from torch.optim import SGD, Adagrad, Adam
+from dog import DoG
 
 from tools.base import (
-    get_config_product,
-    run_prequential,
-    test_configs,
     DATASET_NAMES,
+    get_config_grid,
+    run_configs,
     REPORTS_PATH,
-    DEVICE,
     SEEDS,
     zip_csv,
 )
 
 # Set up logging path
-run_name = "DDoG"
-save_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
-
+run_name = "v1"
+log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 # Set up configs
 optimizers = [
-    ("Adam", optim.Adam, [2**-i for i in range(3, 13)]),
-    ("SGD", SGD, [2**-i for i in range(-1, 9)]),
-    ("SGDHD", SGDHD, [2**-i for i in range(3, 13)]),
-    ("COCOB", COCOB, [100]),
-    ("WNGrad", WNGrad, [10 ** (-0.25 * i + 1.25) for i in range(0, 19, 2)]),
-    ("DAdaptSGD", DAdaptSGD, [1]),
-    ("DoG", DoG, [1]),
-    ("DAdaptAdam", DAdaptAdam, [1]),
-    ("DAdaptLion", DAdaptLion, [1]),
-    ("AdaGrad", Adagrad, [2**-i for i in range(-1, 9)]),
-    ("Mechanic", get_mechanic_sgd, [0.01]),
-    ("DDoG", DDoG, [1]),
+    {"optimizer": "SGD", "optim_fn": SGD, "base_lr": [2**-i for i in range(-1, 9)]},
+    {"optimizer": "Adam", "optim_fn": Adam, "base_lr": [2**-i for i in range(3, 13)]},
+    {
+        "optimizer": "SGDHD",
+        "optim_fn": SGDHD,
+        "base_lr": [2**-i for i in range(3, 13)],
+    },
+    {"optimizer": "COCOB", "optim_fn": COCOB, "base_lr": 100},
+    {"optimizer": "DAdaptSGD", "optim_fn": DAdaptSGD, "base_lr": 1},
+    {"optimizer": "DoG", "optim_fn": DoG, "base_lr": 1},
+    {"optimizer": "DAdaptAdam", "optim_fn": DAdaptAdam, "base_lr": 1},
+    {"optimizer": "DAdaptLion", "optim_fn": DAdaptLion, "base_lr": 1},
+    {"optimizer": "Mechanic", "optim_fn": get_mechanic_sgd, "base_lr": 0.01},
+    {
+        "optimizer": "AdaGrad",
+        "optim_fn": Adagrad,
+        "base_lr": [2**-i for i in range(-1, 9)],
+    },
+    {
+        "optimizer": "WNGrad",
+        "optim_fn": WNGrad,
+        "base_lr": [10 ** (-i / 2 + 1.25) for i in range(10)],
+    },
 ]
 
 
-batch_sizes = [4]
-n_hidden_layerss = [1]
-datasets = DATASET_NAMES
-
-
-configs = []
-for optimizer in optimizers:
-    configs += get_config_product(*optimizer, batch_sizes, n_hidden_layerss, SEEDS)
-
-
-def run(
-    optim_name,
-    optim_fn,
-    lr,
-    batch_size,
-    n_hidden_layers,
-    seed,
-    data,
-    dataset_name,
-    verbose=False,
-):
-    run_prequential(
-        data=data,
-        batch_size=batch_size,
-        optim_fn=optim_fn,
-        base_lr=lr,
-        log_path=save_path,
-        net_params={"n_hidden_layers": n_hidden_layers},
-        seed=seed,
-        n_hidden_layers=n_hidden_layers,
-        verbose=verbose,
-        device=DEVICE,
-        dataset=dataset_name,
-        optimizer=optim_name,
-        schedule="Fixed",
-    )
-
+configs = get_config_grid(optimizers, seed=SEEDS, log_lr_norms=True)
 
 if __name__ == "__main__":
-    test_configs(
-        run,
-        dataset_names=datasets,
-        configs=configs,
-        debug=False,
+    run_configs(
+        dataset_names=DATASET_NAMES, configs=configs, debug=False, log_path=log_path
     )
-    zip_csv(save_path)
+    zip_csv(log_path)
