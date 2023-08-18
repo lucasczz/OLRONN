@@ -1,4 +1,4 @@
-name: project-blueprint
+name: lodl
 
 dependencies:
   - python=3.9
@@ -8,6 +8,7 @@ dependencies:
     - torch
     - numpy
     - pandas 
+    - jupyter
     - matplotlib
     - scikit-learn
     - dog-optimizer
