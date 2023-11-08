@@ -1,32 +1,24 @@
-\documentclass[letterpaper]{article} % DO NOT CHANGE THIS
-\usepackage[submission]{aaai24}  % DO NOT CHANGE THIS
-\usepackage{times}  % DO NOT CHANGE THIS
-\usepackage{helvet}  % DO NOT CHANGE THIS
-\usepackage{courier}  % DO NOT CHANGE THIS
-\usepackage[hyphens]{url}  % DO NOT CHANGE THIS
-\usepackage{graphicx} % DO NOT CHANGE THIS
-\urlstyle{rm} % DO NOT CHANGE THIS
-\def\UrlFont{\rm}  % DO NOT CHANGE THIS
-\usepackage{natbib}  % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
-\usepackage{caption} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
-\frenchspacing  % DO NOT CHANGE THIS
-\setlength{\pdfpagewidth}{8.5in} % DO NOT CHANGE THIS
-\setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
+% This is samplepaper.tex, a sample chapter demonstrating the
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.20 of 2017/10/04
 %
-% These are recommended to typeset algorithms but not required. See the subsubsection on algorithms. Remove them if you don't have algorithms in your paper.
-\usepackage{algorithm}
-\usepackage{algorithmic}
-
+\documentclass[runningheads]{llncs}
 %
-% These are are recommended to typeset listings but not required. See the subsubsection on listing. Remove this block if you don't have listings in your paper.
-\usepackage{newfloat}
-\usepackage{listings}
+\usepackage{graphicx}
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+%
+% If you use the hyperref package, please uncomment the following line
+% to display URLs in blue roman font according to Springer's eBook style:
+% \renewcommand\UrlFont{\color{blue}\rmfamily}
 
 % User imported packages
+\usepackage[utf8]{inputenc}
 \usepackage{multirow}
 \usepackage{pifont}
+\usepackage[backend=biber, style=lncs, maxcitenames=2]{biblatex}
 \usepackage{booktabs}
-\usepackage{subcaption}
+\usepackage{caption, subcaption}
 \usepackage{bm}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -38,154 +30,48 @@
 \newcommand{\cmark}{\ding{51}} % checkmark symbol
 \newcommand{\xmark}{\ding{55}} % X-mark symbol
 
-\DeclareCaptionStyle{ruled}{labelfont=normalfont,labelsep=colon,strut=off} % DO NOT CHANGE THIS
-\lstset{%
-	basicstyle={\footnotesize\ttfamily},% footnotesize acceptable for monospace
-	numbers=left,numberstyle=\footnotesize,xleftmargin=2em,% show line numbers, remove this entire line if you don't want the numbers.
-	aboveskip=0pt,belowskip=0pt,%
-	showstringspaces=false,tabsize=2,breaklines=true}
-\floatstyle{ruled}
-\newfloat{listing}{tb}{lst}{}
-\floatname{listing}{Listing}
-%
-% Keep the \pdfinfo as shown here. There's no need
-% for you to add the /Title and /Author tags.
-\pdfinfo{
-/TemplateVersion (2024.1)
-}
-
-% DISALLOWED PACKAGES
-% \usepackage{authblk} -- This package is specifically forbidden
-% \usepackage{balance} -- This package is specifically forbidden
-% \usepackage{color (if used in text)
-% \usepackage{CJK} -- This package is specifically forbidden
-% \usepackage{float} -- This package is specifically forbidden
-% \usepackage{flushend} -- This package is specifically forbidden
-% \usepackage{fontenc} -- This package is specifically forbidden
-% \usepackage{fullpage} -- This package is specifically forbidden
-% \usepackage{geometry} -- This package is specifically forbidden
-% \usepackage{grffile} -- This package is specifically forbidden
-% \usepackage{hyperref} -- This package is specifically forbidden
-% \usepackage{navigator} -- This package is specifically forbidden
-% (or any other package that embeds links such as navigator or hyperref)
-% \indentfirst} -- This package is specifically forbidden
-% \layout} -- This package is specifically forbidden
-% \multicol} -- This package is specifically forbidden
-% \nameref} -- This package is specifically forbidden
-% \usepackage{savetrees} -- This package is specifically forbidden
-% \usepackage{setspace} -- This package is specifically forbidden
-% \usepackage{stfloats} -- This package is specifically forbidden
-% \usepackage{tabu} -- This package is specifically forbidden
-% \usepackage{titlesec} -- This package is specifically forbidden
-% \usepackage{tocbibind} -- This package is specifically forbidden
-% \usepackage{ulem} -- This package is specifically forbidden
-% \usepackage{wrapfig} -- This package is specifically forbidden
-% DISALLOWED COMMANDS
-% \nocopyright -- Your paper will not be published if you use this command
-% \addtolength -- This command may not be used
-% \balance -- This command may not be used
-% \baselinestretch -- Your paper will not be published if you use this command
-% \clearpage -- No page breaks of any kind may be used for the final version of your paper
-% \columnsep -- This command may not be used
-% \newpage -- No page breaks of any kind may be used for the final version of your paper
-% \pagebreak -- No page breaks of any kind may be used for the final version of your paperr
-% \pagestyle -- This command may not be used
-% \tiny -- This is not an acceptable font size.
-% \vspace{- -- No negative value may be used in proximity of a caption, figure, table, section, subsection, subsubsection, or reference
-% \vskip{- -- No negative value may be used to alter spacing above or below a caption, figure, table, section, subsection, subsubsection, or reference
-
-\setcounter{secnumdepth}{2} %May be changed to 1 or 2 if section numbers are desired.
-
-% The file aaai24.sty is the style file for AAAI Press
-% proceedings, working notes, and technical reports.
-%
-
-% Title
-
-% Your title must be in mixed case, not sentence case.
-% That means all verbs (including short verbs like be, is, using,and go),
-% nouns, adverbs, adjectives should be capitalized, including both words in hyphenated terms, while
-% articles, conjunctions, and prepositions are lower case unless they
-% directly follow a colon or long dash
-\iffalse\title{AAAI Press Anonymous Submission\\Instructions for Authors Using \LaTeX{}}
-\author{
-    %Authors
-    % All authors must be in the same font size and format.
-    Written by AAAI Press Staff\textsuperscript{\rm 1}\thanks{With help from the AAAI Publications Committee.}\\
-    AAAI Style Contributions by Pater Patel Schneider,
-    Sunil Issar,\\
-    J. Scott Penberthy,
-    George Ferguson,
-    Hans Guesgen,
-    Francisco Cruz\equalcontrib,
-    Marc Pujol-Gonzalez\equalcontrib}
-\affiliations{
-    %Afiliations
-    \textsuperscript{\rm 1}Association for the Advancement of Artificial Intelligence\\
-    % If you have multiple authors and multiple affiliations
-    % use superscripts in text and roman font to identify them.
-    % For example,
-
-    % Sunil Issar\textsuperscript{\rm 2},
-    % J. Scott Penberthy\textsuperscript{\rm 3},
-    % George Ferguson\textsuperscript{\rm 4},
-    % Hans Guesgen\textsuperscript{\rm 5}
-    % Note that the comma should be placed after the superscript
-
-    1900 Embarcadero Road, Suite 101\\
-    Palo Alto, California 94303-3310 USA\\
-    % email address must be in roman text type, not monospace or sans serif
-    proceedings-questions@aaai.org
-%
-% See more examples next
-}
-\fi
-
-%Example, Single Author, ->> remove \iffalse,\fi and place them surrounding AAAI title to use it
-\iffalse\title{My Publication Title --- Single Author}
-\author{
-    Author Name
-}
-\affiliations{
-    Affiliation\\
-    Affiliation Line 2\\
-    name@example.com
-}
-\fi
-
-%Example, Multiple Authors, ->> remove \iffalse,\fi and place them surrounding AAAI title to use it
-\title{Learning Rate Optimization in Online Deep Learning}
-\author{
-    % Authors
-    Lucas Cazzonelli\textsuperscript{\rm 1},
-    Cedric Kulbach\textsuperscript{\rm 2},
-}
-\affiliations{
-    % Affiliations
-    \textsuperscript{\rm 1}FZI Research Center for Information Technology\\
-    \textsuperscript{\rm 2}Affiliation 2\\
-    cazzonelli@fzi.de, secondAuthor@affilation2.com
-}
-
-
-% REMOVE THIS: bibentry
-% This is only needed to show inline citations in the guidelines document. You should not need it and can safely delete it.
-\usepackage{bibentry}
-% END REMOVE bibentry
+\addbibresource{bibliography.bib}
 
 \begin{document}
+%
+\title{Learning Rate Optimization in Online Deep Learning}
+%
+%\titlerunning{Abbreviated paper title}
+% If the paper title is too long for the running head, you can set
+% an abbreviated paper title here
+%
+\author{Anonymous\inst{1}}
+%
+\authorrunning{Anonymous et al.}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+%\institute{
+%    Princeton University, Princeton NJ 08544, USA
+%    \and
+%    Springer Heidelberg, Tiergartenstr. 17, 69121 Heidelberg, Germany
+%    \email{lncs@springer.com}\\
+%    \url{http://www.springer.com/gp/computer-science/lncs}
+%    \and
+%    ABC Institute, Rupert-Karls-University Heidelberg, Heidelberg, Germany\\
+%    \email{\{abc,lncs\}@uni-heidelberg.de}
+%    }
+%
 
 \maketitle
-% \frenchspacing
-
+%
 \begin{abstract}
-	\noindent Efficient training via gradient-based optimization techniques is an essential building block to the success of deep learning. Extensive research on the impact and the effective estimation of an appropriate learning rate has partly enabled these techniques. Despite the proliferation of data streams generated by IoT devices, digital platforms, etc., previous research has been primarily focused on batch learning, which assumes that all training data is available a priori. However, characteristics such as the gradual emergence and non-stationarity of data pose additional challenges. Therefore, the findings on batch learning may not be applicable to deep learning in streaming environments. In this work, we seek to address this knowledge gap by (i) evaluating and comparing typical learning rate schedules and optimizers, (ii) exploring adaptations of these techniques, and (iii) providing insights into effective learning rate tuning in the context of stream-based deep learning.
-\end{abstract}
+	Efficient training via gradient-based optimization techniques is an essential building block to the success of deep learning. Extensive research on the impact and the effective estimation of an appropriate learning rate has partly enabled these techniques. Despite the proliferation of data streams generated by IoT devices, digital platforms, etc., previous research has been primarily focused on batch learning, which assumes that all training data is available a priori. However, characteristics such as the gradual emergence and non-stationarity of data pose additional challenges. Therefore, the findings on batch learning may not be applicable to streaming environments, where the underlying model has to adapt each time a new data instance appears. In this work, we seek to address this knowledge gap by (i) evaluating and comparing typical learning rate schedules and optimizers, (ii) exploring adaptations of these techniques, and (iii) providing insights into effective learning rate tuning in the context of stream-based deep learning.
 
+	\keywords{Data streams  \and Second keyword \and Another keyword.}
+\end{abstract}
+%
+%
+%
 \section{Introduction}
 Deep learning models have demonstrated exceptional performance in various domains.
 One of the main factors leading to such outstanding results is the choice of the optimization method used to train the target model.
-Nearly all modern deep learning applications, use first-order stochastic optimization methods like \text{stochastic gradient descent}, which iteratively update the parameters of the underlying model based on gradient information, for this purpose.
+Nearly all modern deep learning applications, use first-order stochastic optimization methods like \textit{stochastic gradient descent}, which iteratively update the parameters of the underlying model based on gradient information, for this purpose.
 One of the most important variables of such algorithms is the step size or \textit{learning rate} (LR).
 
 As a result, many techniques for setting and optimizing the learning rate have emerged over the years (see Figure~\ref{fig:lr_overview}).
@@ -195,17 +81,15 @@ Alternatively, one could use an adaptive learning rate technique, which consider
 In batch learning scenario where all training data is assumed to be available a priori, the aforementioned methods are well researched.
 Despite the increasing prevalence of data streams, their use in online learning has however received little attention in research.
 
-According to \citet{bifetMOAMassiveOnline2010} an online learning model operating on a data stream must be able to
+According to \textcite{bifetMOAMassiveOnline2010} an online learning model operating on a data stream must be able to
 \begin{center}
-	\begin{varwidth}{0.5\textwidth}
-		\begin{description}
-			\item[R1:] process a single instance at a time,\label{rq:single_instance}
-			\item[R2:] process each instance in a limited amount of time,\label{rq:limited_time}
-			\item[R3:] use a limited amount of memory,\label{rq:limited_memory}
-			\item[R4:] predict at any time,\label{rq:predict_any_time}
-			\item[R5:] adapt to changes in the data distribution.\label{rq:adapt_to_drift}
-		\end{description}
-	\end{varwidth}
+	\begin{description}
+		\item[R1:] process a single instance at a time,\label{rq:single_instance}
+		\item[R2:] process each instance in a limited amount of time,\label{rq:limited_time}
+		\item[R3:] use a limited amount of memory,\label{rq:limited_memory}
+		\item[R4:] predict at any time,\label{rq:predict_any_time}
+		\item[R5:] adapt to changes in the data distribution.\label{rq:adapt_to_drift}
+	\end{description}
 \end{center}
 
 These requirements introduce additional challenges when it comes to the selection of an appropriate optimizer and learning rate.
@@ -246,7 +130,7 @@ For basic SGD, we can define the parameter update performed at the end of each i
 where $\eta_t$ denotes the step size or \textit{learning rate} at timestep $t$.
 
 The primary trade-off to consider with respect to the choice of $\eta$ is that increasing it speeds up convergence, but at the same time also increases stochasticity and therefore leads to the divergence of the training criterion beyond a certain threshold.~\cite{bengioPracticalRecommendationsGradientbased2012}.
-In fact, \citet{smithBayesianPerspectiveGeneralization2018}, found that when modeling SGD as a stochastic differential equation, the “noise scale” is directly tied to $\eta$~\cite{smithBayesianPerspectiveGeneralization2018}.
+In fact, \textcite{smithBayesianPerspectiveGeneralization2018}, found that when modeling SGD as a stochastic differential equation, the “noise scale” is directly tied to $\eta$~\cite{smithBayesianPerspectiveGeneralization2018}.
 
 \subsection{Learning Rate Schedules}
 
@@ -274,7 +158,7 @@ For a triangular cycle, the learning rate calculates as
 with $\hat{\eta}$ being the learning rate at the middle of each cycle of length $s$.
 Some studies~\cite{smithCyclicalLearningRates2017, smithSuperConvergenceVeryFast2018a} have found cyclic schedules to significantly speed up the convergence of neural networks even when compared to adaptive techniques like Adam in some cases~\cite{kingmaAdamMethodStochastic2017b}.
 While there are many alternatives, in this work we focus on  exponential, stepped and cyclic learning rates, as some of the most commonly used generic schedules.
-For a comprehensive overview and detailed analysis on learning rate policies, refer to \citet{wuDemystifyingLearningRate2019b}.
+For a comprehensive overview and detailed analysis on learning rate policies, refer to \textcite{wuDemystifyingLearningRate2019b}.
 
 \subsection{Adaptive Learning Rates}
 
@@ -299,7 +183,7 @@ Parameter-free variants of SGD aim to solve this by estimating the optimal step 
 
 One of the earlier works on parameter-free optimization~\cite{schaulNoMorePesky2013} proposed \textit{vSGD}, which, like Adam, uses first and second order moments of the gradients as well as local curvature information to estimate $\eta$~\cite{schaulNoMorePesky2013} obtained through a back-propagation formula~\cite{schaulNoMorePesky2013}.
 Due to the age and complexity of vSGD compared to similar approaches, we did not include it in our evaluations.
-% Even though \citet{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space.
+% Even though \textcite{schaulNoMorePesky2013} demonstrate \textit{vSGD's} robustness to non-stationary data distributions, it has, to the best of our knowledge, not been widely adopted in the online learning space.
 % Due to the lack of publicly available implementations of the non-trivial algorithm, we have not been able to evaluate vSGD at the time of writing. 
 
 Instead of using curvature information, the \textit{COCOB} algorithm~\cite{orabonaTrainingDeepNetworks2017} models parameter optimization as a gambling problem, in which the goal is to maximize the rewards obtained from betting on each gradient.
@@ -318,15 +202,12 @@ As its name suggests, the \textit{Distance over Gradients} (DoG)~\cite{ivgiDoGSG
 \begin{equation}
 	\max_{i<t}||\theta_0 - \theta_i||.
 \end{equation}
-DoG additionally makes use of polynomial decay averaging as proposed by~\citet{shamirStochasticGradientDescent2012}.
+DoG additionally makes use of polynomial decay averaging as proposed by~\textcite{shamirStochasticGradientDescent2012}.
 
-\textit{D-Adaptation} by \citet{defazioLearningRateFreeLearningDAdaptation2023a} on the other hand employs weighted dual averaging~\cite{duchiDualAveragingDistributed2012} to calculate bounds on the distance between initial and optimal parameters, often denoted as $D$ and use them to adapt the learning rate of a base optimization algorithm.
+\textit{D-Adaptation} by \textcite{defazioLearningRateFreeLearningDAdaptation2023a} on the other hand employs weighted dual averaging~\cite{duchiDualAveragingDistributed2012} to calculate bounds on the distance between initial and optimal parameters, often denoted as $D$ and use them to adapt the learning rate of a base optimization algorithm.
 
 Although parameter-free stochastic optimization techniques are inherently well-suited for highly non-stationary streaming data~\cite{schaulNoMorePesky2013} and in some cases even developed as online optimizers, their application on data streams has rarely been investigated.
 Therefore, we assess the suitability of some of the most prominent adaptive optimizers, listed in Table~\ref{tab:param_free_optims} for stream-based learning.
-
-There are also several lesser-known studies that have explored adaptive learning rates in specific application domains of online learning such as time series prediction~\cite{miyaguchiCograConceptDriftAwareStochastic2019, fekriDeepLearningLoad2021}, federated learning~\cite{canonacoAdaptiveFederatedLearning2021}, and recommender systems~\cite{ferreirajoseADADRIFTAdaptiveLearning2020}.
-However, since we focus on general data stream applications in this paper, we did not investigate these techniques further.
 
 \begin{table}[ht]
 	\centering
@@ -349,7 +230,7 @@ However, since we focus on general data stream applications in this paper, we di
 \end{table}
 \footnotetext[1]{Variant with SGD as the base algorithm.}
 
-\section{Differences between Batch and Online Learning}\label{sec:diffs_batch_online}
+\section{Challenges of Online Learning}\label{sec:diffs_batch_online}
 
 In a batch learning setting, optimizing the learning rate involves minimizing the expected loss on a hold-out set of validation data.
 Formally, we can denote this task as
@@ -402,7 +283,7 @@ As previously noted, concept drift requires the model parameters to repeatedly a
 When interpreting the post-drift training as a new online optimization problem, the worst-case optimal learning rate can be calculated according to Equation~\ref{eq:oco_optimal_lr} substituting the initial parameter values $\theta_0$ with the values at the time of drift onset $\theta_{t_d}$.
 As a result, more severe drifts, causing $\theta^*$ to move away from $\theta_{t_d}$, may benefit from larger learning rates.
 
-Based on this notion, \citet{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that uses the predictive losses as an indicator for concept drift.
+Based on this notion, \textcite{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that uses the predictive losses as an indicator for concept drift.
 Their approach updates the learning rate using
 \begin{equation}
 	\eta_{t+1} = \eta_t^{1+	\bar{\mathcal{L}}_{t-M} - \bar{\mathcal{L}}_{t}},
@@ -412,7 +293,7 @@ By doing so, the authors aim to achieve higher stability, when losses decline an
 While this approach seems intuitively sound, for an initial learning rate $\eta_0 \leq 1$ it can cause an instable learning rate, since increases in loss caused by an excessive learning rate would lead to a feedback loop.
 Furthermore, loss plateaus that could be avoided by lowering $\eta$ would instead cause $\eta$ to remain stable, diminishing performance.
 
-To offer the same potential benefits as \citet{kunchevaAdaptiveLearningRate2008} approach while addressing its fundamental issues, we propose a simple adaptation to decaying learning rate schedules that resets $\eta$ to its original value if a concept drift has been detected.
+To offer the same potential benefits as \textcite{kunchevaAdaptiveLearningRate2008} approach while addressing its fundamental issues, we propose a simple adaptation to decaying learning rate schedules that resets $\eta$ to its original value if a concept drift has been detected.
 An exponential schedule modified with our approach therefore yield learning rates
 \begin{equation}
 	\eta_t = \eta_0 \cdot \gamma^{t-t_d},
@@ -434,7 +315,7 @@ Nevertheless, we experimentally compare our approach with this mechanism in Sect
 To evaluate our hypotheses, we perform computational experiments using the following setup\footnote[2]{Code available at \url{anonymous.4open.science/r/LODL-D458/}.}:
 
 We use both synthetic and publicly available real-world classification datasets with different sizes and types of concept drift, listed in Table~\ref{tab:datasets}.
-With the purpose of generating similar datasets with different types of concept drift, we generate \textit{Random Radial Basis Function} (RBF) datasets using the online learning framework \textit{River}~\cite{montiel2021river}. 
+With the purpose of generating similar datasets with different types of concept drift, we generate \textit{Random Radial Basis Function} (RBF) datasets using the online learning framework \textit{River}~\cite{montiel2021river}.
 We then caused concept drift by incrementally moving data centroids or abruptly switching the random seed of the generator.
 We further employ the \textit{Electricity} and \textit{Covertype}~\cite{misc_covertype_31} datasets, which are commonly used to evaluate online learning models, as well as the Insects datasets~\cite{souzaChallengesBenchmarkingStream2020} with known types of concept drift.
 \textit{Covertype} is accessible through the \textit{OpenML} Platform~\cite{vanschorenOpenMLNetworkedScience2014}, while the remaining datasets are part of River.
@@ -450,6 +331,7 @@ We select a fixed factor $\gamma$ for decay schedules on all datasets.
 For the proposed learning rate resetting mechanism, we select a smaller decay factor and set the confidence level $\delta$ for drift detection to $10^{-4}$.
 For more details on our hyperparameter setup, please refer to Appendix~\ref{app:hyperparams}.
 \begin{table}[t]
+	\centering
 	\small
 	\begin{tabular}{@{}clcccc@{}}
 		\toprule
@@ -503,7 +385,7 @@ Since the prequential binary crossentropy used for training occasionally produce
 	\label{fig:prequential_schedulers_insects}
 \end{figure}
 
-To evaluate the effectiveness of our learning rate resetting mechanism for drift adaptation (see Equation~\eqref{eq:drift_reset}), we compare its average prequential accuracy to that of the adaptation algorithm by \citet{kunchevaAdaptiveLearningRate2008} (see Equation~\eqref{eq:kuncheva_lr}) and model weight resetting, commonly used in online learning.
+To evaluate the effectiveness of our learning rate resetting mechanism for drift adaptation (see Equation~\eqref{eq:drift_reset}), we compare its average prequential accuracy to that of the adaptation algorithm by \textcite{kunchevaAdaptiveLearningRate2008} (see Equation~\eqref{eq:kuncheva_lr}) and model weight resetting, commonly used in online learning.
 
 As can be seen in Table~\ref{tab:lr_resetting}, our approach clearly outperforms both other drift adaptation techniques by a wide margin on all but \textit{Covertype}, where weight resetting yielded slightly higher accuracy.
 It also compares favorably against static exponential decay on the \textit{RBF incremental}, \textit{Covertype} and \textit{Electricity} datasets.
@@ -570,7 +452,7 @@ Whereas the learning rate of DoG quickly approaches the tuned SGD learning rate,
 A possible cause for this could be the higher level of gradient noise introduced by the small mini-batches and concept drift associated with data streams.
 
 Another interesting observation in Figure~\ref{fig:prequential_optims_insects} is that the learning rate of the best performing Adam features spikes for most change points, suggesting some form of adaptability to drift.
-Since the much worse performing Mechanic shows similar spikes, this is however unlikely to be a significant contributing factor to Adam's high accuracy on \textit{Insects abrupt}. 
+Since the much worse performing Mechanic shows similar spikes, this is however unlikely to be a significant contributing factor to Adam's high accuracy on \textit{Insects abrupt}.
 Instead, it likely stems from its second moment scaling, which is also part of the similarly performing AdaGrad.
 
 It may also be noted that the learning rates of the COCOB, Adam and Mechanic optimizers with parameter specific learning rates exceed those of single value step sizes by multiple orders of magnitude.
@@ -638,63 +520,7 @@ We then give an overview learning rate free algorithms popular in batch learning
 finding both COCOB and DoG to come close to the performance of optimizers with tuned learning rates.
 Lastly, we introduce a streaming specific learning rate tuning approach that grants significant performance increases over conventional tuning via a train-validation split.
 
-% \clearpage
 
-\bibliography{aaai24}
-% \newpage
-\appendix
-
-\section{Hyperparameter values}\label{app:hyperparams}
-
-In our experiments we used the following hyperparameter settings.
-
-\begin{table}[H]
-	\centering
-	\begin{tabular}{ll}
-		\toprule
-		Schedule    & Static                            \\ \midrule
-		Exponential & $\gamma=1-2^{-13}$                \\
-		Exp. Reset  & $\gamma=1-2^{-12}, \delta=0.0001$ \\
-		Step        & $\gamma=0.75, s=2000$             \\
-		Cyclic      & $\hat{\eta}=0.25, s=8000$         \\ \bottomrule
-	\end{tabular}
-	\caption{Learning Rate Schedule Hyperparameters.}
-\end{table}
-
-\begin{table}[H]
-	\centering
-	\begin{tabular}{ll}
-		\toprule
-		Optimizer  & Learning Rate                                  \\
-		\midrule
-		SGD        & $\{2^{1}, 2^{0}, \ldots, 2^{-8}\}$             \\
-		Adam       & $\{2^{-3}, 2^{-4}, \ldots, 2^{-12}\}$          \\
-		AdaGrad    & $\{2^{1}, 2^{0}, \ldots, 2^{-8}\}$             \\
-		WNGrad     & $\{10^{1.25}, 10^{0.75}, \ldots, 10^{-7.75}\}$ \\
-		SGD-HD     & $\{2^{-3}, 2^{-4}, \ldots, 2^{-12}\}$          \\ \midrule
-		COCOB      & $100$                                          \\
-		DoG        & $1$                                            \\
-		D-AdaptSGD & $1$                                            \\
-		Mechanic   & $0.01$                                         \\
-		\bottomrule
-	\end{tabular}
-	\caption{Search spaces for learning rates of different optimizers.}
-\end{table}
-
-\newpage
-
-\section{Learning Rate Pre-Tuning Results}\label{app:pretune_model_sizes}
-
-% \begin{figure}[]
-% 	\centering
-% 	\includegraphics[width=.47\textwidth]{figures/pretune_1x64_fixed_vs_exp_schedule.pdf}
-% 	\caption{Accuracy achieved by pre-tuning on 500 or 1000 samples when using SGD with a fixed LR schedule (top) or an exponential schedule (bottom), averaged over all real-world datasets. The shaded area represents the 1$\sigma$-interval.}\label{fig:pretune_fixed_vs_exp_lr}
-% \end{figure}
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=.47\textwidth]{figures/pretune_architectures_exp_schedule.pdf}
-	\caption{Accuracy achieved by pre-tuning on 500 or 1000 samples when using SGD with an exponential schedule on different network sizes, averaged over all real-world datasets. The shaded area represents the 1$\sigma$-interval.}
-\end{figure}
+\printbibliography
 
 \end{document}
