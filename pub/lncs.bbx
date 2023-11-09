@@ -8,6 +8,13 @@
   mincrossrefs=99,
   maxbibnames=999}
 
+\AtEveryBibitem{
+    \clearfield{urlyear}
+    \clearfield{urlmonth}
+    \clearfield{urldate}
+    \clearfield{eprint}
+}
+
 \newtoggle{lncs:abbrev}
 \newtoggle{lncs:series}
 \newtoggle{lncs:conference}
