@@ -252,7 +252,7 @@ By doing so we aim to increase data variability, and therefore the resemblance t
 We then optimize the learning rate with respect to the mean prequential performance over the emulated stream using an arbitrary parameter search technique.
 We provide a detailed experimental evaluation of our approach in Section~\ref{sec:experiments}.
 
-\subsection{Learning Rate Adaptation}
+\subsection{Concept Drift Adaptation}
 
 Concept drift requires the model parameters to repeatedly adapt.
 When interpreting the post-drift training as a new online optimization problem, the worst-case optimal learning rate can be calculated according to Equation~\ref{eq:oco_optimal_lr} substituting the initial parameter values $\theta_0$ with the values at the time of drift onset $\theta_{t_d}$.
@@ -275,27 +275,24 @@ We experimentally compare our approach with this weight-resetting mechanism in S
 
 \section{Experiments}\label{sec:experiments}
 
-To evaluate our hypotheses, we perform computational experiments using the following setup\footnote[2]{Code available at \url{anonymous.4open.science/r/LODL-D458/}.}:
+We empirically evaluate our hypotheses using the following setup\footnote[2]{Code available at \url{anonymous.4open.science/r/LODL-D458/}.}:
 
 We use both synthetic and publicly available real-world classification datasets with different sizes and types of concept drift, listed in Table~\ref{tab:datasets}.
-With the purpose of generating similar datasets with different types of concept drift, we generate \textit{Random Radial Basis Function} (RBF) datasets using the online learning framework \textit{River}~\cite{montiel2021river}.
-We then caused concept drift by incrementally moving data centroids or abruptly switching the random seed of the generator.
-We further employ the \textit{Electricity} and \textit{Covertype}~\cite{misc_covertype_31} datasets, which are commonly used to evaluate online learning models, as well as the Insects datasets~\cite{souzaChallengesBenchmarkingStream2020} with known types of concept drift.
+Our evaluations include two synthetic \textit{Random Radial Basis Function} (RBF) datasets that we manipulated to incorporate concept drift using the online learning framework \textit{River}~\cite{montiel2021river}.
+We further employ the \textit{Electricity} and \textit{Covertype}~\cite{misc_covertype_31} datasets, which are commonly used to evaluate online learning models, as well as two Insects datasets~\cite{souzaChallengesBenchmarkingStream2020} with predefined types of concept drift.
 \textit{Covertype} is accessible through the \textit{OpenML} Platform~\cite{vanschorenOpenMLNetworkedScience2014}, while the remaining datasets are part of River.
 
-As the model architecture, we use a single hidden layer MLP implemented in \textit{PyTorch}~\cite{paszkePyTorchImperativeStyle2019}.
-To account for the different dimensionality of the selected data streams, with the number of hidden units equal to number of input features.
-This choice is based on our experience that smaller models exhibit faster convergence and are therefore usually the most suitable in online learning scenarios.
+As a model, we use an MLP with a single hidden layer whose number of units is equal to number of input features implemented in \textit{PyTorch}~\cite{paszkePyTorchImperativeStyle2019}.
+This choice is based on our experience that smaller models exhibit faster convergence and are therefore usually best suited for streaming environments.
 
-We tune the base learning rate $\eta_0$ of all but the parameter-free approaches using a grid search of ten geometrically spaced values.
-To ensure a minimal level of adaptability, we set a lower bound at 10\% of the base learning rate.
-Parameter-free algorithms are configured with the author's suggested parameter values and paired with SGD as a base optimizer in the case of HD, Mechanic and D-Adaptation.
+We tune the base learning rate $\eta_0$ of all but the parameter-free approaches using a grid search of ten geometrically spaced values and configure adaptive optimizers with their default parameter values. For HD, Mechanic and D-Adaptation we select standard SGD as the base algorithm.
 We select a fixed factor $\gamma$ for decay schedules on all datasets.
 For the proposed learning rate resetting mechanism, we select a smaller decay factor and set the confidence level $\delta$ for drift detection to $10^{-4}$.
 % For more details on our hyperparameter setup, please refer to Appendix~\ref{app:hyperparams}.
 \begin{table}[t]
 	\centering
 	\scriptsize
+	\caption{Datasets used for experimental evaluations.}
 	\begin{tabular}{@{}clcccc@{}}
 		\toprule
 		Type                    & Data Stream               & Instances & Features & Classes \\
@@ -309,31 +306,30 @@ For the proposed learning rate resetting mechanism, we select a smaller decay fa
 		                        & Electricity               & 45312     & 8        & 2       \\
 		\bottomrule
 	\end{tabular}
-	\caption{Datasets used for experimental evaluations.}
 	\label{tab:datasets}
 \end{table}
 \footnotetext[3]{We use the first 100k from a total of 581k examples only.}
 For our evaluations we process each dataset sequentially, emulating streams of mini-batches with four instances each, while recording the prequential accuracy and other metrics in intervals of 25 iterations.
 We report our results averaged over five random seeds.
-Since the prequential binary crossentropy used for training occasionally produced large outliers, we focus on the classification accuracy as a performance metric.
+% Since the prequential binary crossentropy used for training occasionally produced large outliers, we focus on the classification accuracy as a performance metric.
 
-\subsection{Drift Adaptation}
+\subsection{Learning Rate Schedules}
 
 \begin{table*}[ht]
 	\centering
 	\scriptsize
-	\caption{Average prequential accuracy [\%] for static and drift adaptive learning rate schedules with SGD. For LR-Reset Oracle we manually reset the learning rate at timesteps where concept drift occurs. Best values are shown in \textbf{bold}, values within $1\sigma$ interval of best values are \underline{underlined}.}
+	\caption{Average prequential accuracy [\%] for static and drift adaptive learning rate schedules with SGD. For LR-Reset Oracle we manually reset the learning rate at timesteps where concept drift occurs. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}.}
 	\begin{tabular}{llccccccc}
 		\toprule
-		                                                    & Schedule                                         & RBF abrupt            & RBF incr.           & Covertype             & Electricity           & Insects abrupt        & Insects gradual       \\
+		                                                  & Schedule        & RBF abrupt            & RBF incr.           & Covertype             & Electricity           & Insects abrupt        & Insects gradual       \\
 		\midrule
-		\multirow{4}{*}{\rotatebox[origin=c]{90}{Static}}   & Fixed                                            & \underline{94.79±.32} & 70.95±2.89          & \underline{83.42±.50} & \underline{73.77±.40} & 71.50±.08             & 75.31±.21             \\
-		                                                    & Step                                             & \bfseries 94.87±.28   & 70.19±3.02          & 82.89±.37             & \underline{73.62±.53} & \bfseries 72.23±.27   & \underline{75.83±.21} \\
-		                                                    & Cyclic                                           & \underline{94.79±.32} & \bfseries 74.96±.86 & \bfseries 83.44±.08   & 68.38±.81             & 71.74±.39             & 75.64±.06             \\
-		                                                    & Exponential                                      & \underline{94.85±.29} & 70.23±2.40          & 82.95±.26             & \underline{73.51±.48} & \underline{72.19±.37} & \bfseries 75.91±.14   \\ \midrule
-		\multirow{3}{*}{\rotatebox[origin=c]{90}{Adapt.}} & Weight-Reset                                     & 69.96±.38             & 65.13±.80           & 83.12±.13             & 70.08±1.66            & 51.52±.90             & 62.55±2.34            \\
-		                                                    & LR-Reset (Ours)                                  & \underline{94.83±.26} & 73.38±2.32          & 82.99±.20             & \bfseries 73.79±.62   & 71.73±.20             & 75.52±.12             \\
-		                                                    & LR-Reset Oracle                                  & 95.12±.21             & ---                 & ---                   & ---                   & 71.88±.26             & ---                   \\
+		\multirow{4}{*}{\rotatebox[origin=c]{90}{Static}} & Fixed           & \underline{94.79±.32} & 70.95±2.89          & \underline{83.42±.50} & \underline{73.77±.40} & 71.50±.08             & 75.31±.21             \\
+		                                                  & Step            & \bfseries 94.87±.28   & 70.19±3.02          & 82.89±.37             & \underline{73.62±.53} & \bfseries 72.23±.27   & \underline{75.83±.21} \\
+		                                                  & Cyclic          & \underline{94.79±.32} & \bfseries 74.96±.86 & \bfseries 83.44±.08   & 68.38±.81             & 71.74±.39             & 75.64±.06             \\
+		                                                  & Exponential     & \underline{94.85±.29} & 70.23±2.40          & 82.95±.26             & \underline{73.51±.48} & \underline{72.19±.37} & \bfseries 75.91±.14   \\ \midrule
+		\multirow{3}{*}{\rotatebox[origin=c]{90}{Adapt.}} & Weight-Reset    & 69.96±.38             & 65.13±.80           & 83.12±.13             & 70.08±1.66            & 51.52±.90             & 62.55±2.34            \\
+		                                                  & LR-Reset (Ours) & \underline{94.83±.26} & 73.38±2.32          & 82.99±.20             & \bfseries 73.79±.62   & 71.73±.20             & 75.52±.12             \\
+		                                                  & LR-Reset Oracle & 95.12±.21             & ---                 & ---                   & ---                   & 71.88±.26             & ---                   \\
 		\bottomrule
 	\end{tabular}
 	\label{tab:lr_resetting}
@@ -354,28 +350,24 @@ Since the prequential binary crossentropy used for training occasionally produce
 	\caption{Prequential accuracy and learning rate for different schedules and adaptive optimizers on \textit{Insects abrupt} dataset. Concept drifts are marked by dashed lines. Accuracy is exponentially smoothed with a decay factor of 0.75.}
 \end{figure}
 
-To evaluate the effectiveness of our learning rate resetting mechanism for drift adaptation (see Equation~\eqref{eq:drift_reset}), we compare its average prequential accuracy to that of the adaptation algorithm by \textcite{kunchevaAdaptiveLearningRate2008} (see Equation~\eqref{eq:kuncheva_lr}) and model weight resetting, commonly used in online learning.
+To evaluate the effectiveness of our learning rate resetting mechanism for drift adaptation (see Equation~\eqref{eq:drift_reset}), we compare its average prequential accuracy to that of model weight resetting, commonly used in online learning.
 
-As can be seen in Table~\ref{tab:lr_resetting}, our approach clearly outperforms both other drift adaptation techniques by a wide margin on all but \textit{Covertype}, where weight resetting yielded slightly higher accuracy.
-It also compares favorably against static exponential decay on the \textit{RBF incremental}, \textit{Covertype} and \textit{Electricity} datasets.
-However, aside from the results on \textit{RBF incremental} the accuracy increases are negligible.
-Furthermore, learning rate resetting did not yield improvements for the Insects datasets regardless of the type of drift.
+As can be seen in Table~\ref{tab:lr_resetting}, our approach clearly outperforms weight-resetting on all but \textit{Covertype}, but rarely yields an advantage over a static schedule.
 This is also reflected in Figure~\ref{fig:prequential_schedulers_insects}, where the standard exponential schedule's accuracy initially rises faster and recovers faster after the first concept drift, which is likely caused by its larger step size in the first half of the stream.
-Although the resetting mechanism frequently acted when no concept drift occurred, our results for the oracle resetting approach, that was triggered only for timesteps with drift, show that this performance gap is not caused by the drift detector.
+Since the oracle variant of our resetting approach, that was triggered only for timesteps with drift, shows only marginally better results, this performance gap is not caused by the drift detector.
 Rather, it appears that using a larger initial learning rate and slower decay is sufficient for assuring adequate adaptability to concept drift throughout a data stream while granting better stability at later stages.
 Overall, a slower but static decay paired with a larger initial learning rate seems to be preferable over a more aggressive schedule with our drift resetting mechanism, unless severe concept drift as in \textit{RBF incremental} is expected.
 
 With accuracy values within the $1\sigma$ interval of one another on all evaluated streams, step-wise decay displays almost identical performance to exponential decay.
 The cyclic schedule's accuracy for \textit{RBF incremental} and \textit{Covertype} on the other hand significantly exceeded that of the other static and adaptive schedules but lacks behind on all other streams.
 We also did not find improvements in convergence speed by an order of magnitude as observed by~\cite{smithSuperConvergenceVeryFast2018a} for the investigated scenario.
-Based on our results, the usefulness of cyclic learning rates for online learning applications therefore seems to be more data dependent than conventional decaying schedules.
 
 \subsection{Adaptive Learning Rates}
 
 \begin{table*}[ht]
 	\centering
 	\scriptsize
-	\caption{Average prequential accuracy [\%] for adaptive optimizers and SGD. We used SGD as the base optimizer for HD, Mechanic and D-Adapt. Best values are shown in \textbf{bold}, values within $1\sigma$ interval of best values are \underline{underlined}.}
+	\caption{Average prequential accuracy [\%] for adaptive optimizers and SGD. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}.}
 	\begin{tabular}{llcccccccc}
 		\toprule
 		                                                   & Optimizer                                                                         & RBF abrupt          & RBF incr.            & Covertype             & Electricity          & Insects abrupt      & Insects gradual     \\
@@ -394,9 +386,9 @@ Based on our results, the usefulness of cyclic learning rates for online learnin
 	\label{tab:results_adaptive_optims}
 \end{table*}
 
-To judge the usefulness of different adaptive first-order optimization techniques for online learning, we ran prequential evaluations with all methods listed in Table~\ref{tab:param_free_optims}.
+% To judge the usefulness of adaptive first-order optimization techniques for online learning, we ran prequential evaluations with all methods listed in Table~\ref{tab:param_free_optims}.
 
-From the results displayed in Table~\ref{tab:results_adaptive_optims}, it can be deduced that none of the approaches that require tuning a step size parameter stands out as generally superior for the investigated datasets.
+From the results for adaptive optimizers displayed in Table~\ref{tab:results_adaptive_optims}, it can be deduced that none of the approaches that require tuning a step size parameter stands out as generally superior for the investigated datasets.
 Rather, each of SGD, AdaGrad, and Adam achieve the best accuracy on two of the seven datasets.
 This once again underlines the data dependency of the optimizer performance.
 However, since SGD yields the best accuracy on \textit{RBF abrupt} but is clearly surpassed on \textit{Insects abrupt}, the type of concept drift does not seem to be significant.
