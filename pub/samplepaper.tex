@@ -158,7 +158,7 @@ For a comprehensive overview and detailed analysis on learning rate policies, re
 % Although determining the learning rate through a separate tuning phase with parameter searches like grid- or random-search is still the de facto standard in deep learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}, this approach causes significant computational overhead.
 
 Various studies have proposed \textit{adaptive optimizers} that increase the robustness of the training process with respect to the learning rate.
-These optimizers adjust the step size based on previous gradients at each optimization step~\cite{duchiAdaptiveSubgradientMethods2011}. 
+These optimizers adjust the step size based on previous gradients at each optimization step~\cite{duchiAdaptiveSubgradientMethods2011}.
 One of the earlier techniques in this category is \textit{AdaGrad}~\cite{duchiAdaptiveSubgradientMethods2011}, which scales the learning rate based on the sum of squares of past gradients for each parameter, resulting in a parameter specific step size.
 % Parameter specific learning rates not only influence the length, but also the direction of update steps, in case of AdaGrad by shifting updates in the direction of smaller gradients~\cite{wuWNGradLearnLearning2020}. % Weglassen? 
 Several other approaches like AdaDelta~\cite{zeilerADADELTAAdaptiveLearning2012a} and RMSProp~\cite{tielemanLecture5rmspropDivide2012}, subsequently built on AdaGrad's scaling approach.
@@ -215,64 +215,55 @@ In a batch learning setting, optimizing the learning rate involves minimizing th
 Formally, we can denote this task as
 \begin{equation}
 	\label{eq:batch_lr_optim}
-	\min_{\eta_0, \ldots, \eta_T} \mathbb{E}_{x \sim p_v(x)}[\mathcal{L}(x, \theta_T)],
+	\min_{\eta_0, \ldots, \eta_T} \sum_{i=0}^V \mathcal{L}(x_i, \theta_T),
 \end{equation}
-where $p_v$ is a distribution of held-out validation data and $\theta_T$ the parameters at the end of training.
+% \begin{equation}
+% 	\label{eq:batch_lr_optim}
+% 	\min_{\eta_0, \ldots, \eta_T} \sum_{\forall x \in V} \mathcal{L}(x, \theta_T),
+% \end{equation}
+where all $x_i$ are part of a separate validation dataset and $\theta_T$ are the parameters at the end of training.
 In online learning where data is generated incrementally, this notion of learning rate optimization is infeasible.
-Due to requirements \textbf{R1-R5}, models operating in an online learning environment should be evaluated in a \textit{prequential} manner~\cite{bifetMOAMassiveOnline2010}, where each sample $x_t$ in the data stream is first used to test and then to train the model ensuring testing is done exclusively on unseen data.
+Due to requirements \textbf{R1-R5}, models operating in an online learning environment should be evaluated in a \textit{prequential} manner~\cite{bifetMOAMassiveOnline2010}, where each sample $x_t$ in the data stream is first used to test and then to train the model ensuring testing is done on previously unobserved data.
 
-Training in such a scenario can therefore be more accurately modeled as an online convex optimization problem~\cite{shalev-shwartzOnlineLearningOnline2011,hazanIntroductionOnlineConvex2016}, where the optimizer suffers a loss $\mathcal{L}_t(\theta_t) = \mathcal{L}(x_t, \theta_{t})$ and produces updated parameters $\theta_{t+1}$ at each iteration of the data stream.
-The task of finding an optimal learning rate schedule in this setting can be formulated as
+Training in such a scenario can be more accurately modeled as an online convex optimization problem~\cite{shalev-shwartzOnlineLearningOnline2011,hazanIntroductionOnlineConvex2016}, where the optimizer suffers a loss $\mathcal{L}(x_t, \theta_{t})$ and produces updated parameters $\theta_{t+1}$ at each iteration of the data stream.
+Learning rate optimization in this setting can be formulated as
 \begin{equation}
 	\label{eq:stream_lr_optim}
-	\min_{\eta_0, \ldots, \eta_T} \sum_{t=0}^{T} \mathcal{L}_t(\theta_t).
+	\min_{\eta_0, \ldots, \eta_T} \sum_{t=0}^{T} \mathcal{L}_t(x_t,\theta_t).
 \end{equation}
 
 Compared to Equation~\eqref{eq:batch_lr_optim}, Equation~\eqref{eq:stream_lr_optim} features some key differences.
-Due to the requirement of being able to predict at any time (\textbf{R4}), the goal is to minimize the total sum of losses incurred over all timesteps of the prequential evaluation process, instead of minimizing only the validation loss for the final parameters $\theta_T$.
-This means that the loss suffered at every timestep of the stream contributes equally to the objective.
-Therefore, the speed of convergence is more important in the streaming setting, while the performance of the final $\theta_T$ parameter has relatively little impact.
-Since memory is limited (Requirement~\ref{rq:limited_memory}), it is also not possible to continue training on previously observed data as long as $\mathcal{L}$ decreases, which puts an even greater emphasis on quick adaptation.
+Due to the requirement of being able to predict at any time (\textbf{R4}), the goal is to minimize the total sum of losses over all timesteps of the prequential evaluation process, instead of the validation loss for the final parameters $\theta_T$.
+% This means that the loss suffered at every timestep of the stream contributes equally to the objective.
+Therefore, the speed of convergence is more important in the streaming setting, while the performance of the final $\theta_T$ parameter has a much smaller impact.
+Since memory is limited (Requirement~\ref{rq:limited_memory}), it is also not possible to continue training on previously observed data as long as the loss decreases, which puts an even greater emphasis on quick adaptation.
 At the same time, a larger learning rate causing temporary loss increases, due to skipping over local minima can be suboptimal with respect to Equation~\eqref{eq:stream_lr_optim} even if it eventually yields a lower loss.
-
-Another difference to conventional batch learning is that the loss function $\mathcal{L}_t$ is time dependent, due to the fact that data streams are commonly subjected to distributional change in the form of \textit{concept drift} over time.
-Under such circumstances, the optimal parameter values $\theta^*$ move throughout the progression of the stream requiring the model parameters to adapt.
+Another difference to conventional batch learning is that the loss function $\mathcal{L}_t$ is time dependent, due to the fact that data streams are commonly subjected to distributional change in the form of so called \textit{concept drift} over time.
+% Under such circumstances, the optimal parameter values $\theta^*$ move throughout the progression of the stream requiring the model parameters to adapt.
 
 \subsection{Learning Rate Tuning}\label{subsec:pre-tuning}
 
-Tuning the learning rate of an online machine learning model is a challenging task owing to the possibility of concept drift that may cause data stream to move away from the distribution used for tuning the model.
-This effect, combined with the previously described differences in the evaluation scheme may cause conventional learning rate tuning to produce unsuitable results for stream-based learning.
+% Tuning the learning rate of an online machine learning model is a challenging task owing to the possibility of concept drift that may cause the data stream to move away from the distribution used for tuning the model.
+The previously described differences in evaluation schemes may cause conventional learning rate tuning to produce unsuitable results for stream-based learning.
 We therefore propose a modified tuning approach, approximating Equation~\eqref{eq:stream_lr_optim}, which we call learning rate \textit{pre-tuning} in the following.
 
 To emulate the targeted data stream we continually draw samples with replacement from the tuning data in a bootstrapping procedure instead of training on all data for multiple epochs.
-By doing so we aim to increase data variability, and therefore the resemblance to an actual data stream with random distributional shifts.
-We then optimize $\eta$ with respect to the mean prequential performance over the emulated stream instead of the performance on a validation set.
-For this purpose we use a basic grid-search as is customary in batch learning~\cite{defazioLearningRateFreeLearningDAdaptation2023a}.
+By doing so we aim to increase data variability, and therefore the resemblance to an actual data stream.
+We then optimize the learning rate with respect to the mean prequential performance over the emulated stream using an arbitrary parameter search technique.
 We provide a detailed experimental evaluation of our approach in Section~\ref{sec:experiments}.
 
 \subsection{Learning Rate Adaptation}
 
-As previously noted, concept drift requires the model parameters to repeatedly adapt.
+Concept drift requires the model parameters to repeatedly adapt.
 When interpreting the post-drift training as a new online optimization problem, the worst-case optimal learning rate can be calculated according to Equation~\ref{eq:oco_optimal_lr} substituting the initial parameter values $\theta_0$ with the values at the time of drift onset $\theta_{t_d}$.
 As a result, more severe drifts, causing $\theta^*$ to move away from $\theta_{t_d}$, may benefit from larger learning rates.
 
-Based on this notion, \textcite{kunchevaAdaptiveLearningRate2008} introduced an adaptive schedule that uses the predictive losses as an indicator for concept drift.
-Their approach updates the learning rate using
-\begin{equation}
-	\eta_{t+1} = \eta_t^{1+	\bar{\mathcal{L}}_{t-M} - \bar{\mathcal{L}}_{t}},
-\end{equation}\label{eq:kuncheva_lr}
-where $\bar{\mathcal{L}}_{t}$ is the running mean of $M$ previous losses.
-By doing so, the authors aim to achieve higher stability, when losses decline and higher adaptability when losses rise.
-While this approach seems intuitively sound, for an initial learning rate $\eta_0 \leq 1$ it can cause an instable learning rate, since increases in loss caused by an excessive learning rate would lead to a feedback loop.
-Furthermore, loss plateaus that could be avoided by lowering $\eta$ would instead cause $\eta$ to remain stable, diminishing performance.
-
-To offer the same potential benefits as \textcite{kunchevaAdaptiveLearningRate2008} approach while addressing its fundamental issues, we propose a simple adaptation to decaying learning rate schedules that resets $\eta$ to its original value if a concept drift has been detected.
+Based on this notion, we propose a simple adaptation to decaying learning rate schedules that resets $\eta$ to its original value if a concept drift has been detected.
 An exponential schedule modified with our approach therefore yield learning rates
 \begin{equation}
 	\eta_t = \eta_0 \cdot \gamma^{t-t_d},
 \end{equation}\label{eq:drift_reset}
 where $t_d$ marks the timestep in which drift was last detected.
-As a result, feedback-loops are avoided assuming $\eta_0$ is small enough to not cause divergence and $\eta_t$ can also decay in the presence of loss plateaus.
 For the purpose of drift detection we apply ADWIN~\cite{bifetLearningTimeChangingData2007} to the prequential losses.
 To avoid mistakenly detecting drops in loss as concept drifts, we use a one-tailed ADWIN variant that tests only for increases.
 
@@ -280,8 +271,7 @@ Our approach is similar to some \textit{forgetting mechanisms} commonly employed
 To improve model plasticity, such mechanisms partly or completely reset the current model parameters to their initial values.
 However, we hypothesize that this approach is not well suited for deep learning purposes.
 The reason for this is that, under the assumption of convexity, the newly initiated parameters must be closer to the optimal parameters $\theta^*$ than the current parameters to be beneficial.
-For all but the most severe drifts, this seems highly unlikely.
-Nevertheless, we experimentally compare our approach with this mechanism in Section~\ref{sec:experiments}.
+We experimentally compare our approach with this weight-resetting mechanism in Section~\ref{sec:experiments}.
 
 \section{Experiments}\label{sec:experiments}
 
@@ -341,8 +331,7 @@ Since the prequential binary crossentropy used for training occasionally produce
 		                                                    & Step                                             & \bfseries 94.87±.28   & 70.19±3.02          & 82.89±.37             & \underline{73.62±.53} & \bfseries 72.23±.27   & \underline{75.83±.21} \\
 		                                                    & Cyclic                                           & \underline{94.79±.32} & \bfseries 74.96±.86 & \bfseries 83.44±.08   & 68.38±.81             & 71.74±.39             & 75.64±.06             \\
 		                                                    & Exponential                                      & \underline{94.85±.29} & 70.23±2.40          & 82.95±.26             & \underline{73.51±.48} & \underline{72.19±.37} & \bfseries 75.91±.14   \\ \midrule
-		\multirow{4}{*}{\rotatebox[origin=c]{90}{Adaptive}} & Weight Reset                                     & 69.96±.38             & 65.13±.80           & 83.12±.13             & 70.08±1.66            & 51.52±.90             & 62.55±2.34            \\
-		                                                    & Kuncheva \cite{kunchevaAdaptiveLearningRate2008} & 70.60±6.24            & 42.37±1.31          & 76.98±.15             & 67.06±.01             & 67.45±.50             & 72.43±.61             \\
+		\multirow{3}{*}{\rotatebox[origin=c]{90}{Adapt.}} & Weight-Reset                                     & 69.96±.38             & 65.13±.80           & 83.12±.13             & 70.08±1.66            & 51.52±.90             & 62.55±2.34            \\
 		                                                    & LR-Reset (Ours)                                  & \underline{94.83±.26} & 73.38±2.32          & 82.99±.20             & \bfseries 73.79±.62   & 71.73±.20             & 75.52±.12             \\
 		                                                    & LR-Reset Oracle                                  & 95.12±.21             & ---                 & ---                   & ---                   & 71.88±.26             & ---                   \\
 		\bottomrule
