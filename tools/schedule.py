@@ -36,7 +36,7 @@ schedules = [
     },
     *[
         {
-            "schedule": f"Exponential",
+            "schedule": "Exponential",
             "scheduler_fn": partial(ExponentialLR, gamma=1 - 2**-i),
             "gamma": 1 - 2**-i,
         }
@@ -44,7 +44,7 @@ schedules = [
     ],
     *[
         {
-            "schedule": f"Step",
+            "schedule": "Step",
             "scheduler_fn": partial(StepLR, gamma=g, step_size=2000),
             "gamma": g,
         }

@@ -87,7 +87,8 @@ class ExperimentLogger:
             lrs = np.divide(update, grad, where=mask, out=np.zeros_like(grad))
             if (~mask).any():
                 lrs[~mask] = lrs[mask].mean()
-            self.tmp_variables["lr_norm"].append(np.linalg.norm(lrs))
+            lr_norm = np.linalg.norm(lrs)
+            self.tmp_variables["lr_norm"].append(lr_norm / np.sqrt(lrs.size))
 
             self.last_param_state = current_param_state
 

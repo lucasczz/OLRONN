@@ -271,7 +271,7 @@ def run_prequential(
     net_fn: callable = get_mlp,
     log_interval: int = 100,
     seed: int = 42,
-    verbose: bool = True,
+    verbose: bool = False,
     device: str = "cpu",
     **log_info,
 ):
@@ -409,7 +409,7 @@ def run_configs(
             with mp.get_context("spawn").Pool(processes=n_processes) as pool:
                 for config in configs:
                     config["data"] = data
-                    config["dataset_name"] = dataset_name
+                    config["dataset"] = dataset_name
                     config["log_path"] = log_path
                     pool.apply_async(
                         func=run_fn,
