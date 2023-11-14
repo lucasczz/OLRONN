@@ -16,29 +16,27 @@ from tools.base import (
 )
 
 # Set up logging path
-run_name = "v1"
+run_name = "insects_abrupt"
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 # Set up configs
 optimizers = [
     {"optimizer": "SGD", "optim_fn": SGD, "base_lr": [2**-i for i in range(-1, 9)]},
     {"optimizer": "Adam", "optim_fn": Adam, "base_lr": [2**-i for i in range(3, 13)]},
-    {
-        "optimizer": "SGDHD",
-        "optim_fn": SGDHD,
-        "base_lr": [2**-i for i in range(3, 13)],
-    },
+    # {
+    #     "optimizer": "SGDHD",
+    #     "optim_fn": SGDHD,
+    #     "base_lr": [2**-i for i in range(3, 13)],
+    # },
     {"optimizer": "COCOB", "optim_fn": COCOB, "base_lr": 100},
     {"optimizer": "DAdaptSGD", "optim_fn": DAdaptSGD, "base_lr": 1},
     {"optimizer": "DoG", "optim_fn": DoG, "base_lr": 1},
-    {"optimizer": "DAdaptAdam", "optim_fn": DAdaptAdam, "base_lr": 1},
-    {"optimizer": "DAdaptLion", "optim_fn": DAdaptLion, "base_lr": 1},
     {"optimizer": "Mechanic", "optim_fn": get_mechanic_sgd, "base_lr": 0.01},
-    {
-        "optimizer": "AdaGrad",
-        "optim_fn": Adagrad,
-        "base_lr": [2**-i for i in range(-1, 9)],
-    },
+    # {
+    #     "optimizer": "AdaGrad",
+    #     "optim_fn": Adagrad,
+    #     "base_lr": [2**-i for i in range(-1, 9)],
+    # },
     {
         "optimizer": "WNGrad",
         "optim_fn": WNGrad,
