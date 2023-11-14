@@ -36,7 +36,6 @@ LRS = [2**-i for i in range(-1, 11)]
 DATASET_NAMES = [
     "RBF abrupt",
     "RBF incr.",
-    "SEA",
     "Insects gradual",
     "Insects abrupt",
     "Insects incr.",

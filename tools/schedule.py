@@ -109,3 +109,4 @@ if __name__ == "__main__":
         n_processes=2,
         log_path=log_path,
     )
+    zip_csv(log_path)

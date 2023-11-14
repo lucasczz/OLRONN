@@ -15,7 +15,7 @@ from tools.base import (
 )
 
 # Set up logging path
-run_name = "exp"
+run_name = "v1"
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 optimizer = [
@@ -37,7 +37,7 @@ optimizer = [
             "scheduler": "Exponential",
         }
         for g in gamma
-    ]
+    ],
 ]
 configs = get_config_grid(
     optimizer,
