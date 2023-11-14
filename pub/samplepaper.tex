@@ -153,23 +153,25 @@ These optimizers adjust the step size based on previous gradients at each optimi
 \begin{table}[ht]
 	\centering
 	\scriptsize
-	\caption{Overview of additional time- and space-complexity of evaluated adaptive first-order optimizers compared to basic SGD. Values are given in big O notation with respect to the number of model parameters $D$.}\label{tab:param_free_optims}
+	\caption{
+		Overview of additional time- and space-complexity of evaluated adaptive first-order optimizers compared to basic SGD.
+		Values are given in big O notation with respect to the number of model parameters $D$.
+		For generic approaches\textsuperscript{\dag}, we assume SGD as the base optimizer.
+	}\label{tab:param_free_optims}
 	\begin{tabular}{@{}lllcc@{}}
 		\toprule
-		Optimizer                & Runtime            & Space             & Param. specific & LR free \\ \midrule
-		AdaGrad                  & $\mathcal{O}(5D)$  & $\mathcal{O}(1D)$ & \cmark          & \xmark  \\
-		Adam                     & $\mathcal{O}(12D)$ & $\mathcal{O}(2D)$ & \cmark          & \xmark  \\
-		WNGrad                   & $\mathcal{O}(2D)$  & $\mathcal{O}(0)$  & \xmark          & \xmark  \\
-		COCOB                    & $\mathcal{O}(14D)$ & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\
-		HD \footnotemark[1]      & $\mathcal{O}(2D)$  & $\mathcal{O}(1D)$ & \xmark          & \xmark  \\
-		Mechanic                 & $\mathcal{O}(10D)$ & $\mathcal{O}(1D)$ & \cmark          & \cmark  \\
-		DoG \footnotemark[1]     & $\mathcal{O}(5D)$  & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
-		D-Adapt \footnotemark[1] & $\mathcal{O}(6D)$  & $\mathcal{O}(2D)$ & \xmark          & \cmark  \\
-		% vSGD      & $\mathcal{O}(21D)$\footnotemark & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\ % Remove since not evaluated?
+		Optimizer                      & Runtime            & Space             & Param. specific & LR free \\ \midrule
+		AdaGrad                        & $\mathcal{O}(5D)$  & $\mathcal{O}(1D)$ & \cmark          & \xmark  \\
+		Adam                           & $\mathcal{O}(12D)$ & $\mathcal{O}(2D)$ & \cmark          & \xmark  \\
+		WNGrad                         & $\mathcal{O}(2D)$  & $\mathcal{O}(0)$  & \xmark          & \xmark  \\
+		COCOB                          & $\mathcal{O}(14D)$ & $\mathcal{O}(4D)$ & \cmark          & \cmark  \\
+		HD\textsuperscript{\dag}       & $\mathcal{O}(2D)$  & $\mathcal{O}(1D)$ & \xmark          & \xmark  \\
+		Mechanic\textsuperscript{\dag} & $\mathcal{O}(10D)$ & $\mathcal{O}(1D)$ & \cmark          & \cmark  \\
+		DoG                            & $\mathcal{O}(5D)$  & $\mathcal{O}(1D)$ & \xmark          & \cmark  \\
+		D-Adapt\textsuperscript{\dag}  & $\mathcal{O}(6D)$  & $\mathcal{O}(2D)$ & \xmark          & \cmark  \\
 		\bottomrule
 	\end{tabular}
 \end{table}
-\footnotetext[1]{Variant with SGD as the base algorithm.}
 
 One of the earlier techniques in this category is \textit{AdaGrad}~\cite{duchiAdaptiveSubgradientMethods2011}, which scales the learning rate based on the sum of squares of past gradients for each parameter, resulting in a parameter-specific step size.
 Several other approaches, such as AdaDelta~\cite{zeilerADADELTAAdaptiveLearning2012a} and RMSProp, later built on AdaGrad's scaling approach.
@@ -253,7 +255,7 @@ We experimentally compare our approach with this weight-reset mechanism in Secti
 
 \section{Experiments}\label{sec:experiments}
 
-We empirically evaluate our hypotheses using the following setup\footnote[2]{Code available at \url{anonymous.4open.science/r/LODL-D458/}.}:
+We empirically evaluate our hypotheses using the following setup\footnote{Code available at \url{anonymous.4open.science/r/LODL-D458/}.}:
 
 We use both synthetic and publicly available real-world classification datasets with different sizes and types of concept drift, listed in Table~\ref{tab:datasets}.
 Our evaluations include two synthetic \textit{Random Radial Basis Function} (RBF) datasets that we manipulated to incorporate concept drift using the online learning framework \textit{River}~\cite{montiel2021river}.
@@ -261,23 +263,22 @@ Our evaluations include two synthetic \textit{Random Radial Basis Function} (RBF
 \begin{table}[ht]
 	\centering
 	\scriptsize
-	\caption{Datasets used for experimental evaluations.}
+	\caption{Datasets used for experimental evaluations. \textsuperscript{*}For Covertype we use only the first 100,000 from a total of 581,012 instances.}
 	\begin{tabular}{@{}clcccc@{}}
 		\toprule
-		Type                    & Data Stream               & Instances & Features & Classes \\
+		Type                    & Data Stream     & Instances                  & Features & Classes \\
 		\midrule
-		\multirow{2}{*}{Synth.} & RBF abrupt                & 20000     & 20       & 5       \\
-		                        & RBF incremental           & 20000     & 20       & 5       \\
+		\multirow{2}{*}{Synth.} & RBF abrupt      & 20,000                     & 20       & 5       \\
+		                        & RBF incremental & 20,000                     & 20       & 5       \\
 		\midrule
-		\multirow{5}{*}{Real}   & Insects abrupt            & 52848     & 33       & 6       \\
-		                        & Insects gradual           & 24150     & 33       & 6       \\
-		                        & Covertype\footnotemark[3] & 100000    & 54       & 7       \\
-		                        & Electricity               & 45312     & 8        & 2       \\
+		\multirow{5}{*}{Real}   & Insects abrupt  & 52,848                     & 33       & 6       \\
+		                        & Insects gradual & 24,150                     & 33       & 6       \\
+		                        & Covertype       & 100,000\textsuperscript{*} & 54       & 7       \\
+		                        & Electricity     & 45,312                     & 8        & 2       \\
 		\bottomrule
 	\end{tabular}
 	\label{tab:datasets}
 \end{table}
-\footnotetext[3]{We use the first 100k from a total of 581k examples only.}
 
 We further employ the \textit{Electricity} and \textit{Covertype}~\cite{misc_covertype_31} datasets, which are commonly used to evaluate online learning models, as well as two \textit{Insects} datasets~\cite{souzaChallengesBenchmarkingStream2020} with predefined types of concept drift.
 \textit{Covertype} is available on \textit{OpenML}~\cite{vanschorenOpenMLNetworkedScience2014}, while the remaining datasets are part of River.
