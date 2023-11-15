@@ -7,7 +7,7 @@ from itertools import product
 from dog import DoG, PolynomialDecayAverager
 import zipfile
 import os
-from typing import Iterable, List
+from typing import Iterable, List, Union
 import warnings
 import torch.multiprocessing as mp
 from pathlib import Path
@@ -95,7 +95,7 @@ def tune_prequential(
         x_sample.shape[-1],
         y_sample.shape[-1],
         n_hidden_layers=n_hidden_layers,
-        hidden_features=n_hidden_units,
+        n_hidden_units=n_hidden_units,
     )
     optim = torch.optim.SGD(net.parameters(), lr=base_lr)
     if gamma < 1:
@@ -163,7 +163,7 @@ def tune_batch_mode(
         x_sample.shape[-1],
         y_sample.shape[-1],
         n_hidden_layers=n_hidden_layers,
-        hidden_features=n_hidden_units,
+        n_hidden_units=n_hidden_units,
     )
     optim = torch.optim.SGD(net.parameters(), lr=base_lr)
     if gamma < 1:
@@ -264,7 +264,8 @@ def run_prequential(
     scheduler_fn: callable = None,
     base_lr: float = None,
     metrics: List[callable] = [accuracy],
-    net_params: dict = {},
+    n_hidden_layers: int = 1,
+    n_hidden_units: Union[None, int] = None,
     log_variables: List[str] = [],
     log_lr_norms: bool = False,
     net_fn: callable = get_mlp,
@@ -282,10 +283,15 @@ def run_prequential(
         "base_lr": base_lr,
         "seed": seed,
         "batch_size": batch_size,
+        "n_hidden_layers": n_hidden_layers,
+        "n_hidden_units": n_hidden_units,
         **log_info,
     }
     net = net_fn(
-        in_features=sample_x.shape[-1], out_features=sample_y.shape[-1], **net_params
+        in_features=sample_x.shape[-1],
+        out_features=sample_y.shape[-1],
+        n_hidden_layers=n_hidden_layers,
+        n_hidden_units=n_hidden_units,
     ).to(device)
     # Initialize optimizer and tracking of optimization metrics
     optim, averager, scheduler, sched_uses_metric, lr_limiter = init_optim(

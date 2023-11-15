@@ -81,7 +81,7 @@ For example, based on prior knowledge, the learning rate can be set as a fixed v
 Alternatively, one could use an adaptive learning rate technique that considers historical gradient information to modify the learning rate at each iteration.
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=0.7\textwidth]{figures/lr_overview.pdf}
+	\includegraphics[width=0.9\textwidth]{figures/lr_overview.pdf}
 	\caption{Overview of different learning rate optimization approaches.}
 	\label{fig:lr_overview}
 \end{figure}
@@ -193,7 +193,7 @@ Research has shown that in an OCO problem setting with stationary data, the wors
 	\eta^* = \frac{||\theta_0 - \theta^*||}{\sqrt{\sum_{t=0}^{T} ||g_t||^2}}.
 \end{equation}
 Multiple parameter-free optimizers, make use of this notion.
-As its name suggests, the \textit{Distance over Gradients} (DoG)~\cite{ivgiDoGSGDBest2023} algorithm estimates the unknown numerator in Equation~\ref{eq:oco_optimal_lr} as the maximum distance $\max_{i<t}||\theta_0 - \theta_i||$ between the initial parameters and the parameters of all previous iterations.
+As its name suggests, the \textit{Distance over Gradients} (DoG)~\cite{ivgiDoGSGDBest2023} algorithm estimates the unknown numerator in Equation~\eqref{eq:oco_optimal_lr} as the maximum distance $\max_{i<t}||\theta_0 - \theta_i||$ between the initial parameters and the parameters of all previous iterations.
 DoG additionally uses polynomial decay averaging as proposed by~\textcite{shamirStochasticGradientDescent2012}.
 \textit{D-Adaptation} by \textcite{defazioLearningRateFreeLearningDAdaptation2023a}, on the other hand, employs weighted dual averaging~\cite{duchiDualAveragingDistributed2012} to compute bounds on the distance between initial and optimal parameters.
 Although adaptive optimization techniques seem intuitively well suited for non-stationary data, their application to data streams has rarely been investigated.
@@ -222,13 +222,13 @@ Compared to Equation~\eqref{eq:batch_lr_optim}, Equation~\eqref{eq:stream_lr_opt
 Due to the requirement to be able to predict at any time (\textbf{R4}), the goal is to minimize the total sum of losses over all timesteps of the prequential evaluation process, instead of the validation loss for the final parameters $\theta_T$.
 Therefore, the speed of convergence is more important in the streaming setting, while the performance of the final $\theta_T$ parameter has a much smaller impact.
 Since memory is limited (Requirement~\ref{rq:limited_memory}), it is also not possible to continue training on previously observed data as long as the loss decreases, which puts even more emphasis on fast adaptation.
-At the same time, a higher learning rate that temporarily increases the loss by skipping local minima may be suboptimal with respect to the equation~\eqref{eq:stream_lr_optim}, even if it eventually leads to a lower loss.
+At the same time, a higher learning rate that temporarily increases the loss by skipping local minima may be suboptimal with respect to Equation~\eqref{eq:stream_lr_optim}, even if it eventually leads to a lower loss.
 Another difference to conventional batch learning is that the loss function $\mathcal{L}_t$ is time-dependent, due to the fact that data streams are often subject to distributional changes in the form of so-called \textit{concept drift} over time.
 
 \subsection{Learning Rate Tuning}\label{subsec:pre-tuning}
 
 The differences in evaluation schemes described above may cause conventional learning rate tuning to produce poor results for stream-based learning.
-Therefore, we propose a modified tuning approach that approximates the equation~\eqref{eq:stream_lr_optim}, which we call learning rate \textit{pre-tuning}.
+Therefore, we propose a modified tuning approach that approximates Equation~\eqref{eq:stream_lr_optim}, which we call learning rate \textit{pre-tuning}.
 
 To emulate the target data stream, we continuously draw samples with replacement from the tuning data in a bootstrapping procedure instead of training on all data for multiple epochs.
 By doing so, we aim to increase the variability of the data and thus the similarity to a real data stream.
@@ -238,7 +238,7 @@ We provide a detailed experimental evaluation of our approach in Section~\ref{se
 \subsection{Concept Drift Adaptation}
 
 Concept drift requires repeated adaptation of the model parameters.
-If post-drift training is interpreted as a new online optimization problem, the worst-case optimal learning rate can be computed according to Equation~\ref{eq:oco_optimal_lr}, replacing the initial parameter values $\theta_0$ with the values at the time of drift onset $\theta_{t_d}$.
+If post-drift training is interpreted as a new online optimization problem, the worst-case optimal learning rate can be computed according to Equation~\eqref{eq:oco_optimal_lr}, replacing the initial parameter values $\theta_0$ with the values at the time of drift onset $\theta_{t_d}$.
 As a result, stronger drifts that cause $\theta^*$ to move away from $\theta_{t_d}$ can benefit from larger learning rates.
 
 Based on this notion, we propose a simple adaptation to decaying learning rate schedules that resets $\eta$ to its original value when a concept drift is detected.
@@ -391,21 +391,22 @@ Therefore, the norms of parameter updates generated by these approaches are not 
 
 \subsection{Learning Rate Tuning}
 
-We assess our pre-tuning approach using either 500 or 1000 instances held out from the beginning of each stream for tuning and evaluate MLPs with 64 or 128 hidden units per layer and either one or three hidden layers.
-In the following we focus on the smallest network as the one most representative of resource critical streaming applications.
-We select the learning rate and decay factor according to the optimal mean prequential accuracy. This is due to the potential bias towards learning rates with lower initial losses, as loss values often decrease notably during training.
+We evaluate our pre-tuning approach by using either 500 or 1000 instances held out at the beginning of each stream for tuning. We assess Multi-Layer Perceptrons (MLPs) with 64 or 128 hidden units per layer and either one or three hidden layers.
+Although our technique consistently performed well across all architectures, we specifically highlight the smallest network as it best represents resource-critical streaming applications. For an overview of results across all architectures, please refer to our supplementary material.
+
+To determine the learning rate and decay factor, we rely on the optimal mean prequential accuracy. This choice accounts for the potential bias towards learning rates associated with lower initial losses, as loss values often decrease notably during training.
 
 Figure~\ref{fig:pretune_lr_accuracy} shows the absolute difference between the learning rate resulting from the pre-tuning process and the optimal value $|\eta_p - \eta^*|$ at each tuning step averaged over all real-world datasets.
 Batch tuning with 800 training and 200 validation samples initially yields a better approximation of the optimal learning rate. However, our streaming-specific approach undercuts the baseline after 1000 tuning steps, consistently decreasing and ultimately reaching approximately half of the approximation error observed in batch tuning.
 The performance also remains nearly identical, even when using only 500 samples for tuning, which demonstrates the data efficiency of pre-tuning.
 The superior performance of our approach is also reflected in the accuracy scores depicted in the right subfigure of Figure~\ref{fig:pretune_lr_accuracy}.
-After less than 1000 steps, our approach achieves notably higher accuracy than both conventional tuning and DoG, which we selected as a baseline due to being best performing parameter-free optimizer with a global learning rate.
-
 \begin{figure}[hb]
 	\centering
 	\includegraphics[width=\textwidth]{figures/pretune_1x64_acc_lr_exp_schedule.pdf}
 	\caption{Absolute difference between pre-tuned and optimal learning rate and resulting accuracy on data streams for SGD and an exponential learning rate schedule with 500 or 1000 tuning samples. DoG is not included in first subplot since it is not intended for use with LR decay. Results are averaged over all real-world datasets. The shaded area represents the 1$\sigma$-interval.}\label{fig:pretune_lr_accuracy}
 \end{figure}
+In fewer than 1000 steps, our approach outperforms both conventional tuning and DoG. 
+We selected DoG as a baseline due to being the best performing parameter-free technique within the group of optimizers with a global learning rate that is most comparable to our approach.
 
 In conclusion, our proposed tuning approach enables significantly better learning rate selection for prequential evaluation on data streams compared to both conventional tuning and DoG.
 Additionally, pre-tuning has the benefit that once completed, no additional memory or runtime costs are incurred.
