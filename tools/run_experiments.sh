@@ -1,4 +1,4 @@
 #!/bin/bash
 
-python3 schedule.py ; python3 optimizers.py ; python3 pretune.py ; python3 model_sizes.py
+python3 tools/schedule.py ; python3 tools/optimizers.py ; python3 tools/pretune.py ; python3 tools/model_sizes.py
 

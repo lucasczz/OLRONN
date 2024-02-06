@@ -13,11 +13,15 @@ from base import (
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem)
 
 datasets = [
-    "Insects incr.",
-    "Insects gradual",
-    "Insects abrupt",
-    "Electricity",
-    "Covertype",
+    "Agrawal",
+    "LED",
+    "RBF abrupt",
+    "RBF incr.",
+    # "Insects incr.",
+    # "Insects gradual",
+    # "Insects abrupt",
+    # "Electricity",
+    # "Covertype",
 ]
 
 lr = [2**-i for i in range(6)]
@@ -37,7 +41,7 @@ configs = get_config_grid(
 )
 
 if __name__ == "__main__":
-    preq_path = log_path.joinpath("prequential.csv")
+    preq_path = log_path.joinpath("prequential_synth.csv")
     run_configs(
         run_fn=tune_prequential,
         dataset_names=datasets,
@@ -45,7 +49,7 @@ if __name__ == "__main__":
         debug=False,
         log_path=preq_path,
     )
-    batch_path = log_path.joinpath("batch_mode.csv")
+    batch_path = log_path.joinpath("batch_mode_synth.csv")
     run_configs(
         run_fn=tune_batch_mode,
         dataset_names=datasets,

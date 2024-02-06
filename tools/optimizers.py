@@ -16,7 +16,7 @@ from tools.base import (
 )
 
 # Set up logging path
-run_name = "v1"
+run_name = "v1_synth"
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 # Set up configs
@@ -49,6 +49,10 @@ configs = get_config_grid(optimizers, seed=SEEDS, log_lr_norms=True)
 
 if __name__ == "__main__":
     run_configs(
-        dataset_names=DATASET_NAMES, configs=configs, debug=False, log_path=log_path
+        dataset_names=["Agrawal", "LED"],
+        configs=configs,
+        debug=False,
+        log_path=log_path,
+        n_processes=2,
     )
     zip_csv(log_path)

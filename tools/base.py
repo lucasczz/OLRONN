@@ -34,6 +34,8 @@ SEEDS = list(range(5))
 LRS = [2**-i for i in range(-1, 11)]
 
 DATASET_NAMES = [
+    "Agrawal",
+    "LED",
     "RBF abrupt",
     "RBF incr.",
     "Insects gradual",

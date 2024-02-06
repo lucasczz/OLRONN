@@ -15,7 +15,7 @@ from tools.base import (
 )
 
 # Set up logging path
-run_name = "v2"
+run_name = "v2_synth"
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 optimizer = [

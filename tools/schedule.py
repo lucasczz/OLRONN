@@ -22,17 +22,13 @@ from tools.base import (
 )
 
 # Set up logging path
-run_name = "v1"
+run_name = "v1_synth"
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 schedules = [
     {
         "schedule": "Fixed",
         "scheduler_fn": None,
-    },
-    {
-        "schedule": "Kuncheva",
-        "scheduler_fn": KunchevaLR,
     },
     *[
         {
@@ -61,9 +57,7 @@ schedules = [
     *[
         {
             "schedule": f"Plateau",
-            "scheduler_fn": partial(
-                ReduceLROnPlateau, factor=1 - 2**-i, patience=400
-            ),
+            "scheduler_fn": partial(ReduceLROnPlateau, factor=1 - 2**-i, patience=400),
             "factor": 1 - 2**-i,
         }
         for i in range(5, 8)
@@ -103,9 +97,9 @@ configs = get_config_grid(
 
 if __name__ == "__main__":
     run_configs(
-        dataset_names=DATASET_NAMES,
+        dataset_names=["Agrawal", "LED"],
         configs=configs,
-        debug=True,
+        debug=False,
         n_processes=2,
         log_path=log_path,
     )

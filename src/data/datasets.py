@@ -105,6 +105,34 @@ def fetch_sea(n_samples=20000, change_points=(5000, 15000), seed=42):
     return feats, labels
 
 
+def fetch_agrawal(seed=42):
+    gen = synth.ConceptDriftStream(
+        synth.Agrawal(classification_function=0, seed=seed, perturbation=0.1),
+        synth.Agrawal(classification_function=1, seed=seed + 1, perturbation=0.1),
+        position=10000,
+        width=5000,
+    )
+    stream = list(gen.take(20_000))
+    x = pd.DataFrame([xi for xi, yi in stream])
+    y = [yi for xi, yi in stream]
+    x = pd.get_dummies(x, dtype=float)
+    return x.to_numpy(dtype=float), np.array(y)
+
+
+def fetch_led(seed=42):
+    np.random.seed(seed)
+    gen = synth.LED(noise_percentage=0.1, seed=seed, irrelevant_features=True)
+    stream = list(gen.take(20_000))
+    x = pd.DataFrame([xi for xi, yi in stream]).to_numpy(dtype=float)
+    y = [yi for xi, yi in stream]
+    relevant_cols_to_swap = np.random.choice(np.arange(0, 7), size=5, replace=False)
+    irrelevant_cols_to_swap = np.random.choice(np.arange(7, 24), size=5, replace=False)
+    x_drift = x.copy()
+    x_drift[5000:15000, relevant_cols_to_swap] = x[5000:15000, irrelevant_cols_to_swap]
+    x_drift[5000:15000, irrelevant_cols_to_swap] = x[5000:15000, relevant_cols_to_swap]
+    return x_drift, np.array(y)
+
+
 def get_dataset(name, seed=42):
     if name in DATASETS:
         return DATASETS[name]()
@@ -146,6 +174,8 @@ DATASETS = {
     "RBF gradual": partial(fetch_rbf_gradual, drift_width=5000),
     "RBF static": partial(fetch_rbf_incremental, drift_speed=0),
     "RBF incr.": partial(fetch_rbf_incremental, drift_speed=0.002),
+    "Agrawal": fetch_agrawal,
+    "LED": fetch_led,
     "Insects abrupt": partial(fetch_insects, "abrupt_balanced"),
     "Insects gradual": partial(fetch_insects, "gradual_balanced"),
     "Insects incr.": partial(fetch_insects, "incremental_balanced"),
