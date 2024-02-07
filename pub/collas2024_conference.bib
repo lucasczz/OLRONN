@@ -263,28 +263,13 @@
   urldate = {2023-08-04},
   langid  = {english}
 }
-@misc{shamirStochasticGradientDescent2012,
-  title = {Stochastic {{Gradient Descent}} for {{Non-smooth Optimization}}: {{Convergence Results}} and {{Optimal Averaging Schemes}}},
-  shorttitle = {Stochastic {{Gradient Descent}} for {{Non-smooth Optimization}}},
-  author = {Shamir, Ohad and Zhang, Tong},
-  year = {2012},
-  month = dec,
-  number = {arXiv:1212.1824},
-  eprint = {1212.1824},
-  primaryclass = {cs, math, stat},
-  publisher = {{arXiv}},
-  url = {http://arxiv.org/abs/1212.1824},
-  urldate = {2023-08-16},
-  archiveprefix = {arxiv},
-  langid = {english}
-}
-
 @book{Goodfellow-et-al-2016,
   title     = {Deep Learning},
   author    = {Goodfellow, Ian and Bengio, Yoshua and Courville, Aaron},
   year      = {2016},
   publisher = {{MIT Press}}
 }
+
 @misc{goyalAccurateLargeMinibatch2018,
   title         = {Accurate, {{Large Minibatch SGD}}: {{Training ImageNet}} in 1 {{Hour}}},
   shorttitle    = {Accurate, {{Large Minibatch SGD}}},
@@ -306,7 +291,8 @@
   author     = {Harries, Michael and {Nsw-cse-tr}, U and Wales, New},
   year       = {2003},
   month      = may
-}@article{hazanIntroductionOnlineConvex2016,
+}
+@article{hazanIntroductionOnlineConvex2016,
   title     = {Introduction to {{Online Convex Optimization}}},
   author    = {Hazan, Elad},
   year      = {2016},
@@ -334,9 +320,7 @@
   urldate  = {2023-07-28},
   abstract = {We present a new algorithm for finding low-complexity neural networks with high generalization capability. The algorithm searches for a ``flat'' minimum of the error function. A flat minimum is a large connected region in weight space where the error remains approximately constant. An MDL-based, Bayesian argument suggests that flat minima correspond to ``simple'' networks and low expected overfitting. The argument is based on a Gibbs algorithm variant and a novel way of splitting generalization error into underfitting and overfitting error. Unlike many previous approaches, ours does not require gaussian assumptions and does not depend on a ``good'' weight prior. Instead we have a prior over input output functions, thus taking into account net architecture and training set. Although our algorithm requires the computation of second-order derivatives, it has backpropagation's order of complexity. Automatically, it effectively prunes units, weights, and input lines. Various experiments with feedforward and recurrent nets are described. In an application to stock market prediction, flat minimum search outperforms conventional backprop, weight decay, and ``optimal brain surgeon/optimal brain damage.''},
   langid   = {english}
-}
-
-@misc{ivgiDoGSGDBest2023,
+}@misc{ivgiDoGSGDBest2023,
   title         = {{{DoG}} Is {{SGD}}'s {{Best Friend}}: {{A Parameter-Free Dynamic Step Size Schedule}}},
   shorttitle    = {{{DoG}} Is {{SGD}}'s {{Best Friend}}},
   author        = {Ivgi, Maor and Hinder, Oliver and Carmon, Yair},
@@ -366,7 +350,9 @@
   archiveprefix = {arxiv},
   langid        = {english},
   annotation    = {9990 citations (Semantic Scholar/arXiv) [2023-05-25]}
-}@incollection{kunchevaAdaptiveLearningRate2008,
+}
+
+@incollection{kunchevaAdaptiveLearningRate2008,
   title     = {Adaptive {{Learning Rate}} for {{Online Linear Discriminant Classifiers}}},
   booktitle = {Structural, {{Syntactic}}, and {{Statistical Pattern Recognition}}},
   author    = {Kuncheva, Ludmila I. and Plumpton, Catrin O.},
@@ -382,9 +368,7 @@
   isbn      = {978-3-540-89688-3 978-3-540-89689-0},
   langid    = {english},
   file      = {C\:\\Users\\Lucas\\Zotero\\storage\\WVY3R98A\\Kuncheva and Plumpton - 2008 - Adaptive Learning Rate for Online Linear Discrimin.pdf}
-}
-
-@misc{loshchilovSGDRStochasticGradient2017,
+}@misc{loshchilovSGDRStochasticGradient2017,
   title         = {{{SGDR}}: {{Stochastic Gradient Descent}} with {{Warm Restarts}}},
   shorttitle    = {{{SGDR}}},
   author        = {Loshchilov, Ilya and Hutter, Frank},
@@ -438,12 +422,22 @@
   langid     = {english},
   annotation = {5 citations (Semantic Scholar/DOI) [2023-02-24]}
 }
-@article{montiel2021river,
-  title  = {River: Machine Learning for Streaming Data in {{Python}}},
-  author = {Montiel, Jacob and Halford, Max and Mastelini, Saulo Martiello and Bolmier, Geoffrey and Sourty, Raphael and Vaysse, Robin and Zouitine, Adil and Gomes, Heitor Murilo and Read, Jesse and Abdessalem, Talel and others},
-  year   = {2021}
-}
-@inproceedings{orabonaTrainingDeepNetworks2017,
+
+@misc{montielRiverMachineLearning2020a,
+  title         = {River: Machine Learning for Streaming Data in {{Python}}},
+  shorttitle    = {River},
+  author        = {Montiel, Jacob and Halford, Max and Mastelini, Saulo Martiello and Bolmier, Geoffrey and Sourty, Raphael and Vaysse, Robin and Zouitine, Adil and Gomes, Heitor Murilo and Read, Jesse and Abdessalem, Talel and Bifet, Albert},
+  year          = {2020},
+  month         = dec,
+  number        = {arXiv:2012.04740},
+  eprint        = {2012.04740},
+  primaryclass  = {cs},
+  publisher     = {{arXiv}},
+  doi           = {10.48550/arXiv.2012.04740},
+  urldate       = {2024-02-07},
+  archiveprefix = {arxiv},
+  annotation    = {120 citations (Semantic Scholar/arXiv) [2024-02-07]}
+}@inproceedings{orabonaTrainingDeepNetworks2017,
   title     = {Training {{Deep Networks}} without {{Learning Rates Through Coin Betting}}},
   booktitle = {{{NIPS}}},
   author    = {Orabona, Francesco and Tommasi, Tatiana},
@@ -473,7 +467,8 @@
   doi     = {10.1016/j.neucom.2019.11.111},
   urldate = {2023-08-11},
   langid  = {english}
-}@article{rumelhartLearningRepresentationsBackpropagating1986a,
+}
+@article{rumelhartLearningRepresentationsBackpropagating1986a,
   title     = {Learning Representations by Back-Propagating Errors},
   author    = {Rumelhart, David E. and Hinton, Geoffrey E. and Williams, Ronald J.},
   year      = {1986},
@@ -490,7 +485,6 @@
   langid    = {english}
 }
 
-
 @misc{schaulNoMorePesky2013,
   title         = {No {{More Pesky Learning Rates}}},
   author        = {Schaul, Tom and Zhang, Sixin and LeCun, Yann},
@@ -503,8 +497,7 @@
   doi           = {10.48550/arXiv.1206.1106},
   urldate       = {2023-05-31},
   archiveprefix = {arxiv}
-}
-@article{shalev-shwartzOnlineLearningOnline2011,
+}@article{shalev-shwartzOnlineLearningOnline2011,
   title   = {Online {{Learning}} and {{Online Convex Optimization}}},
   author  = {{Shalev-Shwartz}, Shai},
   year    = {2011},
@@ -516,6 +509,23 @@
   doi     = {10.1561/2200000018},
   urldate = {2023-08-10},
   langid  = {english}
+}
+
+
+@misc{shamirStochasticGradientDescent2012,
+  title         = {Stochastic {{Gradient Descent}} for {{Non-smooth Optimization}}: {{Convergence Results}} and {{Optimal Averaging Schemes}}},
+  shorttitle    = {Stochastic {{Gradient Descent}} for {{Non-smooth Optimization}}},
+  author        = {Shamir, Ohad and Zhang, Tong},
+  year          = {2012},
+  month         = dec,
+  number        = {arXiv:1212.1824},
+  eprint        = {1212.1824},
+  primaryclass  = {cs, math, stat},
+  publisher     = {{arXiv}},
+  url           = {http://arxiv.org/abs/1212.1824},
+  urldate       = {2023-08-16},
+  archiveprefix = {arxiv},
+  langid        = {english}
 }
 @misc{smithBayesianPerspectiveGeneralization2018,
   title         = {A {{Bayesian Perspective}} on {{Generalization}} and {{Stochastic Gradient Descent}}},
@@ -557,7 +567,8 @@
   urldate       = {2023-06-07},
   archiveprefix = {arxiv},
   annotation    = {761 citations (Semantic Scholar/arXiv) [2023-06-07]}
-}@misc{smithDonDecayLearning2018,
+}
+@misc{smithDonDecayLearning2018,
   title         = {Don't {{Decay}} the {{Learning Rate}}, {{Increase}} the {{Batch Size}}},
   author        = {Smith, Samuel L. and Kindermans, Pieter-Jan and Ying, Chris and Le, Quoc V.},
   year          = {2018},
@@ -570,8 +581,7 @@
   archiveprefix = {arxiv},
   langid        = {english},
   annotation    = {770 citations (Semantic Scholar/arXiv) [2023-02-17]}
-}
-@misc{smithSuperConvergenceVeryFast2018a,
+}@misc{smithSuperConvergenceVeryFast2018a,
   title         = {Super-{{Convergence}}: {{Very Fast Training}} of {{Neural Networks Using Large Learning Rates}}},
   shorttitle    = {Super-{{Convergence}}},
   author        = {Smith, Leslie N. and Topin, Nicholay},
@@ -586,7 +596,6 @@
   archiveprefix = {arxiv},
   langid        = {english}
 }
-
 @article{souzaChallengesBenchmarkingStream2020,
   title         = {Challenges in {{Benchmarking Stream Learning Algorithms}} with {{Real-world Data}}},
   author        = {Souza, Vinicius M. A. and dos Reis, Denis M. and Maletzke, Andre G. and Batista, Gustavo E. A. P. A.},
@@ -604,7 +613,6 @@
   archiveprefix = {arxiv}
 }
 
-
 @inproceedings{sutskeverImportanceInitializationMomentum2013,
   title     = {On the Importance of Initialization and Momentum in Deep Learning},
   booktitle = {Proceedings of the 30th {{International Conference}} on {{Machine Learning}}},
@@ -618,6 +626,7 @@
   langid    = {english}
 }
 
+
 @incollection{tielemanLecture5rmspropDivide2012,
   title     = {Lecture 6.5-Rmsprop: {{Divide}} the Gradient by a Running Average of Its Recent Magnitude},
   booktitle = {{{COURSERA}}: {{Neural Networks}} for {{Machine Learning}}},
@@ -626,6 +635,7 @@
   year      = {2012},
   month     = apr
 }
+
 @misc{vanervenMetaGradMultipleLearning2016a,
   title         = {{{MetaGrad}}: {{Multiple Learning Rates}} in {{Online Learning}}},
   shorttitle    = {{{MetaGrad}}},
@@ -641,7 +651,6 @@
   archiveprefix = {arxiv},
   annotation    = {74 citations (Semantic Scholar/arXiv) [2023-05-30]}
 }
-
 @article{vanschorenOpenMLNetworkedScience2014,
   title         = {{{OpenML}}: Networked Science in Machine Learning},
   shorttitle    = {{{OpenML}}},
@@ -659,6 +668,7 @@
   urldate       = {2023-08-14},
   archiveprefix = {arxiv}
 }
+
 @article{velosoHyperparameterSelftuningData2021,
   title   = {Hyperparameter Self-Tuning for Data Streams},
   author  = {Veloso, Bruno and Gama, Jo{\~a}o and Malheiro, Benedita and Vinagre, Jo{\~a}o},
@@ -671,6 +681,21 @@
   doi     = {10.1016/j.inffus.2021.04.011},
   urldate = {2023-08-04},
   langid  = {english}
+}
+@article{widmerLearningPresenceConcept1996,
+  title      = {Learning in the Presence of Concept Drift and Hidden Contexts},
+  author     = {Widmer, Gerhard and Kubat, Miroslav},
+  year       = {1996},
+  month      = apr,
+  journal    = {Machine Learning},
+  volume     = {23},
+  number     = {1},
+  pages      = {69--101},
+  issn       = {1573-0565},
+  doi        = {10.1007/BF00116900},
+  urldate    = {2022-03-18},
+  langid     = {english},
+  annotation = {451 citations (Semantic Scholar/DOI) [2023-06-07]}
 }
 @misc{wuDemystifyingLearningRate2019b,
   title         = {Demystifying {{Learning Rate Policies}} for {{High Accuracy Training}} of {{Deep Neural Networks}}},

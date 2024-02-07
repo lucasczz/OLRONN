@@ -1,5 +1,6 @@
 from sklearn.datasets import fetch_covtype, fetch_openml
 from river.datasets import synth, Insects
+from river.preprocessing import MinMaxScaler
 import pandas as pd
 import numpy as np
 from functools import partial
@@ -14,8 +15,8 @@ def river2np_dataset(river_data):
 
 
 def fetch_rbf_gradual(
-    n_samples=20000,
-    drift_width=1000,
+    n_samples=100_000,
+    drift_width=5000,
     n_classes=5,
     n_features=20,
     n_centroids=20,
@@ -40,13 +41,15 @@ def fetch_rbf_gradual(
         n_after = n_samples // 2
         before = list(before.take(n_samples - n_after))
         after = list(after.take(n_after))
-        return river2np_dataset(before + after)
+        x, y = river2np_dataset(before + after)
     else:
         position = n_samples // 2
         stream = synth.ConceptDriftStream(
             before, after, position=position, width=drift_width, seed=seed
         )
-        return river2np_dataset(list(stream.take(n_samples)))
+        x, y = river2np_dataset(list(stream.take(n_samples)))
+    x = minmax_scale(x)
+    return x, y
 
 
 def fetch_rbf_incremental(
@@ -109,11 +112,12 @@ def fetch_agrawal(seed=42):
     gen = synth.ConceptDriftStream(
         synth.Agrawal(classification_function=0, seed=seed, perturbation=0.1),
         synth.Agrawal(classification_function=1, seed=seed + 1, perturbation=0.1),
-        position=10000,
-        width=5000,
+        position=50000,
+        width=10000,
     )
-    stream = list(gen.take(20_000))
-    x = pd.DataFrame([xi for xi, yi in stream])
+    scaler = MinMaxScaler()
+    stream = list(gen.take(100_000))
+    x = pd.DataFrame([scaler.learn_one(xi).transform_one(xi) for xi, yi in stream])
     y = [yi for xi, yi in stream]
     x = pd.get_dummies(x, dtype=float)
     return x.to_numpy(dtype=float), np.array(y)
@@ -122,14 +126,15 @@ def fetch_agrawal(seed=42):
 def fetch_led(seed=42):
     np.random.seed(seed)
     gen = synth.LED(noise_percentage=0.1, seed=seed, irrelevant_features=True)
-    stream = list(gen.take(20_000))
+    stream = list(gen.take(100_000))
     x = pd.DataFrame([xi for xi, yi in stream]).to_numpy(dtype=float)
     y = [yi for xi, yi in stream]
     relevant_cols_to_swap = np.random.choice(np.arange(0, 7), size=5, replace=False)
     irrelevant_cols_to_swap = np.random.choice(np.arange(7, 24), size=5, replace=False)
     x_drift = x.copy()
-    x_drift[5000:15000, relevant_cols_to_swap] = x[5000:15000, irrelevant_cols_to_swap]
-    x_drift[5000:15000, irrelevant_cols_to_swap] = x[5000:15000, relevant_cols_to_swap]
+    swap_slice = slice(25000, 75000)
+    x_drift[swap_slice, relevant_cols_to_swap] = x[swap_slice, irrelevant_cols_to_swap]
+    x_drift[swap_slice, irrelevant_cols_to_swap] = x[swap_slice, relevant_cols_to_swap]
     return x_drift, np.array(y)
 
 

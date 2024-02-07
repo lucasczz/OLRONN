@@ -6,13 +6,13 @@ from src.models.schedulers import (
     KunchevaLR,
     WeightResetLR,
     get_cyclic_lr,
-    get_scheduler_chain,
 )
 from torch.optim.lr_scheduler import ExponentialLR, ReduceLROnPlateau, StepLR
 
 
 from tools.base import (
     DATASET_NAMES,
+    DATASETS_SYNTH,
     LRS,
     REPORTS_PATH,
     SEEDS,
@@ -26,6 +26,22 @@ run_name = "v1_synth"
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 schedules = [
+    *[
+        {
+            "schedule": f"Exponential Reset",
+            "scheduler_fn": [partial(ExponentialLR, gamma=1 - 2**-i), DriftResetLR],
+            "gamma": 1 - 2**-i,
+        }
+        for i in range(12, 15)
+    ],
+    *[
+        {
+            "schedule": f"Exponential Weight Reset",
+            "scheduler_fn": [partial(ExponentialLR, gamma=1 - 2**-i), WeightResetLR],
+            "gamma": 1 - 2**-i,
+        }
+        for i in range(12, 15)
+    ],
     {
         "schedule": "Fixed",
         "scheduler_fn": None,
@@ -62,26 +78,6 @@ schedules = [
         }
         for i in range(5, 8)
     ],
-    *[
-        {
-            "schedule": f"Exponential Reset",
-            "scheduler_fn": get_scheduler_chain(
-                partial(ExponentialLR, gamma=1 - 2**-i), DriftResetLR
-            ),
-            "gamma": 1 - 2**-i,
-        }
-        for i in range(12, 15)
-    ],
-    *[
-        {
-            "schedule": f"Exponential Weight Reset",
-            "scheduler_fn": get_scheduler_chain(
-                partial(ExponentialLR, gamma=1 - 2**-i), WeightResetLR
-            ),
-            "gamma": 1 - 2**-i,
-        }
-        for i in range(12, 15)
-    ],
 ]
 
 configs = get_config_grid(
@@ -97,7 +93,7 @@ configs = get_config_grid(
 
 if __name__ == "__main__":
     run_configs(
-        dataset_names=["Agrawal", "LED"],
+        dataset_names=DATASETS_SYNTH,
         configs=configs,
         debug=False,
         n_processes=2,

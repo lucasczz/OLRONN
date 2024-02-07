@@ -8,6 +8,7 @@ from dog import DoG
 
 from tools.base import (
     DATASET_NAMES,
+    DATASETS_SYNTH,
     get_config_grid,
     run_configs,
     REPORTS_PATH,
@@ -49,7 +50,7 @@ configs = get_config_grid(optimizers, seed=SEEDS, log_lr_norms=True)
 
 if __name__ == "__main__":
     run_configs(
-        dataset_names=["Agrawal", "LED"],
+        dataset_names=DATASETS_SYNTH,
         configs=configs,
         debug=False,
         log_path=log_path,

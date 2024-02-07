@@ -85,7 +85,7 @@ Address \\
 \section{Introduction}
 Artificial neural network models have shown exceptional performance in various domains.
 One of the main factors leading to such outstanding results is the choice of the optimization method used to train the target model.
-Almost all modern applications of neural architectures use first-order stochastic optimization methods such as \textit{stochastic gradient descent}, which iteratively update the parameters of the underlying model based on gradient information.
+Almost all modern applications of neural architectures use first-order stochastic optimization methods such as \textit{stochastic gradient descent} (SGD), which iteratively update the parameters of the underlying model based on gradient information.
 One of the most important variables of such algorithms is the step size or \textit{learning rate} (LR).
 
 As a result, many techniques for setting and optimizing the learning rate have emerged over the years (see Figure~\ref{fig:lr_overview}).
@@ -113,26 +113,28 @@ According to \citet{bifetMOAMassiveOnline2010} a machine learning model operatin
 These requirements pose additional challenges in selecting an appropriate optimizer and learning rate.
 To enable more informed decisions when optimizing the learning rate, we provide insight into these challenges and empirically evaluate commonly used optimization techniques in an online learning setting (i).
 Furthermore, we introduce a \textit{drift reset} mechanism to adapt the learning rate to concept drifts that commonly occur in streaming environments (ii).
-Finally, we propose a \textit{pre-tuning} approach to effectively optimize the learning rate for online training of neural networks \textit{pre-stream} (see Figure~\ref{fig:lr_overview}) (iii). % TODO: clarify what pre-stream means
+Finally, we propose a \textit{pre-tuning} approach to make effective use of any \textit{pre-stream} data that may be available prior to stream-based learning for the purpose of learning rate tuning (see Figure~\ref{fig:lr_overview}) (iii).
 
 \section{Learning Rate in First-Order Optimization}
 
 In the following, we will explain the theoretical background of the learning rate hyperparameter in first-order stochastic optimization.
 First-order stochastic optimization algorithms, such as stochastic gradient descent, typically aim to solve the following problem
 \begin{equation}
-   \min_{\theta} \mathbb{E}_{x \sim p(x)} [\mathcal{L}(x, \theta)],
+   \min_{\vtheta} \E_{\vx \sim \ptrain} [L(f(\vx; \vtheta), y)],
 \end{equation}
-where $\mathcal{L}(x, \theta)$ is a loss function that quantifies the prediction error of the model given a mini-batch of data samples $x$ and model parameters $\theta$.
+where $L$ is a loss function that quantifies the prediction error of the model given model parameters $\vtheta$, data samples $\vx$ and their corresponding target outputs $y$, both sampled from the distribution $\ptrain$ defined by a set of training data.
 The blueprint process for solving this problem using first-order stochastic optimization consists of the following steps for each iteration $t \in 0, \ldots, T$:
 \begin{enumerate}
-   \item Draw a mini-batch of samples $x_t$ from the distribution $p(x)$.
-   \item Compute the loss $\mathcal{L}_t = \mathcal{L}(x_t, \theta_t)$ for $x_t$ and current parameters $\theta_t$.
-   \item Compute gradient $g_t = \nabla_{\theta_t} \mathcal{L}_t$ with respect to the parameters.
-   \item Update the parameters for the next iteration using $g_t$ and possibly information from previous iterations.
+   \item Draw a mini-batch of samples $\vx_t$ from the distribution $p(\vx)$.
+   \item Compute the loss $L_t = \sum_{i=0}^{m}L(f(\vx_t^{(i)}; \vtheta_t), y_t^{(i)})$ for a minibatch of examples $\{ \vx_t^{(0)}, \ldots, \vx_t^{(m)} \}$ with their respective labels $y_t^{(i)}$ and current parameters $\vtheta_t$.
+   \item Compute gradient $\vg_t = \nabla_{\vtheta_t} L_t$ with respect to the parameters.
+   \item Update the parameters for the next iteration using $\vg_t$ and possibly information from previous iterations.
 \end{enumerate}
 
 For basic SGD, we can define the parameter update performed at the end of each iteration as
-$\theta_{t}  = \theta_{t} - \eta_t \cdot g_t$,
+\begin{equation}\label{eq:sgd_update}
+   \vtheta_{t+1}  = \vtheta_{t} - \eta_t \cdot \vg_t,
+\end{equation}
 where $\eta_t$ denotes the step size or \textit{learning rate} at timestep $t$.
 
 The primary trade-off with respect to $\eta$ is that increasing it speeds up convergence, but also increases stochasticity and the risk of divergence~\citep{bengioPracticalRecommendationsGradientbased2012}.
@@ -140,7 +142,7 @@ In fact, \citet{smithBayesianPerspectiveGeneralization2018}, found that the “n
 
 \subsection{Learning Rate Schedules}
 
-Often, the performance of a model can be improved by using a schedule that changes the learning rate as training progresses~\citep{wuDemystifyingLearningRate2019b}.
+Often, the performance of a model can be improved by using a schedule that changes the learning rate as training progresses, yielding a vector of step sizes $\bm{\eta}$ that defines a step size $\eta_t$ for each timestep $t \in \{0, \ldots, T\}$~\citep{wuDemystifyingLearningRate2019b}.
 For example, to ensure fast convergence early in training while mitigating jumping around potential minima later, it is common to use a decaying schedule that starts with a large learning rate and decreases over time.
 An additional benefit of this approach is potentially better generalization, since larger learning rates can help skip sharp minima with poor generalization~\citep{hochreiterFlatMinima1997,chaudhariEntropySGDBiasingGradient2017}.
 
@@ -164,7 +166,7 @@ These optimizers adjust the step size based on previous gradients at each optimi
 
 \begin{table}[ht]
    \centering
-   \scriptsize
+   \small
    \caption{
       Overview of additional time- and space-complexity of evaluated adaptive first-order optimizers compared to basic SGD.
       Values are given in big O notation with respect to the number of model parameters $D$.
@@ -191,7 +193,7 @@ Another AdaGrad based optimizer is \textit{WNGrad}~\citep{wuWNGradLearnLearning2
 
 \footnotetext[1]{Variant with SGD as the underlying optimizer.}
 
-So-called parameter-free variants of SGD aim to eliminate the learning rate altogether by optimizing it as training progresses.
+So-called \textit{parameter-free} gradient-based optimization approaches aim to eliminate the learning rate altogether by optimizing it as training progresses.
 For example, the \textit{COCOB} algorithm~\citep{orabonaTrainingDeepNetworks2017} models parameter optimization as a gambling problem, where the goal is to maximize the reward from betting on each gradient.
 The resulting strategy is equivalent to running a meta-optimization algorithm that estimates the expected optimal learning rate~\citep{orabonaTrainingDeepNetworks2017}.
 Several other studies~\citep{vanervenMetaGradMultipleLearning2016a,baydinOnlineLearningRate2018,cutkoskyMechanicLearningRate2023} have also used the idea of learning $\eta$ via a meta-optimization process.
@@ -200,10 +202,10 @@ Mechanic~\citep{cutkoskyMechanicLearningRate2023} pursues the same goal by apply
 
 Research has shown that in an OCO problem setting with stationary data, the worst-case optimal fixed step size for SGD is
 \begin{equation}\label{eq:oco_optimal_lr}
-   \eta^* = \frac{||\theta_0 - \theta^*||}{\sqrt{\sum_{t=0}^{T} ||g_t||^2}}.
+   \eta^* = \frac{||\vtheta_0 - \vtheta^*||}{\sqrt{\sum_{t=0}^{T} ||\vg_t||^2}}.
 \end{equation}
 Multiple parameter-free optimizers, make use of this notion.
-As its name suggests, the \textit{Distance over Gradients} (DoG)~\citep{ivgiDoGSGDBest2023} algorithm estimates the unknown numerator in Equation~\eqref{eq:oco_optimal_lr} as the maximum distance $\max_{i<t}||\theta_0 - \theta_i||$ between the initial parameters and the parameters of all previous iterations.
+As its name suggests, the \textit{Distance over Gradients} (DoG)~\citep{ivgiDoGSGDBest2023} algorithm estimates the unknown numerator in Equation~\eqref{eq:oco_optimal_lr} as the maximum distance $\max_{i<t}||\vtheta_0 - \vtheta_i||$ between the initial parameters and the parameters of all previous iterations.
 DoG additionally uses polynomial decay averaging as proposed by~\citet{shamirStochasticGradientDescent2012}.
 \textit{D-Adaptation} by \citet{defazioLearningRateFreeLearningDAdaptation2023a}, on the other hand, employs weighted dual averaging~\citep{duchiDualAveragingDistributed2012} to compute bounds on the distance between initial and optimal parameters.
 Although adaptive optimization techniques seem intuitively well suited for non-stationary data, their application to data streams has rarely been investigated.
@@ -215,25 +217,26 @@ In a batch learning setting, optimizing the learning rate involves minimizing th
 Formally, we can express this task as
 \begin{equation}
    \label{eq:batch_lr_optim}
-   \min_{\eta_0, \ldots, \eta_T} \sum_{i=0}^V \mathcal{L}(x_i, \theta_T),
+   \min_{\bm{\eta}} \E_{(\vx, y) \sim \hat{p}_{\rm{val}}} L(f(\vx; \vtheta_T), y),
 \end{equation}
-where all $x_i$ are part of a separate validation dataset and $\theta_T$ are the parameters at the end of training.
+where samples $(\vx, y)$ are drawn from a distribution $\hat{p}_{\rm{val}}$ defined by a validation dataset and $\vtheta_T$ are the model parameters at the end of training that depend on the learning rate schedule $\bm{\eta}$.
 In online learning where data is generated incrementally, this notion of learning rate optimization is not feasible.
-Due to requirements \textbf{R1-R5}, models operating in an online learning environment should be evaluated in a \textit{prequential} manner~\citep{bifetMOAMassiveOnline2010}, where each sample $x_t$ in the data stream is first used to test and then to train the model, ensuring that testing is done on previously unobserved data.
+Due to requirements \textbf{R1-R5}, models operating in an online learning environment should be evaluated in a \textit{prequential} manner~\citep{bifetMOAMassiveOnline2010}, where each sample $\vx_t$ in the data stream is first used to test and then to train the model, ensuring that testing is done on previously unobserved data.
 
-Training in such a scenario can be more accurately modeled as an online convex optimization problem~\citep{shalev-shwartzOnlineLearningOnline2011,hazanIntroductionOnlineConvex2016}, where the optimizer suffers a loss $\mathcal{L}(x_t, \theta_{t})$ and produces updated parameters $\theta_{t+1}$ at each iteration of the data stream.
+Training in such a scenario can be more accurately modeled as an online convex optimization problem~\citep{shalev-shwartzOnlineLearningOnline2011,hazanIntroductionOnlineConvex2016}, where the optimizer suffers a loss $L(f(\vx; \vtheta_t), y)$ and produces updated parameters $\vtheta_{t+1}$ at each iteration of the data stream.
 Learning rate optimization in this setting can be formulated as
 \begin{equation}
    \label{eq:stream_lr_optim}
-   \min_{\eta_0, \ldots, \eta_T} \sum_{t=0}^{T} \mathcal{L}_t(x_t,\theta_t).
+   \min_{\bm{\eta}} \sum_{t=0}^{T} \E_{(\vx, y) \sim \hat{p}_{\rm{stream}}^{(t)}} L(f(\vx; \vtheta_t), y).
 \end{equation}
 
 Compared to Equation~\eqref{eq:batch_lr_optim}, Equation~\eqref{eq:stream_lr_optim} features some key differences.
-Due to the requirement to be able to predict at any time (\textbf{R4}), the goal is to minimize the total sum of losses over all timesteps of the prequential evaluation process, instead of the validation loss for the final parameters $\theta_T$.
-Therefore, the speed of convergence is more important in the streaming setting, while the performance of the final $\theta_T$ parameter has a much smaller impact.
+Due to the requirement to be able to predict at any time (\textbf{R4}), the goal is to minimize the expected total sum of losses over all timesteps of the prequential evaluation process, instead of the validation loss for the final parameters $\vtheta_T$.
+Therefore, the speed of convergence is more important in the streaming setting, while the performance of the final $\vtheta_T$ parameter has a much smaller impact.
 Since memory is limited (Requirement~\ref{rq:limited_memory}), it is also not possible to continue training on previously observed data as long as the loss decreases, which puts even more emphasis on fast adaptation.
 At the same time, a higher learning rate that temporarily increases the loss by skipping local minima may be suboptimal with respect to Equation~\eqref{eq:stream_lr_optim}, even if it eventually leads to a lower loss.
-Another difference to conventional batch learning is that the loss function $\mathcal{L}_t$ is time-dependent, due to the fact that data streams are often subject to distributional changes in the form of so-called \textit{concept drift} over time.
+Another difference to conventional batch learning is that the data distribution $\hat{p}_{\rm{stream}}^{(t)}$ is time-dependent, due to the fact that streams are often subject to distributional changes such as \textit{concept drifts} over time \citep{widmerLearningPresenceConcept1996}.
+While other forms of drifts exist, we use \textit{concept drift} as an umbrella term for any kind of distributional shift in the following.
 
 \subsection{Learning Rate Tuning}\label{subsec:pre-tuning}
 
@@ -248,22 +251,22 @@ We provide a detailed experimental evaluation of our approach in Section~\ref{se
 \subsection{Concept Drift Adaptation}
 
 Concept drift requires repeated adaptation of the model parameters.
-If post-drift training is interpreted as a new online optimization problem, the worst-case optimal learning rate can be computed according to Equation~\eqref{eq:oco_optimal_lr}, replacing the initial parameter values $\theta_0$ with the values at the time of drift onset $\theta_{t_d}$.
-As a result, stronger drifts that cause $\theta^*$ to move away from $\theta_{t_d}$ can benefit from larger learning rates.
+If post-drift training is interpreted as a new online optimization problem, the worst-case optimal learning rate can be computed according to Equation~\eqref{eq:oco_optimal_lr}, replacing the initial parameter values $\vtheta_0$ with the values at the time of drift onset $\vtheta_{t_{\rm{drift}}}$.
+As a result, stronger drifts that cause $\vtheta^*$ to move away from $\vtheta_{t_{\rm{drift}}}$ can benefit from larger learning rates.
 
 Based on this notion, we propose a simple adaptation to decaying learning rate schedules that resets $\eta$ to its original value when a concept drift is detected.
 An exponential schedule modified with our approach will thus yield learning rates of
 \begin{equation}
-   \eta_t = \eta_0 \cdot \gamma^{t-t_d},
+   \eta_t = \eta_0 \cdot \gamma^{t-t_{\rm{drift}}},
 \end{equation}\label{eq:drift_reset}
-where $t_d$ marks the timestep at which the drift was last detected.
+where $t_{\rm{drift}}$ marks the timestep at which the drift was last detected.
 For drift detection, we apply ADWIN~\citep{bifetLearningTimeChangingData2007} to the prequential losses.
 To avoid mistakenly detecting loss decreases as concept drift, we use a one-sided ADWIN variant that tests only for increases.
 
 Our approach is similar to some \textit{forgetting mechanisms} commonly used in conventional online learning~\citep{gamaSurveyConceptDrift2014}.
 To improve model plasticity, such mechanisms partially or completely reset the current model parameters to their initial values.
 However, we hypothesize that this approach is not well suited for neural-based approaches.
-The reason is that, under the assumption of convexity, the newly initiated parameters must be closer to the optimal parameters $\theta^*$ than the current parameters to be beneficial.
+The reason is that, under the assumption of convexity, the newly initiated parameters must be closer to the optimal parameters $\vtheta^*$ than the current parameters to be beneficial.
 We experimentally compare our approach with this weight-reset mechanism in Section~\ref{sec:experiments}.
 
 \section{Experiments}\label{sec:experiments}
@@ -271,18 +274,18 @@ We experimentally compare our approach with this weight-reset mechanism in Secti
 We empirically evaluate our hypotheses using the following setup\footnote[2]{Code available at \url{anonymous.4open.science/r/LODL-D458/}.}:
 
 We use both synthetic and publicly available real-world classification datasets with different sizes and types of concept drift, listed in Table~\ref{tab:datasets}.
-Our evaluations include two synthetic \textit{Random Radial Basis Function} (RBF) datasets that we manipulated to incorporate concept drift using the online learning framework \textit{River}~\citep{montiel2021river}.
+Our evaluations include two synthetic \textit{Random Radial Basis Function} (RBF) datasets that we manipulated to incorporate concept drift using the online learning framework \textit{River}~\citep{montielRiverMachineLearning2020a}.
 
 \begin{table}[ht]
    \centering
-   \scriptsize
+   \small
    \caption{Datasets used for experimental evaluations.}
    \begin{tabular}{@{}clcccc@{}}
       \toprule
       Type                    & Data Stream     & Instances               & Features & Classes \\
       \midrule
-      \multirow{2}{*}{Synth.} & RBF abrupt      & 20,000                  & 20       & 5       \\
-                              & RBF incremental & 20,000                  & 20       & 5       \\
+      \multirow{2}{*}{Synth.} & RBF abrupt      & 100,000                 & 20       & 5       \\
+                              & RBF incremental & 100,000                 & 20       & 5       \\
       \midrule
       \multirow{5}{*}{Real}   & Insects abrupt  & 52,848                  & 33       & 6       \\
                               & Insects gradual & 24,150                  & 33       & 6       \\
@@ -300,7 +303,7 @@ We further employ the \textit{Electricity} and \textit{Covertype}~\citep{misc_co
 We employ a \textit{PyTorch}~\citep{paszkePyTorchImperativeStyle2019} implementation of a single-hidden-layer MLP with units matching the number of input features.
 This choice is based on our experience that smaller models exhibit faster convergence and are therefore usually best suited for streaming environments.
 
-We tune the base learning rate $\eta_0$ of all but the parameter-free approaches using a grid search of ten geometrically spaced values and configure adaptive optimizers with their default parameter values. For HD, Mechanic and D-Adaptation we select standard SGD as the base algorithm.
+We tune the base learning rate $\eta_0$ of all but the parameter-free approaches using a grid search of ten geometrically spaced values and configure adaptive optimizers with their default parameter values. For HD, Mechanic and D-Adaptation we select SGD as the base algorithm.
 We select a fixed factor $\gamma$ for decay schedules on all datasets.
 For the proposed learning rate resetting mechanism, we select a smaller decay factor and set the confidence level $\delta$ for drift detection to $10^{-4}$.
 For our evaluations we process each dataset sequentially, emulating streams of mini-batches of four instances each, while recording the prequential accuracy and other metrics in intervals of 25 iterations.
@@ -312,7 +315,7 @@ To evaluate the effectiveness of our learning rate resetting mechanism for drift
 
 \begin{table}[ht]
    \centering
-   \scriptsize
+   \small
    \caption{Average prequential accuracy [\%] for static and drift adaptive learning rate schedules with SGD. For LR-Reset Oracle we manually reset the learning rate at timesteps where concept drift occurs. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}.}
    \begin{tabular}{lccccccc}
       \toprule
@@ -357,42 +360,41 @@ We also did not find an order of magnitude improvement in convergence speed as o
 
 Our results for adaptive optimizers displayed in Table~\ref{tab:results_adaptive_optims}, show a strong data dependency as none of the evaluated algorithms significantly outperforms its competitors on average.
 However, since SGD yields the best accuracy on \textit{RBF abrupt} but is clearly surpassed on \textit{Insects abrupt}, the type of concept drift does not seem to be significant.
-Due to its simplicity and favorable computational efficiency, it appears that standard SGD should be selected out of the non-parameter-free approaches in most cases.
+Due to its simplicity and favorable computational efficiency, it appears that SGD should be selected out of the non-parameter-free approaches in most cases.
 The SGD variant of Hypergradient Descent (HD)~\citep{baydinOnlineLearningRate2018} and WNGrad~\citep{wuWNGradLearnLearning2020} on the other hand seem to rarely be optimal choices.
 
+\begin{table}[ht]
+   \centering
+   \small
+   \caption{Average prequential accuracy [\%] for different optimizers. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}.}
+   \begin{tabular}{llcccccccc}
+      \toprule
+                                                         & Optimizer & RBF abrupt          & RBF incr.            & Covertype             & Electricity          & Insects abrupt      & Insects gradual     \\
+      \midrule
+      \multirow{5}{*}{\rotatebox[origin=c]{90}{Tuned}}   & SGD       & \bfseries 94.79±.32 & 70.95±2.89           & \bfseries 83.42±.50   & 73.77±.40            & 71.50±.08           & 75.31±.21           \\
+                                                         & Adam      & 93.45±.30           & 69.26±5.14           & 79.01±.27             & 69.79±.54            & \bfseries 75.38±.24 & 75.78±.74           \\
+                                                         & AdaGrad   & 92.45±1.37          & 52.87±6.62           & 81.68±.35             & \bfseries 76.99±1.20 & 74.87±.40           & \bfseries 77.15±.27 \\
+                                                         & WNGrad    & 87.30±.68           & 44.92±.73            & 76.98±.15             & 70.80±.59            & 66.25±.19           & 66.75±.40           \\
+                                                         & HD        & 93.92±.31           & \bfseries 72.29±2.90 & \underline{83.36±.25} & 73.83±.32            & 70.67±.06           & 73.37±.21           \\ \midrule
+      \multirow{4}{*}{\rotatebox[origin=c]{90}{LR-Free}} & COCOB     & \bfseries 93.40±.38 & 63.52±2.70           & 82.27±.46             & \bfseries 84.30±.56  & \bfseries 74.75±.11 & \bfseries 77.00±.05 \\
+                                                         & DoG       & 92.72±.59           & \bfseries 73.17±2.72 & \bfseries 83.07±.64   & 71.53±.70            & 70.59±.26           & 74.01±.21           \\
+                                                         & D-Adapt   & 74.91±4.22          & 45.47±2.75           & 76.69±.79             & 66.03±1.75           & 50.05±11.26         & 48.21±10.62         \\
+                                                         & Mechanic  & 88.94±.58           & 49.26±1.44           & 78.67±.18             & 50.73±7.60           & 55.31±21.47         & 65.80±.53           \\
+      \bottomrule
+   \end{tabular}
+   \label{tab:results_adaptive_optims}
+\end{table}
 In the category of learning rate free optimizers COCOB~\citep{orabonaTrainingDeepNetworks2017}, outperformed its competitors on all but two datasets.
 It comes close to or even exceeds the best tuned approaches in terms of accuracy.
 Although yielding lower accuracy on average, DoG also comes within reach of the tuned methods, while offering much better runtime and memory efficiency compared to COCOB (see Table~\ref{tab:param_free_optims}).
 Mechanic~\citep{cutkoskyMechanicLearningRate2023} and D-Adaptation~\citep{defazioLearningRateFreeLearningDAdaptation2023a} performed significantly worse than their competitors on the evaluated streams.
 
 The learning rate curves shown in Figure~\ref{fig:prequential_schedulers_insects}, provide an indication regarding the reason for the poor performance of WNGrad and D-Adaption.
-Whereas the learning rate of DoG quickly approaches the tuned SGD learning rate, WNGrad and D-Adaptation diverge considerably from it.
+Whereas the learning rate of DoG quickly approaches the optimal learning rate, WNGrad and D-Adaptation diverge considerably from it.
 
 The learning rate of the best performing Adam exhibits spikes for most change points, suggesting some form of adaptability to drift.
 However, since the much worse performing Mechanic shows similar spikes, this is unlikely to be contributing significantly to Adam's high accuracy on \textit{Insects abrupt}.
 Instead, it likely stems from its second moment scaling, which is also a feature of the similarly performing AdaGrad.
-
-\begin{table}[ht]
-   \centering
-   \scriptsize
-   \caption{Average prequential accuracy [\%] for adaptive optimizers and SGD. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}.}
-   \begin{tabular}{llcccccccc}
-      \toprule
-                                                         & Optimizer                                                                          & RBF abrupt          & RBF incr.            & Covertype             & Electricity          & Insects abrupt      & Insects gradual     \\
-      \midrule
-      \multirow{5}{*}{\rotatebox[origin=c]{90}{Tuned}}   & SGD                                                                                & \bfseries 94.79±.32 & 70.95±2.89           & \bfseries 83.42±.50   & 73.77±.40            & 71.50±.08           & 75.31±.21           \\
-                                                         & Adam \citep{kingmaAdamMethodStochastic2017b}                                       & 93.45±.30           & 69.26±5.14           & 79.01±.27             & 69.79±.54            & \bfseries 75.38±.24 & 75.78±.74           \\
-                                                         & AdaGrad \citep{duchiAdaptiveSubgradientMethods2011}                                & 92.45±1.37          & 52.87±6.62           & 81.68±.35             & \bfseries 76.99±1.20 & 74.87±.40           & \bfseries 77.15±.27 \\
-                                                         & WNGrad  \citep{wuWNGradLearnLearning2020}                                          & 87.30±.68           & 44.92±.73            & 76.98±.15             & 70.80±.59            & 66.25±.19           & 66.75±.40           \\
-                                                         & HD \citep{baydinOnlineLearningRate2018}                                            & 93.92±.31           & \bfseries 72.29±2.90 & \underline{83.36±.25} & 73.83±.32            & 70.67±.06           & 73.37±.21           \\ \midrule
-      \multirow{4}{*}{\rotatebox[origin=c]{90}{LR-Free}} & COCOB                               \citep{orabonaTrainingDeepNetworks2017}        & \bfseries 93.40±.38 & 63.52±2.70           & 82.27±.46             & \bfseries 84.30±.56  & \bfseries 74.75±.11 & \bfseries 77.00±.05 \\
-                                                         & DoG \citep{ivgiDoGSGDBest2023}                                                     & 92.72±.59           & \bfseries 73.17±2.72 & \bfseries 83.07±.64   & 71.53±.70            & 70.59±.26           & 74.01±.21           \\
-                                                         & D-Adapt                    \citep{defazioLearningRateFreeLearningDAdaptation2023a} & 74.91±4.22          & 45.47±2.75           & 76.69±.79             & 66.03±1.75           & 50.05±11.26         & 48.21±10.62         \\
-                                                         & Mechanic \citep{cutkoskyMechanicLearningRate2023}                                  & 88.94±.58           & 49.26±1.44           & 78.67±.18             & 50.73±7.60           & 55.31±21.47         & 65.80±.53           \\
-      \bottomrule
-   \end{tabular}
-   \label{tab:results_adaptive_optims}
-\end{table}
 
 It may also be noted that the learning rates of the COCOB, Adam and Mechanic optimizers with parameter-specific learning rates exceed those of single value step sizes by multiple orders of magnitude.
 This is an effect of second moment scaling, which creates larger learning rates for parameters with small and consistent gradients~\citep{cutkoskyMechanicLearningRate2023}.
@@ -406,15 +408,15 @@ Although our technique consistently performed well across all architectures, we 
 
 To determine the learning rate and decay factor, we rely on the optimal mean prequential accuracy. This choice accounts for the potential bias towards learning rates associated with lower initial losses, as loss values often decrease notably during training.
 
-Figure~\ref{fig:pretune_lr_accuracy} shows the absolute difference between the learning rate resulting from the pre-tuning process and the optimal value $|\eta_p - \eta^*|$ at each tuning step averaged over all real-world datasets.
-Batch tuning with 800 training and 200 validation samples initially yields a better approximation of the optimal learning rate. However, our streaming-specific approach undercuts the baseline after 1000 tuning steps, consistently decreasing and ultimately reaching approximately half of the approximation error observed in batch tuning.
-The performance also remains nearly identical, even when using only 500 samples for tuning, which demonstrates the data efficiency of pre-tuning.
-The superior performance of our approach is also reflected in the accuracy scores depicted in the right subfigure of Figure~\ref{fig:pretune_lr_accuracy}.
 \begin{figure}[hb]
    \centering
    \includegraphics[width=\textwidth]{figures/pretune_1x64_acc_lr_exp_schedule.pdf}
    \caption{Absolute difference between pre-tuned and optimal learning rate and resulting accuracy on data streams for SGD and an exponential learning rate schedule with 500 or 1000 tuning samples. DoG is not included in first subplot since it is not intended for use with LR decay. Results are averaged over all real-world datasets. The shaded area represents the 1$\sigma$-interval.}\label{fig:pretune_lr_accuracy}
 \end{figure}
+Figure~\ref{fig:pretune_lr_accuracy} shows the absolute difference between the learning rate resulting from the pre-tuning process and the optimal value $|\eta_p - \eta^*|$ at each tuning step averaged over all real-world datasets.
+Batch tuning with 800 training and 200 validation samples initially yields a better approximation of the optimal learning rate. However, our streaming-specific approach undercuts the baseline after 1000 tuning steps, consistently decreasing and ultimately reaching approximately half of the approximation error observed in batch tuning.
+The performance also remains nearly identical, even when using only 500 samples for tuning, which demonstrates the data efficiency of pre-tuning.
+The superior performance of our approach is also reflected in the accuracy scores depicted in the right subfigure of Figure~\ref{fig:pretune_lr_accuracy}.
 In fewer than 1000 steps, our approach outperforms both conventional tuning and DoG.
 We selected DoG as a baseline due to being the best performing parameter-free technique within the group of optimizers with a global learning rate that is most comparable to our approach.
 

@@ -1,5 +1,6 @@
 from pathlib import Path
 from base import (
+    DATASETS_SYNTH,
     REPORTS_PATH,
     SEEDS,
     get_config_grid,
@@ -12,17 +13,6 @@ from base import (
 # Set up logging path
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem)
 
-datasets = [
-    "Agrawal",
-    "LED",
-    "RBF abrupt",
-    "RBF incr.",
-    # "Insects incr.",
-    # "Insects gradual",
-    # "Insects abrupt",
-    # "Electricity",
-    # "Covertype",
-]
 
 lr = [2**-i for i in range(6)]
 n_hidden_layers = [1, 3]
@@ -44,7 +34,7 @@ if __name__ == "__main__":
     preq_path = log_path.joinpath("prequential_synth.csv")
     run_configs(
         run_fn=tune_prequential,
-        dataset_names=datasets,
+        dataset_names=DATASETS_SYNTH,
         configs=configs,
         debug=False,
         log_path=preq_path,
@@ -52,7 +42,7 @@ if __name__ == "__main__":
     batch_path = log_path.joinpath("batch_mode_synth.csv")
     run_configs(
         run_fn=tune_batch_mode,
-        dataset_names=datasets,
+        dataset_names=DATASETS_SYNTH,
         configs=configs,
         debug=False,
         log_path=batch_path,

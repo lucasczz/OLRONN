@@ -19,7 +19,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from src.data.datasets import get_dataset
 from src.models.networks import get_mlp
 import os
-from src.models.schedulers import KunchevaLR, LRLimiter
+from src.models.schedulers import KunchevaLR, LRLimiter, get_scheduler_chain
 
 from src.utils import ExperimentLogger, one_hot
 
@@ -33,11 +33,14 @@ N_HIDDEN_LAYERS = 1
 SEEDS = list(range(5))
 LRS = [2**-i for i in range(-1, 11)]
 
-DATASET_NAMES = [
+DATASETS_SYNTH = [
     "Agrawal",
     "LED",
     "RBF abrupt",
     "RBF incr.",
+]
+
+DATASETS_REAL = [
     "Insects gradual",
     "Insects abrupt",
     "Insects incr.",
@@ -45,12 +48,12 @@ DATASET_NAMES = [
     "Covertype",
 ]
 
+DATASET_NAMES = DATASETS_SYNTH + DATASETS_REAL
 
-def bce_with_logits(y, logits, weight=None):
+
+def bce_with_logits(y, logits):
     loss = F.binary_cross_entropy_with_logits(logits, y, reduction="none")
     loss = torch.mean(loss, dim=list(range(1, loss.dim())))
-    if weight is not None:
-        loss = loss * weight
     return loss
 
 
@@ -348,11 +351,12 @@ def init_optim(optim_fn, scheduler_fn, base_lr, net):
         else optim_fn(net.parameters())
     )
     averager = PolynomialDecayAverager(net) if isinstance(optim, DoG) else None
+    if isinstance(scheduler_fn, (list, tuple)):
+        scheduler_fn = get_scheduler_chain(*scheduler_fn)
     if scheduler_fn is not None:
         scheduler = scheduler_fn(optim)
         sched_uses_metric = "metrics" in inspect.signature(scheduler.step).parameters
-        if not isinstance(scheduler, KunchevaLR):
-            lr_limiter = LRLimiter(optim)
+        lr_limiter = LRLimiter(optim)
 
     return optim, averager, scheduler, sched_uses_metric, lr_limiter
 

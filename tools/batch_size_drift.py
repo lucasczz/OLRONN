@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from tools.base import (
+    DATASETS_SYNTH,
     get_config_grid,
     run_configs,
     REPORTS_PATH,
@@ -22,5 +23,5 @@ configs = get_config_grid(batch_size=batch_sizes, base_lr=LRS, seed=SEEDS)
 
 
 if __name__ == "__main__":
-    run_configs(dataset_names=datasets, configs=configs, debug=False, log_path=log_path)
+    run_configs(dataset_names=DATASETS_SYNTH, configs=configs, debug=False, log_path=log_path)
     zip_csv(log_path)

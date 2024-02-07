@@ -7,6 +7,7 @@ from tools.pretune import datasets
 from tools.pretune import gamma, n_hidden_layers, n_hidden_units, lr
 
 from tools.base import (
+    DATASETS_SYNTH,
     get_config_grid,
     run_configs,
     REPORTS_PATH,
@@ -15,7 +16,7 @@ from tools.base import (
 )
 
 # Set up logging path
-run_name = "v2_synth"
+run_name = "v3_synth"
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 optimizer = [
@@ -50,5 +51,10 @@ configs = get_config_grid(
 
 
 if __name__ == "__main__":
-    run_configs(dataset_names=datasets, configs=configs, debug=False, log_path=log_path)
+    run_configs(
+        dataset_names=DATASETS_SYNTH,
+        configs=configs,
+        debug=True,
+        log_path=log_path,
+    )
     zip_csv(log_path)
