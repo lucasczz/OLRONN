@@ -52,9 +52,9 @@ configs = get_config_grid(
 
 if __name__ == "__main__":
     run_configs(
-        dataset_names=DATASETS_SYNTH,
+        dataset_names=datasets,
         configs=configs,
-        debug=True,
+        debug=False,
         log_path=log_path,
     )
     zip_csv(log_path)
