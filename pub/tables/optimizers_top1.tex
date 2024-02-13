@@ -1,0 +1,17 @@
+\begin{tabular}{llllllllll}
+    \toprule
+                 & Agrawal              & LED                 & RBF abrupt           & RBF incr.            & Covertype           & Electricity         & Insects abrupt      & Insects gradual     & Insects incr.       \\
+                 & accuracy             & accuracy            & accuracy             & accuracy             & accuracy            & accuracy            & accuracy            & accuracy            & accuracy            \\
+    optimizer    &                      &                     &                      &                      &                     &                     &                     &                     &                     \\
+    \midrule
+    SGD          & \bfseries 79.64±2.03 & \bfseries 73.91±.04 & \bfseries 89.57±2.61 & \bfseries 57.18±2.69 & \bfseries 83.42±.50 & 73.77±.40           & 71.50±.08           & 75.31±.21           & 60.48±.20           \\
+    Adam         & \bfseries 78.91±2.40 & \bfseries 73.98±.20 & 86.33±1.85           & \bfseries 60.32±3.75 & 79.01±.27           & 69.79±.54           & \bfseries 75.38±.24 & 75.78±.74           & \bfseries 64.17±.13 \\
+    AdaGrad      & \bfseries 79.13±1.62 & 72.55±.31           & 81.92±3.89           & 45.00±1.55           & 81.68±.35           & 76.99±1.20          & 74.87±.40           & 77.15±.27           & 62.51±.59           \\
+    WNGrad       & 76.91±.47            & 64.66±.34           & 80.07±.67            & 42.06±.43            & 76.98±.15           & 70.80±.59           & 66.25±.19           & 66.75±.40           & 56.14±.21           \\
+    SGDHD        & \bfseries 80.19±1.56 & 73.81±.09           & \bfseries 89.78±3.37 & 56.37±5.01           & \bfseries 83.36±.25 & 73.83±.32           & 70.67±.06           & 73.37±.21           & 59.92±.18           \\
+    COCOB        & 78.21±1.12           & \bfseries 73.88±.50 & \bfseries 90.75±1.28 & 51.70±2.11           & 82.27±.46           & \bfseries 84.48±.88 & 74.75±.11           & \bfseries 77.67±.17 & 63.93±.17           \\
+    DoG          & \bfseries 78.77±2.25 & 73.34±.13           & 87.04±3.13           & 55.72±2.43           & 83.07±.64           & 71.53±.70           & 70.59±.26           & 74.01±.21           & 59.66±.22           \\
+    DAdapt       & 60.16±.96            & 54.69±8.34          & 41.37±3.34           & 42.61±1.46           & 76.69±.79           & 66.03±1.75          & 50.05±11.26         & 48.21±10.62         & 36.00±11.81         \\
+    Mechanic     & 62.09±9.20           & 69.04±.19           & 87.33±.50            & 44.45±.85            & 78.67±.18           & 50.73±7.60          & 55.31±21.47         & 65.80±.53           & 47.89±17.46         \\
+    \bottomrule
+\end{tabular}

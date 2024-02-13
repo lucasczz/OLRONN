@@ -17,7 +17,7 @@ from tools.base import (
 )
 
 # Set up logging path
-run_name = "v1_synth"
+run_name = "v1"
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 # Set up configs
@@ -50,7 +50,7 @@ configs = get_config_grid(optimizers, seed=SEEDS, log_lr_norms=True)
 
 if __name__ == "__main__":
     run_configs(
-        dataset_names=DATASETS_SYNTH,
+        dataset_names=DATASET_NAMES,
         configs=configs,
         debug=False,
         log_path=log_path,

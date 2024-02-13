@@ -53,7 +53,7 @@ def fetch_rbf_gradual(
 
 
 def fetch_rbf_incremental(
-    n_samples=20000,
+    n_samples=100_000,
     drift_speed=0.001,
     n_classes=5,
     n_features=20,
@@ -159,7 +159,6 @@ def get_dataset(name, seed=42):
     elif name.startswith("RBF incr."):
         drift_speed = float(name.split("_")[-1])
         return fetch_rbf_incremental(
-            n_samples=20000,
             drift_speed=drift_speed,
             n_classes=3,
             n_features=20,

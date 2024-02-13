@@ -31,7 +31,7 @@ DEVICE = "cpu"
 BATCH_SIZE = 4
 N_HIDDEN_LAYERS = 1
 SEEDS = list(range(5))
-LRS = [2**-i for i in range(-1, 11)]
+LRS = [2**-i for i in range(-1, 9)]
 
 DATASETS_SYNTH = [
     "Agrawal",

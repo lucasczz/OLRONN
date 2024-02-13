@@ -3,10 +3,12 @@ from pathlib import Path
 from torch.optim import SGD
 from torch.optim.lr_scheduler import ExponentialLR
 from dog import DoG
+from src.models.optimizers import COCOB
 from tools.pretune import datasets
 from tools.pretune import gamma, n_hidden_layers, n_hidden_units, lr
 
 from tools.base import (
+    DATASET_NAMES,
     DATASETS_SYNTH,
     get_config_grid,
     run_configs,
@@ -16,7 +18,7 @@ from tools.base import (
 )
 
 # Set up logging path
-run_name = "v3_synth"
+run_name = "v1"
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 optimizer = [
@@ -24,6 +26,14 @@ optimizer = [
         "optimizer": "DoG",
         "optim_fn": DoG,
         "base_lr": 1,
+        "gamma": 1,
+        "scheduler_fn": None,
+        "scheduler": "None",
+    },
+    {
+        "optimizer": "COCOB",
+        "optim_fn": COCOB,
+        "base_lr": 100,
         "gamma": 1,
         "scheduler_fn": None,
         "scheduler": "None",
@@ -52,7 +62,7 @@ configs = get_config_grid(
 
 if __name__ == "__main__":
     run_configs(
-        dataset_names=datasets,
+        dataset_names=DATASET_NAMES,
         configs=configs,
         debug=False,
         log_path=log_path,
