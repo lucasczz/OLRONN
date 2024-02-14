@@ -309,7 +309,10 @@ We experimentally compare our approach with this weight-reset mechanism in Secti
 We empirically evaluate our hypotheses using the following setup\footnote[3]{Code available at \url{anonymous.4open.science/r/LODL-D458/}.}:
 
 We use both synthetic and publicly available real-world classification datasets with different sizes and types of concept drift, listed in Table~\ref{tab:datasets}.
-Our evaluations include two synthetic \textit{Random Radial Basis Function} (RBF) datasets that we manipulated to incorporate concept drift using the online learning framework \textit{River}~\citep{montielRiverMachineLearning2020a}.
+
+Our evaluations include the Agrawal stream-generator~\citep{agrawalDatabaseMiningPerformance1993} for which we introduce concept drift by gradually switching the function that defines the target variable between the 45,000th and the 55,000th sample.
+We also use the LED generator~\citep{gordonClassificationRegressionTrees1984}, where we switch 5 of the 7 relevant features with irrelevant ones between instances 25000 and 75000.
+For the \textit{Random Radial Basis Function} (RBF) datasets we incorporate abrupt (RBF\textsubscript{a}) or incremental (RBF\textsubscript{i}) concept drift by switching or moving the centroids of the data distribution.
 
 \begin{table}[ht]
    \centering
@@ -320,7 +323,7 @@ Our evaluations include two synthetic \textit{Random Radial Basis Function} (RBF
       Type                    & Data Stream              & Instances               & Features & Classes \\
       \midrule
       \multirow{4}{*}{Synth.} & Agrawal                  & 100,000                 & 9        & 2       \\
-                              & LED                      & 100,000                 & 7        & 10      \\
+                              & LED                      & 100,000                 & 24       & 10      \\
                               & RBF\textsubscript{a}     & 100,000                 & 20       & 5       \\
                               & RBF\textsubscript{i}     & 100,000                 & 20       & 5       \\
       \midrule
@@ -355,25 +358,25 @@ To evaluate the effectiveness of our learning rate resetting mechanism for drift
    \centering
    \small
    \caption{Average prequential accuracy [\%] for static and drift adaptive learning rate schedules with SGD. LR-Reset\textsubscript{A} uses ADWIN, LR-Reset\textsubscript{K} Kolmogorov-Smirnov testing for drift detection. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}.}
-   \begin{tabular}{llllllllll}
+   \begin{tabular}{lllllllll}
       \toprule
-      Schedule        & Agrawal               & LED                 & RBF\textsubscript{a}   & RBF\textsubscript{i} & Covertype             & Electricity           & Insects\textsubscript{a} & Insects\textsubscript{g} & Insects\textsubscript{i} \\
+      Schedule                  & Agrawal                   & LED                     & RBF\textsubscript{a}       & Covertype                 & Electricity               & Insects\textsubscript{a}  & Insects\textsubscript{g}  & Insects\textsubscript{i}  \\
       \midrule
 
-      Fixed           & \bfseries 79.78±1.09  & \bfseries 73.91±.04 & \bfseries 89.57±2.61   & 57.18±2.69           & \underline{83.42±.50} & \bfseries 73.77±.40   & 71.50±.08                & 75.31±.21                & 60.48±.20                \\
-      Exp.            & 77.98±1.36            & 73.38±.14           & \underline{87.66±3.53} & 50.75±1.38           & 82.95±.26             & \underline{73.51±.48} & \underline{72.19±.37}    & \bfseries 75.91±.14      & \bfseries 61.28±.16      \\
-      Step            & 76.56±1.13            & 72.86±.18           & 84.98±6.46             & 50.69±1.93           & 82.89±.37             & \underline{73.62±.53} & \bfseries 72.23±.27      & \underline{75.83±.21}    & \underline{61.18±.11}    \\
-      Cyclic          & \underline{78.72±.90} & 73.67±.17           & \underline{88.40±4.26} & 58.67±1.63           & \bfseries 83.44±.08   & 68.38±.81             & 71.74±.39                & 75.64±.06                & 60.48±.20                \\
-      Weight-Reset    & 72.03±.91             & 64.31±2.16          & 70.41±.92              & \bfseries 61.07±.76  & 82.92±.57             & 71.17±.62             & 63.55±.42                & 69.66±.65                & 49.97±.67                \\
-      LR-Reset (Ours) & 78.26±.73             & 72.95±.13           & \underline{87.60±3.43} & 52.88±1.72           & 82.92±.32             & 73.07±.66             & 71.48±.34                & 75.54±.11                & 60.39±.18                \\
-      %TODO: Add LR-Reset with KSWIN drift detection
+      Fixed                     & \bfseries 79.78$\pm$1.09  & \bfseries 73.91$\pm$.04 & \bfseries 89.57$\pm$2.61   & \underline{83.42$\pm$.50} & \bfseries 73.77$\pm$.40   & 71.50$\pm$.08             & 75.31$\pm$.21             & 60.48$\pm$.20             \\
+      Exp.                      & 77.98$\pm$1.36            & 73.38$\pm$.14           & \underline{87.66$\pm$3.53} & 82.95$\pm$.26             & \underline{73.51$\pm$.48} & \underline{72.19$\pm$.37} & \bfseries 75.91$\pm$.14   & \bfseries 61.28$\pm$.16   \\
+      Step                      & 76.56$\pm$1.13            & 72.86$\pm$.18           & 84.98$\pm$6.46             & 82.89$\pm$.37             & \underline{73.62$\pm$.53} & \bfseries 72.23$\pm$.27   & \underline{75.83$\pm$.21} & \underline{61.18$\pm$.11} \\
+      Cyclic                    & \underline{78.72$\pm$.90} & 73.67$\pm$.17           & \underline{88.40$\pm$4.26} & \bfseries 83.44$\pm$.08   & 68.38$\pm$.81             & 71.74$\pm$.39             & 75.64$\pm$.06             & 60.48$\pm$.20             \\
+      Weight-Reset              & 72.03$\pm$.91             & 64.31$\pm$2.16          & 70.41$\pm$.92              & 82.92$\pm$.57             & 71.17$\pm$.62             & 63.55$\pm$.42             & 69.66$\pm$.65             & 49.97$\pm$.67             \\
+      LR-Reset\textsubscript{A} & 78.26$\pm$.73             & 72.95$\pm$.13           & \underline{87.60$\pm$3.43} & 82.92$\pm$.32             & 73.07$\pm$.66             & 71.48$\pm$.34             & 75.54$\pm$.11             & 60.39$\pm$.18             \\
+      LR-Reset\textsubscript{K} & 78.27$\pm$1.88            & 72.95$\pm$.13           & \underline{87.60$\pm$3.43} & 82.92$\pm$.32             & 73.07$\pm$.66             & 71.48$\pm$.34             & 75.54$\pm$.11             & 60.39$\pm$.18             \\
       \bottomrule
    \end{tabular}
    \label{tab:lr_resetting}
 \end{table}
 
 As can be seen in Table~\ref{tab:lr_resetting}, our approach clearly outperforms weight-resetting on all but \textit{Covertype}, but rarely yields an advantage over a static schedule.
-Since both variants our resetting approach perform similarly, this performance gap is likely not caused by the drift detector.
+Since both variants our resetting approach perform almost identically, this performance gap is likely not caused by the drift detector.
 Rather, it appears that using a larger initial learning rate and slower decay is sufficient to ensure adequate adaptability to concept drift throughout a data stream, while providing better stability in later stages.
 Overall, a slower but static decay paired with a larger initial learning rate seems to be preferable to a more aggressive schedule with our drift resetting mechanism, unless severe concept drift as in \textit{RBF incremental} is expected.
 
@@ -408,19 +411,19 @@ The SGD variant of Hypergradient Descent (HD)~\citep{baydinOnlineLearningRate201
    \centering
    \small
    \caption{Average prequential accuracy [\%] for different optimizers. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}.}
-   \begin{tabular}{lllllllllll}
+   \begin{tabular}{llllllllll}
       \toprule
-                                                         & Optimizer & Agrawal              & LED                 & RBF\textsubscript{a} & RBF\textsubscript{i} & Covertype           & Electricity         & Insects\textsubscript{a} & Insects\textsubscript{g} & Insects\textsubscript{i} \\
+                                                         & Optimizer & Agrawal                  & LED                     & RBF\textsubscript{a}     & Covertype               & Electricity             & Insects\textsubscript{a} & Insects\textsubscript{g} & Insects\textsubscript{i} \\
       \midrule
-      \multirow{5}{*}{\rotatebox[origin=c]{90}{Tuned}}   & SGD       & \bfseries 79.64±2.03 & \bfseries 73.91±.04 & \bfseries 89.57±2.61 & \bfseries 57.18±2.69 & \bfseries 83.42±.50 & 73.77±.40           & 71.50±.08                & 75.31±.21                & 60.48±.20                \\
-                                                         & Adam      & \bfseries 78.91±2.40 & \bfseries 73.98±.20 & 86.33±1.85           & \bfseries 60.32±3.75 & 79.01±.27           & 69.79±.54           & \bfseries 75.38±.24      & 75.78±.74                & \bfseries 64.17±.13      \\
-                                                         & AdaGrad   & \bfseries 79.13±1.62 & 72.55±.31           & 81.92±3.89           & 45.00±1.55           & 81.68±.35           & 76.99±1.20          & 74.87±.40                & 77.15±.27                & 62.51±.59                \\
-                                                         & WNGrad    & 76.91±.47            & 64.66±.34           & 80.07±.67            & 42.06±.43            & 76.98±.15           & 70.80±.59           & 66.25±.19                & 66.75±.40                & 56.14±.21                \\
-                                                         & HD        & \bfseries 80.19±1.56 & 73.81±.09           & \bfseries 89.78±3.37 & 56.37±5.01           & \bfseries 83.36±.25 & 73.83±.32           & 70.67±.06                & 73.37±.21                & 59.92±.18                \\ \midrule
-      \multirow{4}{*}{\rotatebox[origin=c]{90}{LR-Free}} & COCOB     & 78.21±1.12           & \bfseries 73.88±.50 & \bfseries 90.75±1.28 & 51.70±2.11           & 82.27±.46           & \bfseries 84.48±.88 & 74.75±.11                & \bfseries 77.67±.17      & 63.93±.17                \\
-                                                         & DoG       & \bfseries 78.77±2.25 & 73.34±.13           & 87.04±3.13           & 55.72±2.43           & 83.07±.64           & 71.53±.70           & 70.59±.26                & 74.01±.21                & 59.66±.22                \\
-                                                         & DAdapt    & 60.16±.96            & 54.69±8.34          & 41.37±3.34           & 42.61±1.46           & 76.69±.79           & 66.03±1.75          & 50.05±11.26              & 48.21±10.62              & 36.00±11.81              \\
-                                                         & Mechanic  & 62.09±9.20           & 69.04±.19           & 87.33±.50            & 44.45±.85            & 78.67±.18           & 50.73±7.60          & 55.31±21.47              & 65.80±.53                & 47.89±17.46              \\
+      \multirow{5}{*}{\rotatebox[origin=c]{90}{Tuned}}   & SGD       & 79.64$\pm$2.03           & \bfseries 73.91$\pm$.04 & \bfseries 89.57$\pm$2.61 & \bfseries 83.42$\pm$.50 & 73.77$\pm$.40           & 71.50$\pm$.08            & 75.31$\pm$.21            & 60.48$\pm$.20            \\
+                                                         & Adam      & \bfseries 78.91$\pm$2.40 & \bfseries 73.98$\pm$.20 & 86.33$\pm$1.85           & 79.01$\pm$.27           & 69.79$\pm$.54           & \bfseries 75.38$\pm$.24  & 75.78$\pm$.74            & \bfseries 64.17$\pm$.13  \\
+                                                         & AdaGrad   & \bfseries 79.13$\pm$1.62 & 72.55$\pm$.31           & 81.92$\pm$3.89           & 81.68$\pm$.35           & 76.99$\pm$1.20          & 74.87$\pm$.40            & 77.15$\pm$.27            & 62.51$\pm$.59            \\
+                                                         & WNGrad    & 76.91$\pm$.47            & 64.66$\pm$.34           & 80.07$\pm$.67            & 76.98$\pm$.15           & 70.80$\pm$.59           & 66.25$\pm$.19            & 66.75$\pm$.40            & 56.14$\pm$.21            \\
+                                                         & HD        & \bfseries 80.19$\pm$1.56 & 73.81$\pm$.09           & \bfseries 89.78$\pm$3.37 & \bfseries 83.36$\pm$.25 & 73.83$\pm$.32           & 70.67$\pm$.06            & 73.37$\pm$.21            & 59.92$\pm$.18            \\ \midrule
+      \multirow{4}{*}{\rotatebox[origin=c]{90}{LR-Free}} & COCOB     & 78.21$\pm$1.12           & \bfseries 73.88$\pm$.50 & \bfseries 90.75$\pm$1.28 & 82.27$\pm$.46           & \bfseries 84.48$\pm$.88 & 74.75$\pm$.11            & \bfseries 77.67$\pm$.17  & 63.93$\pm$.17            \\
+                                                         & DoG       & \bfseries 78.77$\pm$2.25 & 73.34$\pm$.13           & 87.04$\pm$3.13           & 83.07$\pm$.64           & 71.53$\pm$.70           & 70.59$\pm$.26            & 74.01$\pm$.21            & 59.66$\pm$.22            \\
+                                                         & DAdapt    & 60.16$\pm$.96            & 54.69$\pm$8.34          & 41.37$\pm$3.34           & 76.69$\pm$.79           & 66.03$\pm$1.75          & 50.05$\pm$11.26          & 48.21$\pm$10.62          & 36.00$\pm$11.81          \\
+                                                         & Mechanic  & 62.09$\pm$9.20           & 69.04$\pm$.19           & 87.33$\pm$.50            & 78.67$\pm$.18           & 50.73$\pm$7.60          & 55.31$\pm$21.47          & 65.80$\pm$.53            & 47.89$\pm$17.46          \\
       \bottomrule
    \end{tabular}
    \label{tab:results_adaptive_optims}
@@ -470,16 +473,16 @@ Because DoG closely approaches the best learning rate for the majority of the st
    \caption{
       Mean prequential accuracy of learning rate tuning approaches.
    }\label{tab:lr_tuning}
-   \begin{tabular}{llllllllll}
+   \begin{tabular}{lllllllll}
       \toprule
-      Approach                       & Agrawal             & LED                 & RBF\textsubscript{a} & RBF\textsubscript{i} & Covertype             & Electricity           & Insects\textsubscript{a} & Insects\textsubscript{g} & Insects\textsubscript{i} \\
+      Approach                       & Agrawal                 & LED                     & RBF\textsubscript{a}    & Covertype                 & Electricity               & Insects\textsubscript{a} & Insects\textsubscript{g}  & Insects\textsubscript{i} \\
       \midrule
-      Oracle                         & 83.70               & 73.95               & 93.84                & 81.52                & 83.14                 & 74.15                 & 71.98                    & 75.28                    & 60.75                    \\
-      COCOB                          & 83.71±.25           & 74.34±.09           & 95.29±.24            & 78.59±.38            & 82.96±.19             & 84.57±.08             & 75.39±.10                & 77.62±.08                & 64.02±.11                \\ \midrule
-      DoG                            & 82.06±.52           & \bfseries 73.71±.11 & 91.36±.46            & \bfseries 77.63±1.24 & \bfseries 82.56±.15   & 70.47±.40             & 70.59±.10                & 73.92±.11                & 58.83±.07                \\
-      Batch Tuning                   & 81.09±1.34          & 66.67±3.28          & 91.89±.39            & 72.51±1.63           & \underline{82.41±.61} & 72.86±.76             & 69.81±2.18               & 73.91±.64                & 58.27±2.21               \\
-      Pre-Tuning\textsubscript{500}  & 82.01±.32           & 73.26±.03           & \bfseries 92.36±.03  & 72.98±.44            & 80.25±1.86            & \underline{73.34±.45} & \bfseries 71.81±.04      & \bfseries 75.22±.08      & \bfseries 60.55±.10      \\
-      Pre-Tuning\textsubscript{1000} & \bfseries 82.56±.25 & 73.30±.00           & 92.18±.38            & 73.19±.31            & 80.80±1.05            & \bfseries 73.37±.34   & \bfseries 71.81±.06      & \underline{75.17±.05}    & 60.33±.28                \\
+      Oracle                         & 83.70                   & 73.95                   & 93.84                   & 83.14                     & 74.15                     & 71.98                    & 75.28                     & 60.75                    \\
+      COCOB                          & 83.71$\pm$.25           & 74.34$\pm$.09           & 95.29$\pm$.24           & 82.96$\pm$.19             & 84.57$\pm$.08             & 75.39$\pm$.10            & 77.62$\pm$.08             & 64.02$\pm$.11            \\ \midrule
+      DoG                            & 82.06$\pm$.52           & \bfseries 73.71$\pm$.11 & 91.36$\pm$.46           & \bfseries 82.56$\pm$.15   & 70.47$\pm$.40             & 70.59$\pm$.10            & 73.92$\pm$.11             & 58.83$\pm$.07            \\
+      Batch Tuning                   & 81.09$\pm$1.34          & 66.67$\pm$3.28          & 91.89$\pm$.39           & \underline{82.41$\pm$.61} & 72.86$\pm$.76             & 69.81$\pm$2.18           & 73.91$\pm$.64             & 58.27$\pm$2.21           \\
+      Pre-Tuning\textsubscript{500}  & 82.01$\pm$.32           & 73.26$\pm$.03           & \bfseries 92.36$\pm$.03 & 80.25$\pm$1.86            & \underline{73.34$\pm$.45} & \bfseries 71.81$\pm$.04  & \bfseries 75.22$\pm$.08   & \bfseries 60.55$\pm$.10  \\
+      Pre-Tuning\textsubscript{1000} & \bfseries 82.56$\pm$.25 & 73.30$\pm$.00           & 92.18$\pm$.38           & 80.80$\pm$1.05            & \bfseries 73.37$\pm$.34   & \bfseries 71.81$\pm$.06  & \underline{75.17$\pm$.05} & 60.33$\pm$.28            \\
       \bottomrule
    \end{tabular}
 \end{table}
