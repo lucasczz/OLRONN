@@ -23,18 +23,18 @@ from tools.base import (
 )
 
 # Set up logging path
-run_name = "KSWIN"
+run_name = "v1"
 log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 schedules = [
-    # *[
-    #     {
-    #         "schedule": f"Exponential Reset",
-    #         "scheduler_fn": [partial(ExponentialLR, gamma=1 - 2**-i), DriftResetLR],
-    #         "gamma": 1 - 2**-i,
-    #     }
-    #     for i in range(12, 15)
-    # ],
+    *[
+        {
+            "schedule": f"Exponential Reset",
+            "scheduler_fn": [partial(ExponentialLR, gamma=1 - 2**-i), DriftResetLR],
+            "gamma": 1 - 2**-i,
+        }
+        for i in range(12, 15)
+    ],
     *[
         {
             "schedule": f"Exponential Reset (KSWIN)",
@@ -46,50 +46,50 @@ schedules = [
         }
         for i in range(12, 15)
     ],
-    # *[
-    #     {
-    #         "schedule": f"Exponential Weight Reset",
-    #         "scheduler_fn": [partial(ExponentialLR, gamma=1 - 2**-i), WeightResetLR],
-    #         "gamma": 1 - 2**-i,
-    #     }
-    #     for i in range(12, 15)
-    # ],
-    # {
-    #     "schedule": "Fixed",
-    #     "scheduler_fn": None,
-    # },
-    # *[
-    #     {
-    #         "schedule": "Exponential",
-    #         "scheduler_fn": partial(ExponentialLR, gamma=1 - 2**-i),
-    #         "gamma": 1 - 2**-i,
-    #     }
-    #     for i in range(12, 15)
-    # ],
-    # *[
-    #     {
-    #         "schedule": "Step",
-    #         "scheduler_fn": partial(StepLR, gamma=g, step_size=2000),
-    #         "gamma": g,
-    #     }
-    #     for g in [0.5, 0.75, 0.875]
-    # ],
-    # *[
-    #     {
-    #         "schedule": f"Cyclic",
-    #         "scheduler_fn": partial(get_cyclic_lr, max_lr=g, step_size_up=4000),
-    #         "max_lr": g,
-    #     }
-    #     for g in [0.125, 0.25, 0.5]
-    # ],
-    # *[
-    #     {
-    #         "schedule": f"Plateau",
-    #         "scheduler_fn": partial(ReduceLROnPlateau, factor=1 - 2**-i, patience=400),
-    #         "factor": 1 - 2**-i,
-    #     }
-    #     for i in range(5, 8)
-    # ],
+    *[
+        {
+            "schedule": f"Exponential Weight Reset",
+            "scheduler_fn": [partial(ExponentialLR, gamma=1 - 2**-i), WeightResetLR],
+            "gamma": 1 - 2**-i,
+        }
+        for i in range(12, 15)
+    ],
+    {
+        "schedule": "Fixed",
+        "scheduler_fn": None,
+    },
+    *[
+        {
+            "schedule": "Exponential",
+            "scheduler_fn": partial(ExponentialLR, gamma=1 - 2**-i),
+            "gamma": 1 - 2**-i,
+        }
+        for i in range(12, 15)
+    ],
+    *[
+        {
+            "schedule": "Step",
+            "scheduler_fn": partial(StepLR, gamma=g, step_size=2000),
+            "gamma": g,
+        }
+        for g in [0.5, 0.75, 0.875]
+    ],
+    *[
+        {
+            "schedule": f"Cyclic",
+            "scheduler_fn": partial(get_cyclic_lr, max_lr=g, step_size_up=4000),
+            "max_lr": g,
+        }
+        for g in [0.125, 0.25, 0.5]
+    ],
+    *[
+        {
+            "schedule": f"Plateau",
+            "scheduler_fn": partial(ReduceLROnPlateau, factor=1 - 2**-i, patience=400),
+            "factor": 1 - 2**-i,
+        }
+        for i in range(5, 8)
+    ],
 ]
 
 configs = get_config_grid(
