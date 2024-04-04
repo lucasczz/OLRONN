@@ -312,7 +312,7 @@ To improve model plasticity, such mechanisms \remove{partially or completely} re
 
 \remove{
    We experimentally compare our approach with this weight-reset mechanism in Section 4.}
-   
+
 
 \section{Experiments}\label{sec:experiments}
 
@@ -465,16 +465,12 @@ To determine the learning rate and decay factor, we rely on the optimal mean pre
 
 Figure~\ref{fig:pretune_lr_accuracy} shows the absolute difference between the learning rate resulting from the Pre-Tuning process and the optimal value $|\eta_p - \eta^*|$ at each tuning step averaged over all real-world datasets and network architectures.
 
-Batch tuning with 800 training and 200 validation samples initially yields a better approximation of the optimal learning rate. However, our streaming-specific approach undercuts the baseline after 1000 tuning steps, consistently decreasing and ultimately reaching approximately half of the approximation error observed in batch tuning.
-The performance also remains nearly identical, even when using only 500 samples for tuning, demonstrating the data efficiency of Pre-Tuning.
-
-\begin{figure}[hb]
+\begin{figure}[!hb]
    \centering
    \includegraphics[width=\textwidth]{figures/pretune_all_acc_lr_exp_schedule.pdf}
    \caption{Absolute difference between pre-tuned and optimal learning rate and resulting accuracy on data streams for SGD and an exponential learning rate schedule with 500 or 1000 tuning samples. DoG is not included in first subplot since it is not intended for use with LR decay. Results are averaged over all real-world datasets and network architectures. The shaded area represents the 1$\sigma$-interval.}\label{fig:pretune_lr_accuracy}
 \end{figure}
-
-\begin{table}[ht]
+\begin{table}[!ht]
    \centering
    \small
    \caption{
@@ -493,6 +489,9 @@ The performance also remains nearly identical, even when using only 500 samples 
       \bottomrule
    \end{tabular}
 \end{table}
+
+Batch tuning with 800 training and 200 validation samples initially yields a better approximation of the optimal learning rate. However, our streaming-specific approach undercuts the baseline after 1000 tuning steps, consistently decreasing and ultimately reaching approximately half of the approximation error observed in batch tuning.
+The performance also remains nearly identical, even when using only 500 samples for tuning, demonstrating the data efficiency of Pre-Tuning.
 
 The superior performance of our approach is also reflected in the accuracy scores depicted in the right subfigure of Figure~\ref{fig:pretune_lr_accuracy}.
 In fewer than 1000 steps, our approach comes closer to the optimal learning rate and also exceeds the accuracy of conventional tuning.
@@ -527,6 +526,7 @@ Lastly, we contribute a streaming-specific approach to learning rate tuning that
 \bibliography{collas2024_conference}
 \bibliographystyle{collas2024_conference}
 
+\newpage
 \appendix
 \section{Hyperparameter Settings for Empirical Evaluation}\label{app:hyperparams}
 
@@ -582,7 +582,7 @@ Lastly, we contribute a streaming-specific approach to learning rate tuning that
       \bottomrule
    \end{tabular}
 \end{table}
-
+\newpage
 \section{Full Experimental Results}\label{app:full_results}
 
 In this section, we provide our full experimental results including the RBF\textsubscript{i} and Insects\textsubscript{i} datastreams as well as a detailed
