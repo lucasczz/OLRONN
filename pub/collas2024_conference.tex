@@ -171,17 +171,18 @@ Several studies have proposed adaptive optimizers that increase the robustness o
 These optimizers adjust the step size based on previous gradients at each step~\citep{duchiAdaptiveSubgradientMethods2011}.
 
 One of the earlier techniques in this category is \textit{AdaGrad}~\citep{duchiAdaptiveSubgradientMethods2011}, which scales the learning rate based on the sum of squares of past gradients for each parameter, resulting in a parameter-specific step size.
-Several other approaches, such as AdaDelta~\citep{zeilerADADELTAAdaptiveLearning2012a} and RMSProp, later built on AdaGrad's scaling approach.
-The same is true for the widely used Adam optimizer~\citep{kingmaAdamMethodStochastic2017b}, which adds a momentum term from prior gradients to speed up convergence for parameters with consistent derivatives.
+Several other approaches, such as \textit{AdaDelta}~\citep{zeilerADADELTAAdaptiveLearning2012a} and \textit{RMSProp}, later built on AdaGrad's scaling approach.
+The same is true for the widely used \textit{Adam} optimizer~\citep{kingmaAdamMethodStochastic2017b}, which adds a momentum term from prior gradients to speed up convergence for parameters with consistent derivatives.
 Another AdaGrad-based optimizer is \textit{WNGrad}~\citep{wuWNGradLearnLearning2020}, which adaptively scales each parameter update based on the squared sum of past gradients.
 
 So-called \textit{parameter-free} gradient-based optimization approaches aim to eliminate the learning rate completely by optimizing it as training progresses.
 For example, the \textit{COCOB} algorithm~\citep{orabonaTrainingDeepNetworks2017} models parameter optimization as a gambling problem, where the goal is to maximize the reward from betting on each gradient.
 The resulting strategy is equivalent to running a meta-optimization algorithm that estimates the expected optimal learning rate~\citep{orabonaTrainingDeepNetworks2017}.
-Several other studies~\citep{vanervenMetaGradMultipleLearning2016a,baydinOnlineLearningRate2018,cutkoskyMechanicLearningRate2023} have also used the idea of learning $\eta$ via a meta-optimization process.
-The \textit{hypergradient descent} (HD) approach~\citep{baydinOnlineLearningRate2018}, for example, adapts the learning rate of a base optimizer like SGD using a meta-gradient descent procedure. 
+Several other studies~\citep{schraudolphLocalGainAdaptation1999,vanervenMetaGradMultipleLearning2016a,baydinOnlineLearningRate2018,cutkoskyMechanicLearningRate2023} have also used the idea of learning $\eta$ via a meta-optimization process.
+The \textit{hypergradient descent} (HD) approach~\citep{baydinOnlineLearningRate2018}, for example, adapts the learning rate of a base optimizer like SGD using a meta-gradient descent procedure.
 However, this does not remove the learning rate entirely but replaces it with a less sensitive hypergradient step size.
-Mechanic~\citep{cutkoskyMechanicLearningRate2023} pursues the same goal by applying a meta \textit{online convex optimization} (OCO) algorithm to an arbitrary base optimizer.
+\textit{Mechanic}~\citep{cutkoskyMechanicLearningRate2023} pursues the same goal by applying a meta \textit{online convex optimization} (OCO) algorithm to an arbitrary base optimizer\add{, while \textit{stochastic meta-descent} (SMD) by \citet{schraudolphLocalGainAdaptation1999}, which extends \citeauthor{suttonAdaptingBiasGradient1992}'s work on linear systems \citep{suttonAdaptingBiasGradient1992}, uses second-order information for local adaptations of the learning rate}.
+
 
 Research has shown that in an OCO setting with stationary data, the worst-case optimal fixed step size for SGD is
 \begin{equation}\label{eq:oco_optimal_lr}
@@ -300,11 +301,18 @@ where $t_{\rm{drift}}$ marks the timestep at which the drift was last detected.
 For drift detection, we apply either \textit{ADWIN}~\citep{bifetLearningTimeChangingData2007} or the Kolmogorov-Smirnov test~\citep{masseyKolmogorovSmirnovTestGoodness1951} to the prequential losses.
 To avoid detecting loss decreases as concept drifts, we test only for increases of the prequential loss.
 
-Our approach is similar to some forgetting mechanisms commonly used in conventional online learning~\citep{gamaSurveyConceptDrift2014}.
-To improve model plasticity, such mechanisms partially or completely reset the current model parameters to their initial values.
-However, we hypothesize that this approach is unsuitable for neural-based approaches.
-The reason is that, under the assumption of convexity, the newly initiated parameters must be closer to the optimal parameters $\vtheta^*$ than the current parameters to be beneficial.
-We experimentally compare our approach with this weight-reset mechanism in Section~\ref{sec:experiments}.
+Our approach is similar to forgetting mechanisms commonly used in conventional online learning~\citep{gamaSurveyConceptDrift2014}.
+To improve model plasticity, such mechanisms \remove{partially or completely} reset the current model parameters to their initial values.
+\remove{However, we hypothesize that this approach is unsuitable for neural-based approaches. The reason is that, under the assumption of convexity, the newly initiated parameters must be closer to the optimal parameters $\vtheta^*$ than the current parameters to be beneficial.}
+\add{
+   While the simplest implementation of forgetting resets all parameters, there is a variety of more targeted approaches for increasing model plasticity.
+   For instance, \citet{dohareLossPlasticityDeep2023} suggest computing a utility metric and resetting neurons that receive a low utility value, while \citet{paikOvercomingCatastrophicForgetting2019a} instead adapt the learning rate for each neuron using a utility metric.
+   Similarly, \citet{elsayedUtilitybasedPerturbedGradient2023} limits changes to high-utility-weights while intentionally perturbing low-utility-weights.
+}
+
+\remove{
+   We experimentally compare our approach with this weight-reset mechanism in Section 4.}
+   
 
 \section{Experiments}\label{sec:experiments}
 
