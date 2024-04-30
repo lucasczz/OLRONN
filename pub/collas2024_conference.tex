@@ -114,10 +114,15 @@ According to \citet{bifetMOAMassiveOnline2010}, a machine learning model operati
    \item[R5:] adapt to changes in the data distribution.\label{rq:adapt_to_drift}
 \end{enumerate}
 
-These requirements pose additional challenges in selecting an appropriate optimizer and learning rate.
-To enable more informed decisions when optimizing the learning rate, we provide insight into these challenges and empirically evaluate commonly used optimization techniques in an online learning setting (i).
-Furthermore, we introduce a \textit{drift reset} mechanism to adapt the learning rate to concept drifts that commonly occur in streaming environments (ii).
-Finally, we propose a \textit{pre-tuning} approach to make effective use of any data that may be available prior to stream-based learning (\textit{pre-stream}) for learning rate tuning (see Figure~\ref{fig:lr_overview}) (iii).
+These requirements pose additional challenges in selecting an appropriate optimizer and learning rate, which we describe in Section~\ref{sec:lr_in_online_learning}.
+To enable more informed decisions when dealing with these challenges, we make the following contributions:
+
+Firstly, we empirically evaluate typical learning rate schedules on a variety of synthetic and real-world data streams with different types of non-stationarities.
+In this context, we also introduce and investigate the effectiveness of a mechanism that temporarily increases the learning rate upon the detection of a distributional change (i).
+
+Secondly, within the same stream-based online learing setting, we evaluate adaptive optimization techniques that are commonly used in conventional training of neural networks and provide suggestions when to use which technique (ii).
+
+Finally, a learning rate tuning approach adapted to stream-based learning, which we empirically show to make more effective use of any data that may be available before the online learning process (see \textit{Pre-Stream} in Figure~\ref{fig:lr_overview}) compared to conventional tuning (iii).
 
 \section{Learning Rate in First-Order Optimization}
 
@@ -181,7 +186,7 @@ The resulting strategy is equivalent to running a meta-optimization algorithm th
 Several other studies~\citep{schraudolphLocalGainAdaptation1999,vanervenMetaGradMultipleLearning2016a,baydinOnlineLearningRate2018,cutkoskyMechanicLearningRate2023} have also used the idea of learning $\eta$ via a meta-optimization process.
 The \textit{hypergradient descent} (HD) approach~\citep{baydinOnlineLearningRate2018}, for example, adapts the learning rate of a base optimizer like SGD using a meta-gradient descent procedure.
 However, this does not remove the learning rate entirely but replaces it with a less sensitive hypergradient step size.
-\textit{Mechanic}~\citep{cutkoskyMechanicLearningRate2023} pursues the same goal by applying a meta \textit{online convex optimization} (OCO) algorithm to an arbitrary base optimizer\add{, while \textit{stochastic meta-descent} (SMD) by \citet{schraudolphLocalGainAdaptation1999}, which extends \citeauthor{suttonAdaptingBiasGradient1992}'s work on linear systems \citep{suttonAdaptingBiasGradient1992}, uses second-order information for local adaptations of the learning rate}.
+\textit{Mechanic}~\citep{cutkoskyMechanicLearningRate2023} pursues the same goal by applying a meta \textit{online convex optimization} (OCO) algorithm to an arbitrary base optimizer, while \textit{stochastic meta-descent} (SMD) by \citet{schraudolphLocalGainAdaptation1999}, which extends \citeauthor{suttonAdaptingBiasGradient1992}'s work on linear systems \citep{suttonAdaptingBiasGradient1992}, uses second-order information for local adaptations of the learning rate.
 
 
 Research has shown that in an OCO setting with stationary data, the worst-case optimal fixed step size for SGD is
@@ -219,7 +224,7 @@ DoG additionally uses polynomial decay averaging as proposed by~\citet{shamirSto
 Although adaptive optimization techniques seem intuitively well suited for non-stationary data, their application to data streams has yet to be investigated.
 Therefore, we assess the suitability of some of the most prominent adaptive optimizers, listed in Table~\ref{tab:param_free_optims}, for stream-based learning.
 
-\section{Learning Rate in Online Learning}
+\section{Learning Rate in Online Learning}\label{sec:lr_in_online_learning}
 
 Optimizing the learning rate in a batch learning setting involves minimizing the expected loss on a hold-out validation data set.
 Formally, we can express this task as
@@ -302,16 +307,10 @@ For drift detection, we apply either \textit{ADWIN}~\citep{bifetLearningTimeChan
 To avoid detecting loss decreases as concept drifts, we test only for increases of the prequential loss.
 
 Our approach is similar to forgetting mechanisms commonly used in conventional online learning~\citep{gamaSurveyConceptDrift2014}.
-To improve model plasticity, such mechanisms \remove{partially or completely} reset the current model parameters to their initial values.
-\remove{However, we hypothesize that this approach is unsuitable for neural-based approaches. The reason is that, under the assumption of convexity, the newly initiated parameters must be closer to the optimal parameters $\vtheta^*$ than the current parameters to be beneficial.}
-\add{
-   While the simplest implementation of forgetting resets all parameters, there is a variety of more targeted approaches for increasing model plasticity.
-   For instance, \citet{dohareLossPlasticityDeep2023} suggest computing a utility metric and resetting neurons that receive a low utility value, while \citet{paikOvercomingCatastrophicForgetting2019a} instead adapt the learning rate for each neuron using a utility metric.
-   Similarly, \citet{elsayedUtilitybasedPerturbedGradient2023} limits changes to high-utility-weights while intentionally perturbing low-utility-weights.
-}
-
-\remove{
-   We experimentally compare our approach with this weight-reset mechanism in Section 4.}
+To improve model plasticity, such mechanisms reset the current model parameters to their initial values.
+While the simplest implementation of forgetting resets all parameters, there is a variety of more targeted approaches for increasing model plasticity.
+For instance, \citet{dohareLossPlasticityDeep2023} suggest computing a utility metric and resetting neurons that receive a low utility value, while \citet{paikOvercomingCatastrophicForgetting2019a} instead adapt the learning rate for each neuron using a utility metric.
+Similarly, \citet{elsayedUtilitybasedPerturbedGradient2023} limits changes to high-utility-weights while intentionally perturbing low-utility-weights.
 
 
 \section{Experiments}\label{sec:experiments}
@@ -363,12 +362,12 @@ We report our results as averages over five random seeds.
 
 \subsection{Learning Rate Schedules}
 
-To evaluate the effectiveness of our learning rate resetting mechanism for drift adaptation (see \Eqref{eq:drift_reset}), we compare its average prequential accuracy to that of model weight resetting, commonly used in online learning.
+To evaluate the effectiveness of our learning rate resetting mechanism for drift adaptation (see \Eqref{eq:drift_reset}), we compare its average prequential accuracy to that of model weight resetting and non-adaptive learning rate schedules, commonly used in online learning.
 
 As seen in Table~\ref{tab:lr_resetting}, our approach outperforms weight-resetting on all but Covertype but rarely yields an advantage over a basic exponential or fixed learning rate.
 Since both variants of our resetting approach perform almost identically, this performance gap is likely not caused by the drift detector.
 Instead, it appears that most concept drifts, even artificially created ones, are not severe enough for a drastic learning rate increase to be beneficial compared to the better stability of a more continuous learning rate progression.
-Overall, an appropriate fixed learning rate seems to be preferable to a decaying schedule with our drift resetting mechanism for the investigated data streams.
+
 
 \begin{table}[b]
    \centering
@@ -404,13 +403,14 @@ Overall, an appropriate fixed learning rate seems to be preferable to a decaying
       \caption{Adaptive Optimizers}
       \label{fig:prequential_optims_insects}
    \end{subfigure}
-   \caption{Prequential accuracy and learning rate for different schedules and adaptive optimizers on Insects\textsubscript{a} dataset. Concept drifts are marked by dashed lines. Accuracy is exponentially smoothed with a decay factor of 0.75.}
+   \caption{Prequential accuracy and learning rate for different schedules and adaptive optimizers on Insects\textsubscript{a} dataset. Concept drifts are marked by dashed lines. Accuracy is exponentially smoothed with a decay factor of 0.75. Note that the learning rates of COCOB, Adam, and Mechanic in \ref{sub@fig:prequential_optims_insects} are much larger compared to DoG etc. due to being scaled by an estimate of the second-moment of past gradients.}
 \end{figure}
 
 With accuracy values within $1\sigma$ of each other on all evaluated streams, the stepwise decay shows almost identical performance to the exponential decay.
 The accuracy of the cyclic schedule for Covertype slightly surpasses the one achieved with a fixed learning rate but lags behind on most real-world streams.
 We also did not find an order of magnitude improvement in convergence speed as observed by~\citep{smithSuperConvergenceVeryFast2018a} for the scenario studied.
 
+Despite the intuition, that increasing the learning rate on concept-drifts should increase the average performance, our experiments suggest, that an appropriate fixed learning rate is preferable to both drift-adaptive as well as static schedules for most online learing scenarios.
 
 \subsection{Adaptive Learning Rates}
 
@@ -452,10 +452,8 @@ The best-performing Adam's learning rate exhibits spikes for most change points,
 However, since the much worse performing Mechanic shows similar spikes, this is unlikely to contribute significantly to Adam's high accuracy on Insects\textsubscript{a}.
 Instead, it likely stems from its second-moment scaling, also featured in the similarly performing AdaGrad.
 
-It may also be noted that the learning rates of the COCOB, Adam, and Mechanic optimizers with parameter-specific learning rates exceed those of single-value step sizes by multiple orders of magnitude.
-This effect of second-moment scaling creates larger learning rates for parameters with small and consistent gradients~\citep{cutkoskyMechanicLearningRate2023}.
-Therefore, the norms of parameter updates generated by these approaches are not necessarily larger.
-
+All in all, COCOB shows the most promising results in terms of average prequential accuracy, making it preferable over the competing approaches if its larger memory- and computational footprint are permissibe.
+In scearios with limited computational resources on the other hand, DoG may be a more viable choice due to its efficiency.
 
 \subsection{Learning Rate Tuning}
 
@@ -516,12 +514,16 @@ In such cases, approaches with a dynamic learning rate are presumably superior.
 
 In this work, we investigate the influence and selection of the learning rate and optimization procedure with respect to training neural networks in streaming environments.
 We first provide a theoretical background on discrepancies between learning rate optimization in conventional batch learning and online learning.
-Based on these differences, we propose a simple mechanism that resets a decayed learning rate on concept drift occurrences to increase the speed of adaption.
-Our empirical evaluation shows that our adaptation mechanism is much better suited when using neural networks than resetting the model weights, which is commonly done in conventional online learning.
-However, we find no advantage over using an appropriate fixed learning rate.
-We then experimentally compare adaptive optimization techniques that are popular for batch learning purposes in the context of online learning using multiple synthetic and real-world data streams.
+
+Based on these differences, we propose a simple mechanism that resets a decayed learning rate on concept drift occurrences to increase the speed of adaptation, which we evaluated on multiple synthetic and real-world data streams (i).
+Our evaluations show that our adaptation mechanism is much better suited when using neural networks than resetting the model weights, which is commonly done in conventional online learning.
+However, against the intuition that temporarily increasing plasticity via the learning rate in response to concept drifts should have a positive impact on the average model-performance, an appropriate fixed learning rate yielded better results in most cases.
+
+We further experimentally compare adaptive optimization techniques that are popular for batch learning purposes in the context of online learning (ii).
 We find the DoG and especially the COCOB optimizer to yield high average accuracy scores even when compared to techniques requiring manual step size tuning.
-Lastly, we contribute a streaming-specific approach to learning rate tuning that grants significant performance increases over conventional tuning via a train-validation split and provides a valuable alternative to the computationally costly COCOB.
+Based on these findings, we suggest the usage of COCOB in applications where its larger computational cost compared to DoG can be accomodated.
+
+Finally, we contribute the streaming-specific \textit{pre-tuning} approach (iii), which uses data available prior to the online learning process in a novel way, achieving significant performance gains over conventional tuning via a train-validation split and providing another valuable alternative to the computationally expensive COCOB.
 
 \bibliography{collas2024_conference}
 \bibliographystyle{collas2024_conference}
