@@ -4,8 +4,8 @@
 
 To reproduce the experiments: 
 
-1. Create new anaconda environment with `conda env create -n lodl --file environment.yaml`.
-2. Activate environment with `conda activate lodl`.
+1. Create new anaconda environment with `conda env create --file environment.yaml`.
+2. Activate environment with `conda activate olronn`.
 3. Run experiments with `run_experiments.sh`.
 4. To generate tables, run notebook `notebooks/tables.ipynb`.
 5. To create Figure 2 which shows accuracy and learning rate of different schedules and optimizers throughout a stream, run `notebooks/lr_plots.ipynb`.

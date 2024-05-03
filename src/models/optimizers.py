@@ -1,26 +1,24 @@
 import torch
 
+CBP = torch.optim.SGD
 
 
-# UPGD: Utilited-based Perturbed Gradient Descent: variation 2 (utility controls gradient)
 class FirstOrderGlobalUPGD(torch.optim.Optimizer):
+    """Utility-based Perturbed Gradient Descent by Elsayed & Mahmood. Implementation taken from https://github.com/mohmdelsayed/upgd/blob/main/core/optim/weight/upgd/first_order.py#L74."""
+
     def __init__(self, params, lr=1e-5, weight_decay=0.0, beta_utility=0.0, sigma=1.0):
-        names, params = zip(*params)
         defaults = dict(
             lr=lr,
             weight_decay=weight_decay,
             beta_utility=beta_utility,
             sigma=sigma,
-            names=names,
         )
         super(FirstOrderGlobalUPGD, self).__init__(params, defaults)
 
-    def step(self, loss):
+    def step(self):
         global_max_util = torch.tensor(-torch.inf)
         for group in self.param_groups:
-            for name, p in zip(group["names"], group["params"]):
-                if "gate" in name:
-                    continue
+            for p in group["params"]:
                 state = self.state[p]
                 if len(state) == 0:
                     state["step"] = 0
@@ -35,9 +33,7 @@ class FirstOrderGlobalUPGD(torch.optim.Optimizer):
                     global_max_util = current_util_max
 
         for group in self.param_groups:
-            for name, p in zip(group["names"], group["params"]):
-                if "gate" in name:
-                    continue
+            for p in group["params"]:
                 state = self.state[p]
                 bias_correction = 1 - group["beta_utility"] ** state["step"]
                 noise = torch.randn_like(p.grad) * group["sigma"]

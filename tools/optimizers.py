@@ -1,6 +1,6 @@
 from src.models.mechanic import get_mechanic_sgd
 from pathlib import Path
-from src.models.optimizers import COCOB, WNGrad
+from src.models.optimizers import CBP, COCOB, FirstOrderGlobalUPGD, WNGrad
 from hypergrad import SGDHD
 from dadaptation import DAdaptSGD
 from torch.optim import SGD, Adagrad, Adam
@@ -22,6 +22,12 @@ log_path = REPORTS_PATH.joinpath(Path(__file__).stem, f"{run_name}.csv")
 
 # Set up configs
 optimizers = [
+    # {"optimizer": "CBP", "optim_fn": CBP, "base_lr": [2**-i for i in range(5, 15)]},
+    # {
+    #     "optimizer": "UPGD",
+    #     "optim_fn": FirstOrderGlobalUPGD,
+    #     "base_lr": [2**-i for i in range(3, 13)],
+    # },
     {"optimizer": "SGD", "optim_fn": SGD, "base_lr": [2**-i for i in range(-1, 9)]},
     {"optimizer": "Adam", "optim_fn": Adam, "base_lr": [2**-i for i in range(3, 13)]},
     {

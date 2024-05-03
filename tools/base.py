@@ -19,6 +19,8 @@ from torch.utils.data import TensorDataset, DataLoader
 from src.data.datasets import get_dataset
 from src.models.networks import get_mlp
 import os
+from src.models.optimizers import CBP
+from src.models.plast_control import GnT
 from src.models.schedulers import KunchevaLR, LRLimiter, get_scheduler_chain
 
 from src.utils import ExperimentLogger, one_hot
@@ -299,7 +301,7 @@ def run_prequential(
         n_hidden_units=n_hidden_units,
     ).to(device)
     # Initialize optimizer and tracking of optimization metrics
-    optim, averager, scheduler, sched_uses_metric, lr_limiter = init_optim(
+    optim, plast_controller, scheduler, sched_uses_metric, lr_limiter = init_optim(
         optim_fn, scheduler_fn, base_lr, net
     )
 
@@ -328,8 +330,8 @@ def run_prequential(
         loss_sum.backward()
         loss_sum = loss_sum.cpu().item()
         optim.step()
-        if averager is not None:
-            averager.step()
+        if plast_controller is not None:
+            plast_controller.step()
         exp_tracker.update(y=y, y_pred=y_pred, loss=loss)
 
         if scheduler_fn is not None:
@@ -350,7 +352,12 @@ def init_optim(optim_fn, scheduler_fn, base_lr, net):
         if base_lr is not None
         else optim_fn(net.parameters())
     )
-    averager = PolynomialDecayAverager(net) if isinstance(optim, DoG) else None
+    if isinstance(optim, DoG):
+        plasticity_controller = PolynomialDecayAverager(net)
+    elif isinstance(optim, CBP):
+        plasticity_controller = GnT(net)
+    else:
+        plasticity_controller = None
     if isinstance(scheduler_fn, (list, tuple)):
         scheduler_fn = get_scheduler_chain(*scheduler_fn)
     if scheduler_fn is not None:
@@ -358,7 +365,7 @@ def init_optim(optim_fn, scheduler_fn, base_lr, net):
         sched_uses_metric = "metrics" in inspect.signature(scheduler.step).parameters
         lr_limiter = LRLimiter(optim)
 
-    return optim, averager, scheduler, sched_uses_metric, lr_limiter
+    return optim, plasticity_controller, scheduler, sched_uses_metric, lr_limiter
 
 
 def get_config_grid(search_space=[{}], fixed_kwargs={}, **kwargs):

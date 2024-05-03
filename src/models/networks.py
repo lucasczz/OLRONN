@@ -16,4 +16,5 @@ def get_mlp(
         *[nn.Linear(n_hidden_units, n_hidden_units), activation()]
         * (n_hidden_layers - 1),
         nn.Linear(n_hidden_units, out_features),
+        nn.Identity()
     )
