@@ -1,4 +1,4 @@
-# Learning Rate Optimization in Online Deep Learning 
+# Optimizing the Learning Rate for Online Training of Neural Networks 
 
 ## Reproduction
 
