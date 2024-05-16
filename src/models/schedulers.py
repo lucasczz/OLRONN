@@ -1,5 +1,6 @@
 import inspect
 from typing import Callable, Dict, List, Tuple
+import torch
 from torch.nn import init
 import math
 from collections import deque
@@ -27,9 +28,11 @@ class KunchevaLR(lr_scheduler.LRScheduler):
         self.window_size = window_size
         self._step_count = 0
 
-    def step(self, metrics, epoch=None):
+    def step(self, loss, epoch=None):
+        if isinstance(loss, torch.Tensor):
+            loss = loss.numpy(force=True)
         self._step_count += 1
-        self.losses.append(metrics)
+        self.losses.append(loss)
         if len(self.losses) == self.window_size * 2:
             loss_new = np.mean(list(self.losses)[self.window_size :])
             loss_old = np.mean(list(self.losses)[: self.window_size])
@@ -56,12 +59,14 @@ class WeightResetLR(lr_scheduler.LRScheduler):
         self.drift_detected = False
         self._init_optim_state = None
 
-    def step(self, metrics, epoch=None):
+    def step(self, loss, epoch=None):
+        if isinstance(loss, torch.Tensor):
+            loss = loss.numpy(force=True)
         if self._step_count == 0:
             self._init_optim_state = self.optimizer.state_dict()
         self._step_count += 1
         if self.drift_detector is not None:
-            drift_detected = self.drift_detector.update(metrics).drift_detected
+            drift_detected = self.drift_detector.update(loss).drift_detected
             if drift_detected:
                 self.optimizer.load_state_dict(self._init_optim_state)
                 self.reset_parameters()
@@ -94,12 +99,14 @@ class DriftResetLR(lr_scheduler.LRScheduler):
         self.drift_detected = False
         self._init_optim_state = None
 
-    def step(self, metrics, epoch=None):
+    def step(self, loss, epoch=None):
+        if isinstance(loss, torch.Tensor):
+            loss = loss.numpy(force=True)
         if self._step_count == 0:
             self._init_optim_state = self.optimizer.state_dict()
         self._step_count += 1
         if self.drift_detector is not None:
-            drift_detected = self.drift_detector.update(metrics).drift_detected
+            drift_detected = self.drift_detector.update(loss).drift_detected
             if drift_detected:
                 self.optimizer.load_state_dict(self._init_optim_state)
 
@@ -154,17 +161,19 @@ def get_scheduler_chain(*schedulers: Callable):
             self.optimizer = optimizer
             self._schedulers = [scheduler(optimizer) for scheduler in schedulers]
             self._uses_metric = [
-                "metrics" in inspect.signature(scheduler.step).parameters
+                "loss" in inspect.signature(scheduler.step).parameters
                 for scheduler in self._schedulers
             ]
             self._last_lr = [
                 group["lr"] for group in self._schedulers[-1].optimizer.param_groups
             ]
 
-        def step(self, metrics=None, epoch=None):
+        def step(self, loss=None, epoch=None):
+            if isinstance(loss, torch.Tensor):
+                loss = loss.numpy(force=True)
             for uses_metric, scheduler in zip(self._uses_metric, self._schedulers):
                 if uses_metric:
-                    scheduler.step(metrics=metrics, epoch=epoch)
+                    scheduler.step(loss=loss, epoch=epoch)
                 else:
                     scheduler.step(epoch=epoch)
             self._last_lr = [

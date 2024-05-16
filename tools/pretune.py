@@ -1,6 +1,7 @@
 from pathlib import Path
 from base import (
     DATASET_NAMES,
+    DATASETS_REAL,
     DATASETS_SYNTH,
     REPORTS_PATH,
     SEEDS,

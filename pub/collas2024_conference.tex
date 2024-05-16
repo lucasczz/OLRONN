@@ -413,17 +413,18 @@ While some of the more elaborate optimizers like Adam or the SGD variant of Hype
    \caption{Average prequential accuracy [\%] for different optimizers. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}.}
    \begin{tabular}{lllllllll}
       \toprule
-                                                         & Optimizer & Agrawal                    & LED                        & RBF\textsubscript{a}       & Covertype                  & Electricity              & Insects\textsubscript{a} & Insects\textsubscript{g} \\
+                                                         & Optimizer & Agrawal                    & LED                       & RBF\textsubscript{a}       & Covertype                 & Electricity             & Insects\textsubscript{a} & Insects\textsubscript{g} \\
       \midrule
-      \multirow{5}{*}{\rotatebox[origin=t]{90}{Tuned}}   & SGD       & \underline{79.64$\pm$2.03} & \underline{73.91$\pm$0.04} & \underline{89.57$\pm$2.61} & \bfseries 83.42$\pm$0.50   & 73.77$\pm$0.40           & 71.50$\pm$0.08           & 75.31$\pm$0.21           \\
-                                                         & Adam      & \underline{78.91$\pm$2.40} & \bfseries 73.98$\pm$0.20   & 86.33$\pm$1.85             & 79.01$\pm$0.27             & 69.79$\pm$0.54           & \bfseries 75.38$\pm$0.24 & 75.78$\pm$0.74           \\
-                                                         & AdaGrad   & \underline{79.13$\pm$1.62} & 72.55$\pm$0.31             & 81.92$\pm$3.89             & 81.68$\pm$0.35             & 76.99$\pm$1.20           & 74.87$\pm$0.40           & 77.15$\pm$0.27           \\
-                                                         & WNGrad    & 76.91$\pm$0.47             & 64.66$\pm$0.34             & 80.07$\pm$0.67             & 76.98$\pm$0.15             & 70.80$\pm$0.59           & 66.25$\pm$0.19           & 66.75$\pm$0.40           \\
-                                                         & HD        & \bfseries 80.19$\pm$1.56   & 73.81$\pm$0.09             & \underline{89.78$\pm$3.37} & \underline{83.36$\pm$0.25} & 73.83$\pm$0.32           & 70.67$\pm$0.06           & 73.37$\pm$0.21           \\ \midrule
-      \multirow{4}{*}{\rotatebox[origin=t]{90}{LR-Free}} & COCOB     & 78.21$\pm$1.12             & \underline{73.88$\pm$0.50} & \bfseries 90.75$\pm$1.28   & 82.27$\pm$0.46             & \bfseries 84.48$\pm$0.88 & 74.75$\pm$0.11           & \bfseries 77.67$\pm$0.17 \\
-                                                         & DoG       & \underline{78.77$\pm$2.25} & 73.34$\pm$0.13             & 87.04$\pm$3.13             & 83.07$\pm$0.64             & 71.53$\pm$0.70           & 70.59$\pm$0.26           & 74.01$\pm$0.21           \\
-                                                         & D-Adapt   & 60.16$\pm$0.96             & 54.69$\pm$8.34             & 41.37$\pm$3.34             & 76.69$\pm$0.79             & 66.03$\pm$1.75           & 50.05$\pm$11.26          & 48.21$\pm$10.62          \\
-                                                         & Mechanic  & 62.09$\pm$9.20             & 69.04$\pm$0.19             & 87.33$\pm$0.50             & 78.67$\pm$0.18             & 50.73$\pm$7.60           & 55.31$\pm$21.47          & 65.80$\pm$0.53           \\
+      \multirow{5}{*}{\rotatebox[origin=t]{90}{Tuned}}   & SGD       & \underline{79.64$\pm$2.03} & \underline{73.91$\pm$.04} & \underline{89.57$\pm$2.61} & \bfseries 83.42$\pm$.50   & 73.77$\pm$.40           & 71.50$\pm$.08            & 75.31$\pm$.21            \\
+                                                         & Adam      & \underline{78.91$\pm$2.40} & \bfseries 73.98$\pm$.20   & 86.33$\pm$1.85             & 79.01$\pm$.27             & 69.79$\pm$.54           & \bfseries 75.38$\pm$.24  & 75.78$\pm$.74            \\
+                                                         & AdaGrad   & \underline{79.13$\pm$1.62} & 72.55$\pm$.31             & 81.92$\pm$3.89             & 81.68$\pm$.35             & 76.99$\pm$1.20          & 74.87$\pm$.40            & 77.15$\pm$.27            \\
+                                                         & WNGrad    & 76.91$\pm$.47              & 64.66$\pm$.34             & 80.07$\pm$.67              & 76.98$\pm$.15             & 70.80$\pm$.59           & 66.25$\pm$.19            & 66.75$\pm$.40            \\
+                                                         & HD        & \bfseries 80.19$\pm$1.56   & 73.81$\pm$.09             & \underline{89.78$\pm$3.37} & \underline{83.36$\pm$.25} & 73.83$\pm$.32           & 70.67$\pm$.06            & 73.37$\pm$.21            \\
+      \midrule
+      \multirow{4}{*}{\rotatebox[origin=t]{90}{LR-Free}} & COCOB     & 78.21$\pm$1.12             & \underline{73.88$\pm$.50} & \bfseries 90.75$\pm$1.28   & 82.27$\pm$.46             & \bfseries 84.48$\pm$.88 & 74.75$\pm$.11            & \bfseries 77.67$\pm$.17  \\
+                                                         & DoG       & \underline{78.77$\pm$2.25} & 73.34$\pm$.13             & 87.04$\pm$3.13             & 83.07$\pm$.64             & 71.53$\pm$.70           & 70.59$\pm$.26            & 74.01$\pm$.21            \\
+                                                         & D-Adapt   & 60.16$\pm$.96              & 54.69$\pm$8.34            & 41.37$\pm$3.34             & 76.69$\pm$.79             & 66.03$\pm$1.75          & 50.05$\pm$11.26          & 48.21$\pm$10.62          \\
+                                                         & Mechanic  & 62.09$\pm$9.20             & 69.04$\pm$.19             & 87.33$\pm$.50              & 78.67$\pm$.18             & 50.73$\pm$7.60          & 55.31$\pm$21.47          & 65.80$\pm$.53            \\
       \bottomrule
    \end{tabular}
    \label{tab:results_adaptive_optims}
@@ -450,27 +451,27 @@ To determine the learning rate and decay factor, we rely on the optimal mean pre
 
 Figure~\ref{fig:pretune_lr_accuracy} shows the absolute difference between the learning rate resulting from the Pre-Tuning process and the optimal value $|\eta_p - \eta^*|$ at each tuning step averaged over all real-world datasets and network architectures.
 
-\begin{figure}[!hb]
+\begin{figure}[!ht]
    \centering
    \includegraphics[width=\textwidth]{figures/pretune_all_acc_lr_exp_schedule.pdf}
    \caption{Absolute difference between pre-tuned and optimal learning rate and resulting accuracy on data streams for SGD and an exponential learning rate schedule with 500 or 1000 tuning samples. DoG is not included in first subplot since it is not intended for use with LR decay. Results are averaged over all real-world datasets and network architectures. The shaded area represents the 1$\sigma$-interval.}\label{fig:pretune_lr_accuracy}
 \end{figure}
-\begin{table}[!ht]
+\begin{table}[!hb]
    \centering
    \small
    \caption{
       Prequential accuracy of learning rate tuning approaches averaged over all investigated MLP architectures. For Pre-Tuning\textsubscript{500} and Pre-Tuning\textsubscript{1000} we run our proposed learning rate tuning approach for 2000 steps with either 500 or 1000 samples and select the learning rate yielding the highest average prequential accuracy over the tuning run.
    }\label{tab:lr_tuning}
-   \begin{tabular}{llllllll}
+   \begin{tabular}{lllllllllll}
       \toprule
-      Approach                       & Agrawal                  & LED                      & RBF\textsubscript{a}     & Covertype                  & Electricity                & Insects\textsubscript{a} & Insects\textsubscript{g}   \\
+      Approach                       & Agrawal                 & LED                     & RBF\textsubscript{a}    & Covertype                 & Electricity               & Insects\textsubscript{a} & Insects\textsubscript{g}  \\
       \midrule
-      SGD (Best LR)                  & 83.70                    & 73.95                    & 93.84                    & 83.14                      & 74.15                      & 71.98                    & 75.28                      \\
-      COCOB                          & 83.71$\pm$0.25           & 74.34$\pm$0.09           & 95.29$\pm$0.24           & 82.96$\pm$0.19             & 84.57$\pm$0.08             & 75.39$\pm$0.10           & 77.62$\pm$0.08             \\ \midrule
-      DoG                            & 82.06$\pm$0.52           & \bfseries 73.71$\pm$0.11 & 91.36$\pm$0.46           & \bfseries 82.56$\pm$0.15   & 70.47$\pm$0.40             & 70.59$\pm$0.10           & 73.92$\pm$0.11             \\
-      Batch Tuning                   & 81.09$\pm$1.34           & 66.67$\pm$3.28           & 91.89$\pm$0.39           & \underline{82.41$\pm$0.61} & 72.86$\pm$0.76             & 69.81$\pm$2.18           & 73.91$\pm$0.64             \\
-      Pre-Tuning\textsubscript{500}  & 82.01$\pm$0.32           & 73.26$\pm$0.03           & \bfseries 92.36$\pm$0.03 & 80.25$\pm$1.86             & \underline{73.34$\pm$0.45} & \bfseries 71.81$\pm$0.04 & \bfseries 75.22$\pm$0.08   \\
-      Pre-Tuning\textsubscript{1000} & \bfseries 82.56$\pm$0.25 & 73.30$\pm$0.00           & 92.18$\pm$0.38           & 80.80$\pm$1.05             & \bfseries 73.37$\pm$0.34   & \bfseries 71.81$\pm$0.06 & \underline{75.17$\pm$0.05} \\
+      SGD (Best LR)                  & 83.70                   & 73.95                   & 93.84                   & 83.14                     & 74.15                     & 71.98                    & 75.28                     \\
+      COCOB                          & 83.71$\pm$.25           & 74.34$\pm$.09           & 95.29$\pm$.24           & 82.96$\pm$.19             & 84.57$\pm$.08             & 75.39$\pm$.10            & 77.62$\pm$.08             \\ \midrule
+      DoG                            & 82.06$\pm$.52           & \bfseries 73.71$\pm$.11 & 91.36$\pm$.46           & \bfseries 82.56$\pm$.15   & 70.47$\pm$.40             & 70.59$\pm$.10            & 73.92$\pm$.11             \\
+      Batch Tuning                   & 81.09$\pm$1.34          & 66.67$\pm$3.28          & 91.89$\pm$.39           & 82.41$\pm$.61             & 72.86$\pm$.76             & 69.81$\pm$2.18           & 73.91$\pm$.64             \\
+      Pre-Tuning\textsubscript{500}  & 82.01$\pm$.32           & 73.26$\pm$.03           & \bfseries 92.36$\pm$.03 & \underline{82.42$\pm$.07} & \underline{73.34$\pm$.45} & \bfseries 71.81$\pm$.04  & \bfseries 75.22$\pm$.08   \\
+      Pre-Tuning\textsubscript{1000} & \bfseries 82.56$\pm$.25 & 73.30$\pm$.00           & 92.18$\pm$.38           & \underline{82.47$\pm$.18} & \bfseries 73.37$\pm$.34   & \bfseries 71.81$\pm$.06  & \underline{75.17$\pm$.05} \\
       \bottomrule
    \end{tabular}
 \end{table}
@@ -511,6 +512,10 @@ We find that the DoG and especially the COCOB optimizer yield high average accur
 Based on these results, we suggest the use of COCOB in applications where its higher computational cost compared to DoG can be accommodated.
 
 Finally, we contribute the streaming-specific \textit{pre-tuning} approach, which uses data available prior to the online learning process in a novel way, achieving significant performance gains over conventional tuning via a train-validation split, and providing another valuable alternative to the computationally expensive COCOB.
+
+\subsubsection*{Acknowledgements}
+
+This work was carried out with the support of the German Federal Ministry for Economic Affairs and Climate Action (BMWK) within the project "LieferBotNet" (Grant 01ME21001C) and received funding from the Energy and Climate Fund under chapter 6092, title 68304, fiscal year 2021.
 
 \bibliography{collas2024_conference}
 \bibliographystyle{collas2024_conference}
@@ -594,19 +599,20 @@ In this section, we provide our full experimental results including the RBF\text
    \begin{sideways}
       \begin{minipage}{0.9\textheight}
          \centering
-         \small
+         \scriptsize
          \captionof{table}{
-            Full prequential accuracy results of learning rate tuning approaches averaged over all investigated MLP architectures. For Pre-Tuning\textsubscript{500} and Pre-Tuning\textsubscript{1000} we run our proposed learning rate tuning approach for 2000 steps with either 500 or 1000 samples and select the learning rate yielding the highest average prequential accuracy over the tuning run.
+            Full prequential accuracy results of learning rate tuning approaches averaged over all investigated MLP architectures. For Pre-Tuning\textsubscript{500} and Pre-Tuning\textsubscript{1000} we run our proposed learning rate tuning approach for 2000 steps with either 500 or 1000 samples and select the learning rate yielding the highest average prequential accuracy over the tuning run. In addition to the streams shown in the main body, we also evaluated a Rotated MNIST dataset consisting of four consecutive subsets of 25000 images rotated at a specific angle.
          }
-         \begin{tabular}{llllllllll}
+         \begin{tabular}{lllllllllll}
             \toprule
-            Approach                       & Agrawal                  & LED                      & RBF\textsubscript{a}     & Covertype                  & Electricity                & Insects\textsubscript{a} & Insects\textsubscript{g}   & Insects\textsubscript{i} & RBF\textsubscript{i}     \\ \midrule
-            Oracle                         & 83.70                    & 73.95                    & 93.84                    & 83.14                      & 74.15                      & 71.98                    & 75.28                      & 60.75$\pm$10.00          & 81.52$\pm$10.00          \\
-            COCOB                          & 83.71$\pm$0.25           & 74.34$\pm$0.09           & 95.29$\pm$0.24           & 82.96$\pm$0.19             & 84.57$\pm$0.08             & 75.39$\pm$0.10           & 77.62$\pm$0.08             & \bfseries 64.02$\pm$.11  & 78.59$\pm$.38            \\ \midrule
-            DoG                            & 82.06$\pm$0.52           & \bfseries 73.71$\pm$0.11 & 91.36$\pm$0.46           & \bfseries 82.56$\pm$0.15   & 70.47$\pm$0.40             & 70.59$\pm$0.10           & 73.92$\pm$0.11             & 58.83$\pm$.07            & \bfseries 77.63$\pm$1.24 \\
-            Batch Tuning                   & 81.09$\pm$1.34           & 66.67$\pm$3.28           & 91.89$\pm$0.39           & \underline{82.41$\pm$0.61} & 72.86$\pm$0.76             & 69.81$\pm$2.18           & 73.91$\pm$0.64             & 58.27$\pm$2.21           & 72.51$\pm$1.63           \\
-            Pre-Tuning\textsubscript{500}  & 82.01$\pm$0.32           & 73.26$\pm$0.03           & \bfseries 92.36$\pm$0.03 & 80.25$\pm$1.86             & \underline{73.34$\pm$0.45} & \bfseries 71.81$\pm$0.04 & \bfseries 75.22$\pm$0.08   & 60.55$\pm$.10            & 73.19$\pm$.31            \\
-            Pre-Tuning\textsubscript{1000} & \bfseries 82.56$\pm$0.25 & 73.30$\pm$0.00           & 92.18$\pm$0.38           & 80.80$\pm$1.05             & \bfseries 73.37$\pm$0.34   & \bfseries 71.81$\pm$0.06 & \underline{75.17$\pm$0.05} & 60.33$\pm$.28            & 72.98$\pm$.44            \\
+            Approach                       & Agrawal                 & LED                     & RBF\textsubscript{a}    & RBF\textsubscript{i}     & Rotated MNIST             & Covertype                 & Electricity               & Insects\textsubscript{a} & Insects\textsubscript{g}  & Insects\textsubscript{i} \\
+            \midrule
+            SGD (Best LR)                  & 83.70                   & 73.95                   & 93.84                   & 81.52                    & 89.82                     & 83.14                     & 74.15                     & 71.98                    & 75.28                     & 60.75                    \\
+            COCOB                          & 83.71$\pm$.25           & 74.34$\pm$.09           & 95.29$\pm$.24           & 78.59$\pm$.38            & 90.66$\pm$.08             & 82.96$\pm$.19             & 84.57$\pm$.08             & 75.39$\pm$.10            & 77.62$\pm$.08             & 64.02$\pm$.11            \\ \midrule
+            DoG                            & 82.06$\pm$.52           & \bfseries 73.71$\pm$.11 & 91.36$\pm$.46           & \bfseries 77.63$\pm$1.24 & 88.72$\pm$.10             & \bfseries 82.56$\pm$.15   & 70.47$\pm$.40             & 70.59$\pm$.10            & 73.92$\pm$.11             & 58.83$\pm$.07            \\
+            Batch Tuning                   & 81.09$\pm$1.34          & 66.67$\pm$3.28          & 91.89$\pm$.39           & 72.51$\pm$1.63           & 88.42$\pm$.91             & 82.41$\pm$.61             & 72.86$\pm$.76             & 69.81$\pm$2.18           & 73.91$\pm$.64             & 58.27$\pm$2.21           \\
+            Pre-Tuning\textsubscript{500}  & 82.01$\pm$.32           & 73.26$\pm$.03           & \bfseries 92.36$\pm$.03 & 73.19$\pm$.31            & \bfseries 88.94$\pm$.18   & \underline{82.42$\pm$.07} & \underline{73.34$\pm$.45} & \bfseries 71.81$\pm$.04  & \bfseries 75.22$\pm$.08   & \bfseries 60.55$\pm$.10  \\
+            Pre-Tuning\textsubscript{1000} & \bfseries 82.56$\pm$.25 & 73.30$\pm$.00           & 92.18$\pm$.38           & 72.98$\pm$.44            & \underline{88.79$\pm$.07} & \underline{82.47$\pm$.18} & \bfseries 73.37$\pm$.34   & \bfseries 71.81$\pm$.06  & \underline{75.17$\pm$.05} & 60.33$\pm$.28            \\
             \bottomrule
          \end{tabular}
       \end{minipage}
@@ -622,7 +628,7 @@ In this section, we provide our full experimental results including the RBF\text
    \begin{sideways}
       \begin{minipage}{0.9\textheight}
          \captionof{table}{Full results on average prequential accuracy [\%] for static and drift adaptive learning rate schedules with SGD. LR-Reset\textsubscript{A} uses ADWIN, LR-Reset\textsubscript{K} uses Kolmogorov-Smirnov testing for drift detection. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}.}
-         \small
+         \scriptsize
          \centering
          \begin{tabular}{llllllllll}
             \toprule
@@ -649,20 +655,27 @@ In this section, we provide our full experimental results including the RBF\text
    \begin{sideways}
       \begin{minipage}{0.9\textheight}
          \centering
-         \small
-         \captionof{table}{Full results on average prequential accuracy [\%] for different optimizers. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}.}
-         \begin{tabular}{lllllllllll}
+         \scriptsize
+         \captionof{table}{Full results on average prequential accuracy [\%] for different optimizers. Best values are shown in \textbf{bold}, values within the $1\sigma$ interval of best values \underline{underlined}. In addition to the approaches shown in the main body, we evaluated the following optimizers: Utility-based Perturbed Gradient Descent (UPGD) by \citet{elsayedUtilitybasedPerturbedGradient2023}, Continual Backprop (CBP) by \citet{dohareLossPlasticityDeep2023}, Lion by \citet{chenSymbolicDiscoveryOptimization2023a}, Distance over Weighted Gradients (DoWG) by \citet{khaledDoWGUnleashedEfficient2024} and Prodigy by \citet{mishchenkoProdigyExpeditiouslyAdaptive2024}. We also evaluated a Rotated MNIST dataset consisting of four consecutive subsets of 25000 images rotated at a specific angle.}
+         \begin{tabular}{llllllllllll}
             \toprule
-                                                               & Optimizer & Agrawal                    & LED                        & RBF\textsubscript{a}       & Covertype                  & Electricity              & Insects\textsubscript{a} & Insects\textsubscript{g} & Insects\textsubscript{i} & RBF\textsubscript{i}     \\ \midrule
-            \multirow{5}{*}{\rotatebox[origin=t]{90}{Tuned}}   & SGD       & 79.64$\pm$2.03             & \underline{73.91$\pm$0.04} & \underline{89.57$\pm$2.61} & \bfseries 83.42$\pm$0.50   & 73.77$\pm$0.40           & 71.50$\pm$0.08           & 75.31$\pm$0.21           & 60.48$\pm$.20            & \bfseries 57.18$\pm$2.69 \\
-                                                               & Adam      & \underline{78.91$\pm$2.40} & \bfseries 73.98$\pm$0.20   & 86.33$\pm$1.85             & 79.01$\pm$0.27             & 69.79$\pm$0.54           & \bfseries 75.38$\pm$0.24 & 75.78$\pm$0.74           & \bfseries 64.17$\pm$.13  & \bfseries 60.32$\pm$3.75 \\
-                                                               & AdaGrad   & \underline{79.13$\pm$1.62} & 72.55$\pm$0.31             & 81.92$\pm$3.89             & 81.68$\pm$0.35             & 76.99$\pm$1.20           & 74.87$\pm$0.40           & 77.15$\pm$0.27           & 62.51$\pm$.59            & 45.00$\pm$1.55           \\
-                                                               & WNGrad    & 76.91$\pm$0.47             & 64.66$\pm$0.34             & 80.07$\pm$0.67             & 76.98$\pm$0.15             & 70.80$\pm$0.59           & 66.25$\pm$0.19           & 66.75$\pm$0.40           & 56.14$\pm$.21            & 42.06$\pm$.43            \\
-                                                               & HD        & \bfseries 80.19$\pm$1.56   & 73.81$\pm$0.09             & \underline{89.78$\pm$3.37} & \underline{83.36$\pm$0.25} & 73.83$\pm$0.32           & 70.67$\pm$0.06           & 73.37$\pm$0.21           & 59.92$\pm$.18            & 56.37$\pm$5.01           \\ \midrule
-            \multirow{4}{*}{\rotatebox[origin=t]{90}{LR-Free}} & COCOB     & 78.21$\pm$1.12             & \underline{73.88$\pm$0.50} & \bfseries 90.75$\pm$1.28   & 82.27$\pm$0.46             & \bfseries 84.48$\pm$0.88 & 74.75$\pm$0.11           & \bfseries 77.67$\pm$0.17 & 63.93$\pm$.17            & 51.70$\pm$2.11           \\
-                                                               & DoG       & \underline{78.77$\pm$2.25} & 73.34$\pm$0.13             & 87.04$\pm$3.13             & 83.07$\pm$0.64             & 71.53$\pm$0.70           & 70.59$\pm$0.26           & 74.01$\pm$0.21           & 59.66$\pm$.22            & 55.72$\pm$2.43           \\
-                                                               & D-Adapt   & 60.16$\pm$0.96             & 54.69$\pm$8.34             & 41.37$\pm$3.34             & 76.69$\pm$0.79             & 66.03$\pm$1.75           & 50.05$\pm$11.26          & 48.21$\pm$10.62          & 36.00$\pm$11.81          & 42.61$\pm$1.46           \\
-                                                               & Mechanic  & 62.09$\pm$9.20             & 69.04$\pm$0.19             & 87.33$\pm$0.50             & 78.67$\pm$0.18             & 50.73$\pm$7.60           & 55.31$\pm$21.47          & 65.80$\pm$0.53           & 47.89$\pm$17.46          & 44.45$\pm$.85            \\
+                                                               & Optimizer & Agrawal                    & LED                       & RBF\textsubscript{a}       & RBF\textsubscript{i}       & Rotated MNIST           & Covertype                 & Electricity             & Insects\textsubscript{a} & Insects\textsubscript{g} & Insects\textsubscript{i} \\
+            \midrule
+            \multirow{8}{*}{\rotatebox[origin=t]{90}{Tuned}}   & SGD       & \underline{79.64$\pm$2.03} & \underline{73.91$\pm$.04} & \underline{89.57$\pm$2.61} & \underline{57.18$\pm$2.69} & 92.52$\pm$.04           & \bfseries 83.42$\pm$.50   & 73.77$\pm$.40           & 71.50$\pm$.08            & 75.31$\pm$.21            & 60.48$\pm$.20            \\
+                                                               & Adam      & \underline{78.91$\pm$2.40} & \bfseries 73.98$\pm$.20   & 86.33$\pm$1.85             & \bfseries 60.32$\pm$3.75   & \bfseries 93.52$\pm$.04 & 79.01$\pm$.27             & 69.79$\pm$.54           & \bfseries 75.38$\pm$.24  & 75.78$\pm$.74            & \bfseries 64.17$\pm$.13  \\
+                                                               & AdaGrad   & \underline{79.13$\pm$1.62} & 72.55$\pm$.31             & 81.92$\pm$3.89             & 45.00$\pm$1.55             & 92.58$\pm$.07           & 81.68$\pm$.35             & 76.99$\pm$1.20          & 74.87$\pm$.40            & 77.15$\pm$.27            & 62.51$\pm$.59            \\
+                                                               & WNGrad    & 76.91$\pm$.47              & 64.66$\pm$.34             & 80.07$\pm$.67              & 42.06$\pm$.43              & 79.74$\pm$.10           & 76.98$\pm$.15             & 70.80$\pm$.59           & 66.25$\pm$.19            & 66.75$\pm$.40            & 56.14$\pm$.21            \\
+                                                               & HD        & \bfseries 80.19$\pm$1.56   & 73.81$\pm$.09             & \underline{89.78$\pm$3.37} & 56.37$\pm$5.01             & 92.53$\pm$.05           & \underline{83.36$\pm$.25} & 73.83$\pm$.32           & 70.67$\pm$.06            & 73.37$\pm$.21            & 59.92$\pm$.18            \\
+                                                               & Lion      & 74.11$\pm$3.97             & 70.56$\pm$.40             & 79.74$\pm$10.28            & 42.34$\pm$.42              & 88.01$\pm$.09           & 74.02$\pm$.78             & 65.50$\pm$1.54          & 56.76$\pm$1.41           & 62.63$\pm$1.52           & 63.90$\pm$.19            \\
+                                                               & CBP       & 78.48$\pm$2.24             & 71.01$\pm$.21             & 87.57$\pm$1.53             & 52.90$\pm$2.44             & 89.27$\pm$.04           & 80.86$\pm$.22             & 73.94$\pm$.51           & 63.15$\pm$.41            & 62.59$\pm$.58            & 54.01$\pm$.30            \\
+                                                               & UPGD      & 63.65$\pm$.09              & 28.42$\pm$2.31            & 69.04$\pm$4.22             & 44.16$\pm$1.21             & 76.51$\pm$.10           & 81.76$\pm$1.50            & 62.82$\pm$3.06          & 52.93$\pm$1.58           & 59.45$\pm$2.50           & 41.42$\pm$2.86           \\
+            \midrule
+            \multirow{6}{*}{\rotatebox[origin=t]{90}{LR-Free}} & COCOB     & 78.21$\pm$1.12             & \underline{73.88$\pm$.50} & \bfseries 90.75$\pm$1.28   & 51.70$\pm$2.11             & 93.39$\pm$.02           & 82.27$\pm$.46             & \bfseries 84.48$\pm$.88 & 74.75$\pm$.11            & \bfseries 77.67$\pm$.17  & 63.93$\pm$.17            \\
+                                                               & DoG       & \underline{78.77$\pm$2.25} & 73.34$\pm$.13             & 87.04$\pm$3.13             & 55.72$\pm$2.43             & 92.21$\pm$.03           & 83.07$\pm$.64             & 71.53$\pm$.70           & 70.59$\pm$.26            & 74.01$\pm$.21            & 59.66$\pm$.22            \\
+                                                               & DoWG      & 63.80$\pm$2.08             & 56.66$\pm$7.49            & 45.68$\pm$4.05             & 42.67$\pm$.76              & 10.07$\pm$.13           & 74.13$\pm$.45             & 71.43$\pm$.57           & 64.24$\pm$1.39           & 60.22$\pm$1.89           & 56.33$\pm$.35            \\
+                                                               & D-Adapt   & 60.16$\pm$.96              & 54.69$\pm$8.34            & 41.37$\pm$3.34             & 42.61$\pm$1.46             & 91.11$\pm$.26           & 76.69$\pm$.79             & 66.03$\pm$1.75          & 50.05$\pm$11.26          & 48.21$\pm$10.62          & 36.00$\pm$11.81          \\
+                                                               & Mechanic  & 62.09$\pm$9.20             & 69.04$\pm$.19             & 87.33$\pm$.50              & 44.45$\pm$.85              & 57.05$\pm$40.46         & 78.67$\pm$.18             & 50.73$\pm$7.60          & 55.31$\pm$21.47          & 65.80$\pm$.53            & 47.89$\pm$17.46          \\
+                                                               & Prodigy   & 64.20$\pm$1.54             & 17.51$\pm$6.87            & 40.42$\pm$.01              & 42.76$\pm$1.73             & 92.65$\pm$.14           & 70.05$\pm$2.34            & 54.45$\pm$.34           & 46.59$\pm$15.93          & 64.68$\pm$4.91           & 13.69$\pm$.12            \\
             \bottomrule
          \end{tabular}
       \end{minipage}

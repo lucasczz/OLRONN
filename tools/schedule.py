@@ -110,7 +110,6 @@ if __name__ == "__main__":
         dataset_names=DATASET_NAMES,
         configs=configs,
         debug=False,
-        n_processes=6,
         log_path=log_path,
     )
     zip_csv(log_path)

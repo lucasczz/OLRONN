@@ -76,7 +76,16 @@ class ExperimentLogger:
         self.preds.append(y_pred.numpy(force=True))
         if self.log_lr_norms:
             # Log norm of gradient
-            grad = torch.cat([param.grad.view(-1) for param in self.params])
+            grad = torch.cat(
+                [
+                    (
+                        param.grad.view(-1)
+                        if param.grad is not None
+                        else torch.zeros(torch.numel(param.data))
+                    )
+                    for param in self.params
+                ]
+            )
             grad = grad.numpy(force=True)
             # Log step size
             current_param_state = torch.cat(

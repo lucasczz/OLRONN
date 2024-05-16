@@ -14,3 +14,10 @@ dependencies:
     - dog-optimizer
     - dadaptation
     - tqdm
+    - torchvision
+    - lomo-optim # range(-1, 9)
+    - came-pytorch # range(4, 14)
+    - prodigyopt # 1
+    - lion-pytorch # 
+    - adabelief-pytorch
+    - pbSGD

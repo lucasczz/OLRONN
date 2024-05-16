@@ -40,6 +40,7 @@ DATASETS_SYNTH = [
     "LED",
     "RBF abrupt",
     "RBF incr.",
+    "Rotated MNIST",
 ]
 
 DATASETS_REAL = [
@@ -317,26 +318,25 @@ def run_prequential(
 
     iterator = tqdm(dataloader) if verbose else dataloader
     for x, y in iterator:
+        x = x.to(device)
+        y = y.to(device)
         # Perform forward pass
         logits = net(x)
-        loss = bce_with_logits(y, logits)
-        loss_sum = loss.sum()
+        loss = bce_with_logits(y, logits).sum()
 
         y_pred = torch.argmax(logits, dim=-1)
         y = torch.argmax(y, dim=-1)
-
         # Perform backward pass
         optim.zero_grad()
-        loss_sum.backward()
-        loss_sum = loss_sum.cpu().item()
+        loss.backward()
         optim.step()
+        exp_tracker.update(y=y, y_pred=y_pred, loss=loss)
         if plast_controller is not None:
             plast_controller.step()
-        exp_tracker.update(y=y, y_pred=y_pred, loss=loss)
 
         if scheduler_fn is not None:
             if sched_uses_metric:
-                scheduler.step(loss_sum)
+                scheduler.step(loss)
             else:
                 scheduler.step()
         if lr_limiter is not None:
@@ -362,7 +362,7 @@ def init_optim(optim_fn, scheduler_fn, base_lr, net):
         scheduler_fn = get_scheduler_chain(*scheduler_fn)
     if scheduler_fn is not None:
         scheduler = scheduler_fn(optim)
-        sched_uses_metric = "metrics" in inspect.signature(scheduler.step).parameters
+        sched_uses_metric = "loss" in inspect.signature(scheduler.step).parameters
         lr_limiter = LRLimiter(optim)
 
     return optim, plasticity_controller, scheduler, sched_uses_metric, lr_limiter
@@ -397,9 +397,9 @@ def run_configs(
     debug: bool = False,
     dtype: torch.dtype = torch.float32,
     subsample: int = None,
-    n_processes: int = N_PROCESSES,
+    n_processes: int = N_PROCESSES
 ):
-    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
     for dataset_name in dataset_names:
         # Data preparation
         x, y = get_dataset(dataset_name)

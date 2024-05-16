@@ -1,0 +1,12 @@
+\begin{tabular}{lllllllllll}
+    \toprule
+    Approach                       & Agrawal                 & LED                     & RBF\textsubscript{a}    & RBF\textsubscript{i}     & Rotated MNIST             & Covertype                 & Electricity               & Insects\textsubscript{a} & Insects\textsubscript{g}  & Insects\textsubscript{i} \\
+    \midrule
+    SGD Oracle                     & 83.70                   & 73.95                   & 93.84                   & 81.52                    & 89.82                     & 83.14                     & 74.15                     & 71.98                    & 75.28                     & 60.75                    \\
+    COCOB                          & 83.71$\pm$.25           & 74.34$\pm$.09           & 95.29$\pm$.24           & 78.59$\pm$.38            & 90.66$\pm$.08             & 82.96$\pm$.19             & 84.57$\pm$.08             & 75.39$\pm$.10            & 77.62$\pm$.08             & 64.02$\pm$.11            \\ \midrule
+    DoG                            & 82.06$\pm$.52           & \bfseries 73.71$\pm$.11 & 91.36$\pm$.46           & \bfseries 77.63$\pm$1.24 & 88.72$\pm$.10             & \bfseries 82.56$\pm$.15   & 70.47$\pm$.40             & 70.59$\pm$.10            & 73.92$\pm$.11             & 58.83$\pm$.07            \\
+    Batch Tuning                   & 81.09$\pm$1.34          & 66.67$\pm$3.28          & 91.89$\pm$.39           & 72.51$\pm$1.63           & 88.42$\pm$.91             & 82.41$\pm$.61             & 72.86$\pm$.76             & 69.81$\pm$2.18           & 73.91$\pm$.64             & 58.27$\pm$2.21           \\
+    Pre-Tuning\textsubscript{500}  & 82.01$\pm$.32           & 73.26$\pm$.03           & \bfseries 92.36$\pm$.03 & 73.19$\pm$.31            & \bfseries 88.94$\pm$.18   & \underline{82.42$\pm$.07} & \underline{73.34$\pm$.45} & \bfseries 71.81$\pm$.04  & \bfseries 75.22$\pm$.08   & \bfseries 60.55$\pm$.10  \\
+    Pre-Tuning\textsubscript{1000} & \bfseries 82.56$\pm$.25 & 73.30$\pm$.00           & 92.18$\pm$.38           & 72.98$\pm$.44            & \underline{88.79$\pm$.07} & \underline{82.47$\pm$.18} & \bfseries 73.37$\pm$.34   & \bfseries 71.81$\pm$.06  & \underline{75.17$\pm$.05} & 60.33$\pm$.28            \\
+    \bottomrule
+\end{tabular}

@@ -4,6 +4,11 @@ from river.preprocessing import MinMaxScaler
 import pandas as pd
 import numpy as np
 from functools import partial
+import torchvision.transforms as transforms
+from torchvision.datasets import MNIST
+from PIL import Image
+import os
+import random
 
 from sklearn.preprocessing import minmax_scale
 
@@ -138,6 +143,35 @@ def fetch_led(seed=42):
     return x_drift, np.array(y)
 
 
+def fetch_rotated_mnist(
+    n_experiences=4,
+    rotations=[90, -45, 45, 160],
+    rotation_range=(-180, 180),
+    n_samples=100_000,
+    seed=0,
+):
+    # Download MNIST dataset
+    mnist_data = MNIST(root="./data", train=True, download=True)
+    rng = np.random.RandomState(seed)
+    xs = []
+    ys = []
+    if rotations is None:
+        rotations = rng.randint(*rotation_range, size=n_experiences)
+
+    n_samples_experience = n_samples // len(rotations)
+
+    for rotation_angle in rotations:
+        # Transformation to apply rotation
+        transform = transforms.RandomRotation(degrees=(rotation_angle, rotation_angle))
+        x = transform(mnist_data.data) / 255
+        y = mnist_data.targets
+        idx = rng.permutation(np.arange(len(y)))
+        xs.append(x[idx].view(len(x), -1)[:n_samples_experience])
+        ys.append(y[idx][:n_samples_experience])
+
+    return np.concatenate(xs), np.concatenate(ys)
+
+
 def get_dataset(name, seed=42):
     if name in DATASETS:
         return DATASETS[name]()
@@ -187,4 +221,9 @@ DATASETS = {
     "Electricity change": fetch_electricity_change,  # Instances: 45312,   Attributes: 14
     "Covertype": partial(fetch_covtype_subsample),
     "SEA": fetch_sea,
+    "Rotated MNIST": fetch_rotated_mnist,
 }
+
+if __name__ == "__main__":
+    dataset = fetch_rotated_mnist(4)
+    print(dataset[0])
