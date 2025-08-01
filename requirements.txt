@@ -1,0 +1,17 @@
+river
+torch
+numpy
+pandas 
+jupyter
+matplotlib
+scikit-learn
+dog-optimizer
+dadaptation
+tqdm
+torchvision
+lomo-optim 
+came-pytorch 
+prodigyopt 
+lion-pytorch 
+adabelief-pytorch
+pbSGD

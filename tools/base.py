@@ -411,7 +411,7 @@ def run_configs(
         y_t = torch.tensor(y, dtype=dtype, device=DEVICE).share_memory_()
         data = TensorDataset(x_t, y_t)
 
-        if debug == True:
+        if debug:
             warnings.warn("Running in debug mode!")
             for config in configs[:5]:
                 run_fn(

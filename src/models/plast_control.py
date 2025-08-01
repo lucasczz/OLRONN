@@ -231,3 +231,4 @@ class GnT(object):
             features=self.net_activations
         )
         self.gen_new_features(features_to_replace, num_features_to_replace)
+

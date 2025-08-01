@@ -6,10 +6,6 @@ import numpy as np
 from functools import partial
 import torchvision.transforms as transforms
 from torchvision.datasets import MNIST
-from PIL import Image
-import os
-import random
-
 from sklearn.preprocessing import minmax_scale
 
 
