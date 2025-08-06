@@ -4,12 +4,14 @@ from pathlib import Path
 import numpy as np
 import torch
 from base import get_config_grid
-from contam_base import get_tuning_data, run
+from src.data.contamination import get_tuning_data
+from contam_base import run
 from tqdm import tqdm
 
 if __name__ == "__main__":
     device = "cpu"
-    run_name = "tune_full2.jsonl"
+    run_name = "tune_full_insects.jsonl"
+    dataset = 'Insects abrupt'
     logpath = Path(__file__).parent.parent.joinpath("reports", run_name)
     tuning_samples = 1000
     tuning_steps = 5000
@@ -21,7 +23,7 @@ if __name__ == "__main__":
             "n_classes": 2,
         }
     )
-    xs, ys = get_tuning_data("Covertype", tuning_samples=tuning_samples)
+    xs, ys = get_tuning_data(dataset, tuning_samples=tuning_samples)
     idcs_resample = np.random.choice(tuning_samples, size=tuning_steps, replace=True)
     xs_res, ys_res = xs[idcs_resample], ys[idcs_resample]
     xs_res, ys_res = (
@@ -31,6 +33,6 @@ if __name__ == "__main__":
 
     for config in tqdm(tuning_configs, desc='Running configs'):
         preds = run(xs_res, ys_res, config, device=device, verbose=False)
-        result = config | {"preds": preds, "labels": ys_res.tolist()}
+        result = config | {'dataset': dataset, "preds": preds, "labels": ys_res.tolist()}
         with open(logpath, "a") as f:
             f.write(json.dumps(result) + "\n")

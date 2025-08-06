@@ -1,4 +1,7 @@
 import torch
+import numpy as np
+import math
+import torch.nn.functional as F
 
 
 class LogitBasedWeighter:
@@ -23,61 +26,56 @@ class LogitBasedWeighter:
         return value / (ema_corrected + self.eps)
 
 
-class AutoencoderBasedWeighter:
-    def __init__(self, decay=0.99, weight_by="threshold_proximity", sharpness=1.0):
-        self.decay = decay
-        self.weight_by = weight_by
-        self.sharpness = sharpness  # Hyperparameter for the Gaussian "hump"
-        self.eps = 1e-8
-
-        self.ema_value = 0.0
-
-        self.ema_error = 0.0
-
-        self.t = 1
-
-    def get_weight(self, error: torch.Tensor) -> torch.Tensor:
-        if self.weight_by == "easiness":
-            value = -error
-
-        elif self.weight_by == "difficulty":
-            value = torch.log1p(error)
-
-        elif self.weight_by == "threshold_proximity":
-            ema_error_corrected = (
-                self.ema_error / (1 - self.decay ** (self.t - 1)) if self.t > 1 else 0.0
-            )
-
-            value = torch.exp(
-                -((error - ema_error_corrected) ** 2) / (2 * self.sharpness**2)
-            )
-
-        # --- Step 2: Update the EMAs with the current values ---
-
-        # Update the EMA of the raw value
-        self.ema_value = self.decay * self.ema_value + (1 - self.decay) * value.item()
-
-        # Update the EMA of the reconstruction error
-        self.ema_error = self.decay * self.ema_error + (1 - self.decay) * error
-
-        # --- Step 3: Normalize the weight and return ---
-
-        # Bias-correct the value EMA
-        ema_value_corrected = self.ema_value / (1 - self.decay**self.t)
-        self.t += 1
-
-        # Scale the current value by the running average to stabilize the weights
-        final_weight = value / (ema_value_corrected + self.eps)
-
-        return final_weight
-
-
-class EMAThresholder:
+class AEFilter:
     def __init__(
         self,
+        model,
+        threshold_quantile,
+        threshold_type="sigmoid",
+        steepness=20,
+        device="cpu",
     ):
-        pass
+        self.model = model.to(device)
+        self.threshold_type = threshold_type
+        self.steepness = steepness
+        self.device = device
+        self.model.eval()
+        self.threshold_quantile = threshold_quantile
 
+        self.threshold = None
+        self.weight_correction = None
+        self.adjusted_steepness = None
 
-class ConstantThresholder:
-    pass
+    def __call__(self, x: torch.Tensor):
+        x = x.to(self.device)
+        x_rec = self.model(x)
+        anom_score = F.l1_loss(x, x_rec).detach().cpu().item()
+
+        if self.threshold_type == "hard":
+            return int(anom_score <= self.threshold) * self.weight_correction
+        elif self.threshold_type == "linear":
+            return (1 - anom_score / self.threshold) * self.weight_correction
+        elif self.threshold_type == "sigmoid":
+            return self.weight_correction / (
+                1 + math.exp(self.adj_steepness * (anom_score - self.threshold))
+            )
+
+    def calibrate(self, x_val):
+        with torch.inference_mode():
+            x_val = x_val.to(self.device)
+            x_rec = self.model(x_val)
+            anom_scores = F.l1_loss(x_val, x_rec, reduction="none").mean(dim=-1)
+
+        anom_scores = anom_scores.numpy(force=True)
+        self.threshold = (np.quantile(anom_scores, self.threshold_quantile)).item()
+        self.adj_steepness = (self.steepness / np.quantile(anom_scores, 0.95)).item()
+
+        if self.threshold_type == "hard":
+            anom_weights = (anom_scores <= self.threshold).astype(int)
+        elif self.threshold_type == "linear":
+            anom_weights = -anom_scores / self.threshold
+        else:
+            anom_weights = 1 / (
+                1 + np.exp(self.adj_steepness * (anom_scores - self.threshold))
+            )
+        self.weight_correction = (1 / anom_weights.mean()).item()

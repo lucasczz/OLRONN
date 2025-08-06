@@ -22,9 +22,8 @@ def get_mlp(
 
 
 def get_autoencoder(
-    in_features, compression, dropout=0.1, n_hidden_layers=1, activation=nn.ReLU
+    in_features, n_hidden_units, dropout=0.1, n_hidden_layers=1, activation=nn.ReLU
 ):
-    n_hidden_units = round(in_features * compression)
     return nn.Sequential(
         *[nn.Linear(in_features, in_features), activation()] * min(n_hidden_layers, 1),
         *[nn.Linear(in_features, in_features), activation()] * (n_hidden_layers - 1),
