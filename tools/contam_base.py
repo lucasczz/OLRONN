@@ -1,9 +1,44 @@
 import torch
+import json
 import torch.nn.functional as F
 from tqdm import tqdm
 import pandas as pd
 
+import multiprocessing as mp
 from src.models.networks import get_mlp, get_autoencoder
+
+
+def run_configs_parallel(configs, target_fn, num_workers, file_path):
+    mp.set_start_method("spawn", force=True)
+    manager = mp.Manager()
+    q = manager.Queue()
+
+    pool = mp.Pool(processes=num_workers)
+
+    queue_process = mp.Process(target=handle_log_queue, args=(q, file_path))
+    queue_process.start()
+
+    for result in tqdm(pool.imap(target_fn, configs), total=len(configs)):
+        if result is not None:
+            q.put(result)
+
+    q.put("kill")
+    pool.close()
+    pool.join()
+    queue_process.join()
+
+
+def handle_log_queue(q, file_path):
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(file_path, "a") as f:
+        while True:
+            m = q.get()
+            if m == "kill":
+                break
+            if m is not None:
+                json.dump(m, f)
+                f.write("\n")
+                f.flush()
 
 
 def get_missing_configs(configs, path_done, relevant_params):

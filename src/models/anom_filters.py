@@ -53,7 +53,7 @@ class AEFilter:
         if self.threshold_type == "hard":
             return int(anom_score <= self.threshold) * self.weight_correction
         elif self.threshold_type == "linear":
-            return (1 - anom_score / self.threshold) * self.weight_correction
+            return (1 - anom_score / (2 * self.threshold)) * self.weight_correction
         elif self.threshold_type == "sigmoid":
             return self.weight_correction / (
                 1 + math.exp(self.adj_steepness * (anom_score - self.threshold))
@@ -67,13 +67,15 @@ class AEFilter:
 
         anom_scores = anom_scores.numpy(force=True)
         self.threshold = (np.quantile(anom_scores, self.threshold_quantile)).item()
-        self.adj_steepness = (self.steepness / np.quantile(anom_scores, 0.95)).item()
 
         if self.threshold_type == "hard":
             anom_weights = (anom_scores <= self.threshold).astype(int)
         elif self.threshold_type == "linear":
-            anom_weights = -anom_scores / self.threshold
+            anom_weights = 1 - anom_scores / (2 * self.threshold)
         else:
+            self.adj_steepness = (
+                self.steepness / np.quantile(anom_scores, 0.95)
+            ).item()
             anom_weights = 1 / (
                 1 + np.exp(self.adj_steepness * (anom_scores - self.threshold))
             )
