@@ -47,7 +47,6 @@ class AEFilter:
         self.adjusted_steepness = None
 
     def __call__(self, x: torch.Tensor):
-        x = x.to(self.device)
         x_rec = self.model(x)
         anom_score = F.l1_loss(x, x_rec).detach().cpu().item()
 

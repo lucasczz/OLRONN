@@ -1,8 +1,21 @@
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
+import pandas as pd
 
 from src.models.networks import get_mlp, get_autoencoder
+
+
+def get_missing_configs(configs, path_done, relevant_params):
+    df_planned = pd.DataFrame.from_records(configs)
+    df_done = pd.read_json(path_done, orient="records", lines=True)
+
+    # Match on specific columns
+    diff_df = df_planned.merge(df_done, on=relevant_params, how="left", indicator=True)
+    missing_mask = diff_df["_merge"] == "left_only"
+    result = [config for config, is_missing in zip(configs, missing_mask) if is_missing]
+    # Convert back to list of configs using boolean indexing
+    return result
 
 
 def run(xs, ys, hparams, anom_filter=None, device="cpu", seed=42, verbose=True):
@@ -26,13 +39,11 @@ def run(xs, ys, hparams, anom_filter=None, device="cpu", seed=42, verbose=True):
             model = model.to(device)
             optimizer = torch.optim.SGD(model.parameters(), lr=hparams["lr"])
 
-        x, y = x.to(device), y.to(device)
+        # x, y = x.to(device), y.to(device)
 
         logits = model(x)
         pred = torch.argmax(logits, dim=-1)
         preds.append(pred.detach().cpu().item())
-
-        # TODO: Integrate filter / reweighting here!
 
         loss = F.cross_entropy(logits, y)
 

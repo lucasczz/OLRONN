@@ -71,7 +71,7 @@ def get_contaminated_stream(
     if normal_classes is not None:
         id_mask = np.isin(ys_all, normal_classes)
     else:
-        id_mask = np.isin(ys_all, anomaly_classes)
+        id_mask = ~np.isin(ys_all, anomaly_classes)
     xs, ys = xs_all[id_mask], ys_all[id_mask]
 
     xs, ys = xs[tuning_samples:], ys[tuning_samples:]
@@ -104,9 +104,9 @@ def get_contaminated_stream(
         is_anom[anom_insert_idcs] = True
         n_features = xs.shape[1]
         # Precompute random swaps for all indices to avoid repeated np.random calls in loop
-        num_swaps = np.random.randint(
-            1, n_features // 2 , size=len(anom_insert_idcs)
-        ) * 2
+        num_swaps = (
+            np.random.randint(1, n_features // 2, size=len(anom_insert_idcs)) * 2
+        )
         swap_features = [
             np.random.choice(n_features, size=num_swap, replace=False)
             for num_swap in num_swaps
@@ -123,9 +123,9 @@ def get_contaminated_stream(
 
         noise = (
             np.random.normal(
-            loc=0.0,
-            scale=np.std(x_contam, axis=0),
-            size=(len(anom_insert_idcs), x_contam.shape[1]),
+                loc=0.0,
+                scale=np.std(x_contam, axis=0),
+                size=(len(anom_insert_idcs), x_contam.shape[1]),
             )
             * np.random.rand(len(anom_insert_idcs))[:, None]
         )
