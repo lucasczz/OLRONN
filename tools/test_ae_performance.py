@@ -9,6 +9,48 @@ from contam_base import pretrain_autoencoder, run_configs_parallel
 from src.data.contamination import get_contaminated_stream, get_tuning_data
 from base import get_config_grid
 
+CONFIGS = {
+    "pre-trained": {
+        "Covertype": {
+            "lr": 1,
+            "lr_online": 0.25,
+            "n_hidden_layers": 2,
+            "n_hidden_units": 256,
+        },
+        "Insects abrupt": {
+            "lr": 0.25,
+            "lr_online": 0.25,
+            "n_hidden_layers": 2,
+            "n_hidden_units": 512,
+        },
+        "Rotated MNIST": {
+            "lr": 1.0,
+            "lr_online": 0.25,
+            "n_hidden_layers": 2,
+            "n_hidden_units": 64,
+        },
+    },
+    "online": {
+        "Covertype": {
+            "lr": 1,
+            "lr_online": 0.25,
+            "n_hidden_layers": 2,
+            "n_hidden_units": 256,
+        },
+        "Insects abrupt": {
+            "lr": 1,
+            "lr_online": 0.25,
+            "n_hidden_layers": 1,
+            "n_hidden_units": 512,
+        },
+        "Rotated MNIST": {
+            "lr": 1.0,
+            "lr_online": 0.25,
+            "n_hidden_layers": 1,
+            "n_hidden_units": 64,
+        },
+    },
+}
 
 def run_ae(
     dataset,
@@ -27,22 +69,20 @@ def run_ae(
     x_pre, y_pre = get_tuning_data(dataset, tuning_samples=pretrain_samples)
     x_pre = torch.tensor(x_pre, dtype=torch.float)
 
-    ae_hparams = {
-        "lr": 0.25 if dataset == "Insects abrupt" else 1,
-        "n_hidden_layers": 1,
-        "n_hidden_units": 64 if dataset == "Insects abrupt" else 512,
-        "dropout": 0,
-        "epochs": 8,
-    }
+    if pre_training:
+        config_dict = CONFIGS['pre-trained']
+    else:
+        config_dict = CONFIGS['online']
+    
+    ae_hparams = config_dict[dataset]
 
     if pre_training:
         ae = pretrain_autoencoder(
             x_pre,
             ae_hparams["n_hidden_layers"],
             ae_hparams["n_hidden_units"],
-            ae_hparams["dropout"],
             lr=ae_hparams["lr"],
-            epochs=ae_hparams["epochs"],
+            epochs=8,
             device=device,
             seed=seed,
             verbose=verbose,
@@ -65,9 +105,8 @@ def run_ae(
 
     xt = torch.tensor(x_stream, dtype=torch.float, device=device)
 
-    ae.eval()
-
     if not online_finetuning:
+        ae.eval()
         with torch.inference_mode():
             xt = xt.to(device)
             x_rec = ae(xt)
@@ -121,7 +160,7 @@ def run_config(config):
 
 
 if __name__ == "__main__":
-    run_name = "ae_test.jsonl"
+    run_name = "ae_test_v2.jsonl"
     logpath = Path(__file__).parent.parent.joinpath("reports", run_name)
 
     devices = ["cuda:0", "cuda:1"]
@@ -130,22 +169,23 @@ if __name__ == "__main__":
     configs = get_config_grid(
         **{
             "dataset": ["Covertype", "Insects abrupt", "Rotated MNIST"],
-            "lr_online": [2**-i for i in range(6)],
-            "online_finetuning": True,
+            "online_finetuning": [True, False],
+            "pre_training": True,
             "anomaly_type": "ood_class",
             "p_anomaly": [0.02, 0.04, 0.08],
-            "len_anomaly": 2,
+            "len_anomaly": [2, 16],
             "seed": [0, 1, 2, 3, 4],
         }
     )
+
     configs += get_config_grid(
         **{
             "dataset": ["Covertype", "Insects abrupt", "Rotated MNIST"],
-            "lr_online": 0.5,
-            "online_finetuning": False,
+            "online_finetuning": True,
+            "pre_training": False,
             "anomaly_type": "ood_class",
-            "p_anomaly": 0.04,
-            "len_anomaly": 2,
+            "p_anomaly": [0.02, 0.04, 0.08],
+            "len_anomaly": [2, 16],
             "seed": [0, 1, 2, 3, 4],
         }
     )

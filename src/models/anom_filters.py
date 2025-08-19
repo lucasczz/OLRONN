@@ -59,7 +59,7 @@ class AEFilter:
                 1 + math.exp(self.adj_steepness * (anom_score - self.threshold))
             )
 
-    def calibrate(self, x_val):
+    def calibrate(self, x_val, is_anom=None, hparam_values=[]):
         with torch.inference_mode():
             x_val = x_val.to(self.device)
             x_rec = self.model(x_val)
