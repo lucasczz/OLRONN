@@ -80,3 +80,7 @@ class AEFilter:
                 1 + np.exp(self.adj_steepness * (anom_scores - self.threshold))
             )
         self.weight_correction = (1 / anom_weights.mean()).item()
+
+
+    def pre_train(self, x_pre):
+        

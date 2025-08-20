@@ -1,4 +1,5 @@
 import json
+import copy
 import traceback
 from pathlib import Path
 
@@ -15,14 +16,14 @@ from src.models.networks import get_autoencoder
 
 def run_ae(
     dataset,
-    anomaly_type,
-    p_anomaly,
-    len_anomaly,
     n_hidden_layers,
     n_hidden_units,
-    dropout,
     lr,
     epochs,
+    anomaly_type="ood_class",
+    p_anomaly=0.04,
+    len_anomaly=2,
+    dropout=0,
     lr_online=0.5,
     pretrain_samples=2000,
     validation_samples=500,
@@ -39,7 +40,7 @@ def run_ae(
         x_pre,
         n_hidden_layers,
         n_hidden_units,
-        dropout,
+        dropout=dropout,
         lr=lr,
         epochs=epochs,
         device=device,
@@ -60,10 +61,10 @@ def run_ae(
     x_stream = x_stream[:validation_samples]
     is_anom = is_anom[:validation_samples]
 
-    # np.random.seed(seed)
-    # idcs_resample = np.random.choice(np.arange(len(is_anom)), size=finetuning_steps)
-    # x_stream = x_stream[idcs_resample]
-    # is_anom = is_anom[idcs_resample]
+    np.random.seed(seed)
+    idcs_resample = np.random.choice(np.arange(len(is_anom)), size=finetuning_steps)
+    x_stream = x_stream[idcs_resample]
+    is_anom = is_anom[idcs_resample]
 
     xt = torch.tensor(x_stream, dtype=torch.float, device=device)
 
@@ -87,7 +88,7 @@ def run_ae(
                 )
                 ae = ae.to(device)
             if optimizer is None:
-                optimizer = torch.optim.SGD(ae.parameters(), lr=lr * lr_online)
+                optimizer = torch.optim.SGD(ae.parameters(), lr=lr_online)
 
             ae.eval()
             with torch.inference_mode():
@@ -121,8 +122,25 @@ def run_config(config):
 
 
 if __name__ == "__main__":
-    run_name = "ae_tune_16.jsonl"
+    run_name = "ae_tune_online_v2.jsonl"
     logpath = Path(__file__).parent.parent.joinpath("reports", run_name)
+    default_configs = {
+        "Covertype": {
+            "n_hidden_units": 64,
+            "lr": 1,
+            "n_hidden_layers": 1,
+        },
+        "Insects abrupt": {
+            "n_hidden_units": 512,
+            "lr": 0.0625,
+            "n_hidden_layers": 1,
+        },
+        "Rotated MNIST": {
+            "n_hidden_units": 64,
+            "lr": 1,
+            "n_hidden_layers": 1,
+        },
+    }
 
     devices = ["cuda:0", "cuda:1"]
     num_workers = 6
@@ -130,48 +148,33 @@ if __name__ == "__main__":
     # configs += get_config_grid(
     #     **{
     #         "n_hidden_units": [64, 128, 256, 512],
-    #         "n_hidden_layers": [1, 2],
-    #         "dropout": 0.0,
-    #         "epochs": [8],
+    #         "n_hidden_layers": 1,
+    #         "epochs": 8,
     #         "lr": [2**-i for i in range(6)],
-    #         "lr_online": [0.25, 0.5, 1.0, 2.0],
-    #         "online_finetuning": True,
+    #         "online_finetuning": False,
     #         "dataset": ["Insects abrupt", "Rotated MNIST", "Covertype"],
-    #         "anomaly_type": "ood_class",
-    #         "p_anomaly": 0.04,
-    #         "len_anomaly": 2,
-    #     }
-    # )
-    # configs += get_config_grid(
-    #     **{
-    #         "n_hidden_units": [64, 128, 256, 512],
-    #         "n_hidden_layers": [1, 2],
-    #         "dropout": 0.0,
-    #         "epochs": 0,
-    #         "lr": 1,
-    #         "lr_online": [2**-i for i in range(6)],
-    #         "online_finetuning": True,
-    #         "dataset": ["Insects abrupt", "Rotated MNIST", "Covertype"],
-    #         "anomaly_type": "ood_class",
-    #         "p_anomaly": 0.04,
-    #         "len_anomaly": 2,
     #     }
     # )
     configs += get_config_grid(
         **{
-            "n_hidden_units": [64, 128, 256, 512],
-            "n_hidden_layers": [1, 2],
-            "dropout": 0.0,
-            "epochs": 16,
-            "lr": [2**-i for i in range(6)],
-            "lr_online": 1.0,
-            "online_finetuning": False,
+            "epochs": [0, 8],
+            "lr_online": [2**-i for i in range(6)],
+            "online_finetuning": True,
             "dataset": ["Insects abrupt", "Rotated MNIST", "Covertype"],
-            "anomaly_type": "ood_class",
-            "p_anomaly": 0.04,
-            "len_anomaly": 2,
         }
     )
+
+
+
+    # Append constant hparams and device info
+    updated_configs = []
+    for i, config in enumerate(configs):
+        dataset = config["dataset"]
+        updated_config = copy.deepcopy(default_configs[dataset])
+        updated_config.update(config)
+        # run_with_filter(**config)
+        updated_config["device"] = devices[i % len(devices)]
+        updated_configs.append(updated_config)
 
     # configs = get_missing_configs(
     #     configs,
@@ -185,9 +188,4 @@ if __name__ == "__main__":
     #     ],
     # )
 
-    # Append constant hparams and device info
-    for i, config in enumerate(configs):
-        # run_with_filter(**config)
-        config["device"] = devices[i % len(devices)]
-
-    run_configs_parallel(configs, run_config, num_workers, logpath)
+    run_configs_parallel(updated_configs, run_config, num_workers, logpath)
