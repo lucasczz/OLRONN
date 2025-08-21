@@ -5,7 +5,7 @@ from tqdm import tqdm
 import pandas as pd
 
 import multiprocessing as mp
-from src.models.networks import get_mlp, get_autoencoder
+from src.models.networks import get_mlp
 
 
 def run_configs_parallel(configs, target_fn, num_workers, file_path):
@@ -74,8 +74,6 @@ def run(xs, ys, hparams, anom_filter=None, device="cpu", seed=42, verbose=True):
             model = model.to(device)
             optimizer = torch.optim.SGD(model.parameters(), lr=hparams["lr"])
 
-        # x, y = x.to(device), y.to(device)
-
         logits = model(x)
         pred = torch.argmax(logits, dim=-1)
         preds.append(pred.detach().cpu().item())
@@ -95,44 +93,3 @@ def run(xs, ys, hparams, anom_filter=None, device="cpu", seed=42, verbose=True):
         return preds, loss_weights
     else:
         return preds
-
-
-def pretrain_autoencoder(
-    xs,
-    n_hidden_layers,
-    n_hidden_units,
-    lr,
-    dropout=0,
-    epochs=5,
-    seed=42,
-    device="cpu",
-    verbose=True,
-):
-    model = None
-    optimizer = None
-    torch.manual_seed(seed)
-
-    for i in range(epochs):
-        iterator = tqdm(xs) if verbose else xs
-        for x in iterator:
-            if model is None:
-                model = get_autoencoder(
-                    in_features=x.shape[-1],
-                    dropout=dropout,
-                    n_hidden_units=n_hidden_units,
-                    n_hidden_layers=n_hidden_layers,
-                )
-                model = model.to(device)
-                optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-
-            x = x.to(device)
-
-            model.train()
-            x_rec = model(x)
-            loss = F.l1_loss(x_rec, x)
-
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
-
-    return model

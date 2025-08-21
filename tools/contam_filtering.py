@@ -1,12 +1,36 @@
 from pathlib import Path
 from tqdm import tqdm
 import torch
-from contam_base import run, pretrain_autoencoder, get_missing_configs, handle_log_queue
+from contam_base import run, get_missing_configs, handle_log_queue
 from base import get_config_grid
 from src.models.anom_filters import AEFilter
 from src.data.contamination import get_contaminated_stream, get_tuning_data
 import traceback
 import multiprocessing as mp
+
+CONFIGS = {
+    "Covertype": {
+        "lr": 1,
+        "lr_online": 0.25,
+        "lr_finetuning": 0.5,
+        "n_hidden_layers": 1,
+        "n_hidden_units": 64,
+    },
+    "Insects abrupt": {
+        "lr": 0.0625,
+        "lr_online": 0.125,
+        "lr_finetuning": 0.125,
+        "n_hidden_layers": 1,
+        "n_hidden_units": 512,
+    },
+    "Rotated MNIST": {
+        "lr": 1.0,
+        "lr_online": 1,
+        "lr_finetuning": 0.125,
+        "n_hidden_layers": 2,
+        "n_hidden_units": 64,
+    },
+}
 
 
 def run_configs_parallel(configs, num_workers, file_path):
@@ -49,9 +73,17 @@ def run_with_filter(
     dataset,
     anomaly_type,
     p_anomaly,
-    len_anomaly,
-    threshold_quantile=0.95,
+    len_anomaly=2,
+    threshold_quantile=None,
     threshold_type="sigmoid",
+    threshold_win_size=1000,
+    epochs=8,
+    mode="pre-trained",
+    lr=0.5,
+    lr_online=0.125,
+    lr_finetuning=0.125,
+    n_hidden_layers=1,
+    n_hidden_units=64,
     steepness=20,
     pretrain_samples=2000,
     validation_samples=500,
@@ -59,13 +91,27 @@ def run_with_filter(
     device="cpu",
     seed=42,
 ):
-    ae_hparams = {
-        "lr": 0.25 if dataset == "Insects abrupt" else 1,
-        "n_hidden_layers": 1,
-        "n_hidden_units": 64 if dataset == "Insects abrupt" else 512,
-        "dropout": 0,
-        "epochs": 8,
-    }
+    if mode == "pre-trained":
+        _lr_online = 0
+    elif mode == "pre-trained+online":
+        _lr_online = lr_finetuning
+    elif mode == "online":
+        _lr_online = lr_online
+
+    anom_filter = AEFilter(
+        n_hidden_layers=n_hidden_layers,
+        n_hidden_units=n_hidden_units,
+        lr_pretraining=lr,
+        lr_online=_lr_online,
+        epochs=epochs,
+        threshold_quantile=1 - p_anomaly
+        if threshold_quantile is None
+        else threshold_quantile,
+        threshold_type=threshold_type,
+        window_size=threshold_win_size,
+        steepness=steepness,
+        device=device,
+    )
 
     clf_hparams = {
         "lr": 2**-4 if dataset == "Insects abrupt" else 2**-5,
@@ -76,18 +122,6 @@ def run_with_filter(
 
     x_pre, y_pre = get_tuning_data(dataset, tuning_samples=pretrain_samples)
     x_pre = torch.tensor(x_pre, dtype=torch.float, device=device)
-
-    ae = pretrain_autoencoder(
-        x_pre,
-        ae_hparams["n_hidden_layers"],
-        ae_hparams["n_hidden_units"],
-        ae_hparams["dropout"],
-        lr=ae_hparams["lr"],
-        epochs=ae_hparams["epochs"],
-        device=device,
-        seed=seed,
-        verbose=verbose,
-    )
 
     x_stream, y_stream, is_anom = get_contaminated_stream(
         dataset=dataset,
@@ -102,21 +136,16 @@ def run_with_filter(
         x_stream[:validation_samples], dtype=torch.float, device=device
     )
 
-    anom_filter = AEFilter(
-        model=ae,
-        threshold_quantile=threshold_quantile,
-        threshold_type=threshold_type,
-        steepness=steepness,
-        device=device,
-    )
-    anom_filter.calibrate(x_val)
-
     x_test = torch.tensor(
         x_stream[validation_samples:], dtype=torch.float, device=device
     )
     y_test = torch.tensor(
         y_stream[validation_samples:], dtype=torch.long, device=device
     )
+
+    if mode in ["pre-trained", "pre-trained+online"]:
+        anom_filter.pre_train(x_pre)
+        anom_filter.calibrate(x_val)
 
     preds, loss_weights = run(
         x_test, y_test, clf_hparams, anom_filter, device, seed, verbose
@@ -130,67 +159,68 @@ def run_with_filter(
 
 
 if __name__ == "__main__":
-    run_name = "contam_filtering_linear.jsonl"
+    run_name = "contam_filtering_v2.jsonl"
     logpath = Path(__file__).parent.parent.joinpath("reports", run_name)
 
     device_list = ["cuda:0", "cuda:1"]  # or just ["cuda:0"] if only one
-    num_workers = len(device_list)
+    num_workers = 4
 
     configs = []
 
-    # configs += get_config_grid(
-    #     **{
-    #         "dataset": ["Covertype"],
-    #         "anomaly_type": ["feature_swap", "gaussian_noise"],
-    #         "p_anomaly": [0.02, 0.04, 0.08],
-    #         "len_anomaly": [2],
-    #         "threshold_quantile": [0.9, 0.95, 0.975, 0.9875],
-    #         "steepness": [15, 30, 60, np.inf],
-    #         "seed": [0, 1, 2, 3, 4],
-    #     }
-    # )
-    # configs += get_config_grid(
-    #     **{
-    #         "dataset": ["Insects abrupt", "Rotated MNIST"],
-    #         "anomaly_type": ["ood_class"],
-    #         "p_anomaly": [0.02, 0.04, 0.08],
-    #         "len_anomaly": [2],
-    #         "threshold_quantile": [0.9, 0.95, 0.975, 0.9875],
-    #         "steepness": [15, 30, 60, np.inf],
-    #         "seed": [0, 1, 2, 3, 4],
-    #     }
-    # )
-    # configs += get_config_grid(
-    #     **{
-    #         "dataset": [
-    #             "Covertype",
-    #             "Insects abrupt",
-    #             "Rotated MNIST",
-    #         ],
-    #         "anomaly_type": [
-    #             "ood_class",
-    #             # "feature_swap",
-    #             # "gaussian_noise",
-    #         ],
-    #         "p_anomaly": [0.02, 0.04, 0.08],
-    #         "len_anomaly": [2],
-    #         "threshold_quantile": [0.9],
-    #         "steepness": [0],
-    #         "seed": [0, 1, 2, 3, 4],
-    #     }
-    # )
+    configs += get_config_grid(
+        **{
+            "dataset": [
+                "Covertype",
+                "Insects abrupt",
+                "Rotated MNIST",
+            ],
+            "anomaly_type": [
+                "feature_swap",
+                "ood_class",
+            ],
+            "p_anomaly": [
+                0.02,
+                0.04,
+                0.08,
+            ],
+            "len_anomaly": [2],
+            "mode": [
+                "pre-trained",
+                # "online",
+                # "pre-trained+online",
+            ],
+            "threshold_type": ["linear", "hard", "sigmoid"],
+            "seed": [0, 1, 2, 3, 4],
+        }
+    )
 
     configs += get_config_grid(
         **{
-            "dataset": ["Covertype", "Insects abrupt", "Rotated MNIST"],
-            "anomaly_type": ["ood_class"],
-            "p_anomaly": [0.02, 0.04, 0.08],
+            "dataset": [
+                "Covertype",
+                "Insects abrupt",
+                "Rotated MNIST",
+            ],
+            "anomaly_type": [
+                "feature_swap",
+                "ood_class",
+            ],
+            "p_anomaly": [
+                0.02,
+                0.04,
+                0.08,
+            ],
             "len_anomaly": [2],
-            "threshold_quantile": [
-                .5,
-                # 0.9, 0.95, 0.975, 0.9875, 1.0
-                ],
-            "threshold_type": ["linear"],
+            "mode": [
+                # "pre-trained",
+                "online",
+                "pre-trained+online",
+            ],
+            "threshold_type": [
+                "linear",
+                # "hard",
+                # "sigmoid",
+            ],
             "seed": [0, 1, 2, 3, 4],
         }
     )
@@ -210,8 +240,9 @@ if __name__ == "__main__":
 
     # Append constant hparams and device info
     for i, config in enumerate(configs):
-        # run_with_filter(**config)
+        config.update(CONFIGS[config["dataset"]])
         config["device"] = device_list[i % len(device_list)]
         config["verbose"] = False
+        # run_with_filter(**config)
 
     run_configs_parallel(configs, num_workers, logpath)

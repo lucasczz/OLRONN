@@ -4,7 +4,8 @@ import numpy as np
 import torch.nn.functional as F
 import torch
 from src.models.networks import get_autoencoder
-from contam_base import pretrain_autoencoder, run_configs_parallel, get_missing_configs
+from contam_base import run_configs_parallel, get_missing_configs
+from src.models.anom_filters import pretrain_autoencoder
 
 from src.data.contamination import get_contaminated_stream, get_tuning_data
 from base import get_config_grid
@@ -55,7 +56,8 @@ def run_ae(
     x_pre, y_pre = get_tuning_data(dataset, tuning_samples=pretrain_samples)
     x_pre = torch.tensor(x_pre, dtype=torch.float)
 
-    lr_online = lr_online if epochs == 0 else lr_finetuning
+    _lr_online = lr_online if mode == "online" else lr_finetuning
+    torch.manual_seed(seed)
 
     if mode in ["pre-trained", "pre-trained+online"]:
         ae = pretrain_autoencoder(
@@ -65,7 +67,6 @@ def run_ae(
             lr=lr,
             epochs=epochs,
             device=device,
-            seed=seed,
             verbose=verbose,
         )
     else:
@@ -105,7 +106,7 @@ def run_ae(
                 )
                 ae = ae.to(device)
             if optimizer is None:
-                optimizer = torch.optim.SGD(ae.parameters(), lr=lr_online)
+                optimizer = torch.optim.SGD(ae.parameters(), lr=_lr_online)
 
             ae.eval()
             with torch.inference_mode():
@@ -140,7 +141,7 @@ def run_config(config):
 
 
 if __name__ == "__main__":
-    run_name = "ae_test_v4.jsonl"
+    run_name = "ae_test_v4_pre+online.jsonl"
     logpath = Path(__file__).parent.parent.joinpath("reports", run_name)
 
     devices = ["cuda:0", "cuda:1"]
@@ -149,7 +150,10 @@ if __name__ == "__main__":
     configs = get_config_grid(
         **{
             "dataset": ["Covertype", "Insects abrupt", "Rotated MNIST"],
-            "mode": ["pre-trained", "online", "pre-trained+online"],
+            "mode": [
+                # "pre-trained", "online",
+                "pre-trained+online",
+            ],
             "anomaly_type": "ood_class",
             "p_anomaly": [
                 0.02,
