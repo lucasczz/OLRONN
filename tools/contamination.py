@@ -1,8 +1,7 @@
 from pathlib import Path
-import json
-from tqdm import tqdm
+import traceback
 import torch
-from contam_base import run
+from contam_base import run, get_missing_configs, run_configs_parallel
 from base import get_config_grid
 from src.data.contamination import get_contaminated_stream
 
@@ -29,20 +28,34 @@ def test_contamination(dataset, anomaly_type, p_anomaly, len_anomaly, seed, devi
     return preds, y_contam, is_anom
 
 
+def run_config(config):
+    try:
+        preds, labels, is_anom = test_contamination(**config)
+        return config | {
+            "preds": preds,
+            "labels": labels.tolist(),
+            "is_anom": is_anom.tolist(),
+        }
+    except Exception as e:
+        print("Error: ", config)
+        print(traceback.format_exc())
+        print(e)
+        return None
+
+
 if __name__ == "__main__":
-    device = "cuda:0"
-    run_name = "contamination_debug.jsonl"
+    devices = ["cuda:0", "cuda:1"]
+    num_workers = 4
+    run_name = "contamination_fix.jsonl"
     logpath = Path(__file__).parent.parent.joinpath("reports", run_name)
 
-    contamination_configs = get_config_grid(
+    configs = get_config_grid(
         **{
-            "dataset": [
-                # "Insects abrupt", "Covertype", 
-                "Rotated MNIST"],
+            "dataset": ["Insects abrupt", "Covertype", "Rotated MNIST"],
             "anomaly_type": [
-                # "ood_sample",
-                # "ood_class",
-                # "label_flip",
+                "ood_sample",
+                "ood_class",
+                "label_flip",
                 "feature_swap",
                 "gaussian_noise",
             ],
@@ -51,12 +64,14 @@ if __name__ == "__main__":
             "len_anomaly": [2, 4, 8, 16],
         }
     )
-    for config in tqdm(contamination_configs, desc="Running configs"):
-        preds, labels, is_anom = test_contamination(**config, device=device)
-        result = config | {
-            "preds": preds,
-            "labels": labels.tolist(),
-            "is_anom": is_anom.tolist(),
-        }
-        with open(logpath, "a") as f:
-            f.write(json.dumps(result) + "\n")
+
+    for i, config in enumerate(configs):
+        config["device"] = devices[i % len(devices)]
+
+    configs = get_missing_configs(
+        configs,
+        logpath,
+        relevant_params=["dataset", "anomaly_type", "len_anomaly", "p_anomaly", "seed"],
+    )
+
+    run_configs_parallel(configs, run_config, num_workers, logpath)

@@ -10,21 +10,17 @@ from src.models.networks import get_mlp
 
 def run_configs_parallel(configs, target_fn, num_workers, file_path):
     mp.set_start_method("spawn", force=True)
-    manager = mp.Manager()
-    q = manager.Queue()
 
-    pool = mp.Pool(processes=num_workers)
-
+    q = mp.Queue()
     queue_process = mp.Process(target=handle_log_queue, args=(q, file_path))
     queue_process.start()
 
-    for result in tqdm(pool.imap(target_fn, configs), total=len(configs)):
-        if result is not None:
-            q.put(result)
+    with mp.Pool(processes=num_workers) as pool:
+        for result in tqdm(pool.imap_unordered(target_fn, configs), total=len(configs)):
+            if result is not None:
+                q.put(result)
 
     q.put("kill")
-    pool.close()
-    pool.join()
     queue_process.join()
 
 
@@ -43,7 +39,10 @@ def handle_log_queue(q, file_path):
 
 def get_missing_configs(configs, path_done, relevant_params):
     df_planned = pd.DataFrame.from_records(configs)
-    df_done = pd.read_json(path_done, orient="records", lines=True)
+    try:
+        df_done = pd.read_json(path_done, orient="records", lines=True)
+    except ValueError as e:
+        return configs
 
     # Match on specific columns
     diff_df = df_planned.merge(df_done, on=relevant_params, how="left", indicator=True)
@@ -89,7 +88,6 @@ def run(xs, ys, hparams, anom_filter=None, device="cpu", seed=42, verbose=True):
         optimizer.step()
         optimizer.zero_grad()
 
-    if loss_weights:
-        return preds, loss_weights
-    else:
-        return preds
+
+    return preds, loss_weights
+ 

@@ -141,7 +141,7 @@ def run_config(config):
 
 
 if __name__ == "__main__":
-    run_name = "ae_test_v4_pre+online.jsonl"
+    run_name = "ae_test_v4.jsonl"
     logpath = Path(__file__).parent.parent.joinpath("reports", run_name)
 
     devices = ["cuda:0", "cuda:1"]
@@ -151,19 +151,34 @@ if __name__ == "__main__":
         **{
             "dataset": ["Covertype", "Insects abrupt", "Rotated MNIST"],
             "mode": [
-                # "pre-trained", "online",
+                "pre-trained",
+                "online",
                 "pre-trained+online",
             ],
-            "anomaly_type": "ood_class",
+            "anomaly_type": [
+                # "ood_class",
+                "feature_swap",
+            ],
             "p_anomaly": [
                 0.02,
                 0.04,
                 0.08,
             ],
-            "len_anomaly": [
-                2,
-                # 16
+            "len_anomaly": [2],
+            "seed": [0, 1, 2, 3, 4],
+        }
+    )
+
+    configs += get_config_grid(
+        **{
+            "dataset": ["Covertype", "Insects abrupt", "Rotated MNIST"],
+            "mode": ["online"],
+            "anomaly_type": [
+                "ood_class",
+                "feature_swap",
             ],
+            "p_anomaly": [0.04],
+            "len_anomaly": [2, 4, 8, 16],
             "seed": [0, 1, 2, 3, 4],
         }
     )
@@ -178,7 +193,7 @@ if __name__ == "__main__":
     updated_configs = get_missing_configs(
         updated_configs,
         logpath,
-        relevant_params=["dataset", "mode", "p_anomaly", "seed"],
+        relevant_params=["dataset", "mode", "len_anomaly", "p_anomaly", "seed"],
     )
 
     run_configs_parallel(updated_configs, run_config, num_workers, logpath)

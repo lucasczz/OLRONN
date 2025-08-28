@@ -85,6 +85,8 @@ class AEFilter:
             self.tuning_step(x)
 
         rolling_mean = self.rolling_mean.get()
+        if rolling_mean is None:
+            rolling_mean = 1
         if rolling_mean > 0:
             scaled_sample_weight = sample_weight / rolling_mean
         else:
@@ -96,6 +98,8 @@ class AEFilter:
 
     def _get_sample_weight(self, anom_score):
         threshold = self.rolling_q.get()
+        if threshold is None:
+            return 1
         if self.threshold_type == "hard":
             if isinstance(anom_score, np.ndarray):
                 weight = (anom_score <= threshold).astype(int)

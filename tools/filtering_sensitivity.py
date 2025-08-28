@@ -98,23 +98,20 @@ def run_with_filter(
     elif mode == "online":
         _lr_online = lr_online
 
-    if threshold_type == "no_filter":
-        anom_filter = None
-    else:
-        anom_filter = AEFilter(
-            n_hidden_layers=n_hidden_layers,
-            n_hidden_units=n_hidden_units,
-            lr_pretraining=lr,
-            lr_online=_lr_online,
-            epochs=epochs,
-            threshold_quantile=1 - p_anomaly
-            if threshold_quantile is None
-            else threshold_quantile,
-            threshold_type=threshold_type,
-            window_size=threshold_win_size,
-            steepness=steepness,
-            device=device,
-        )
+    anom_filter = AEFilter(
+        n_hidden_layers=n_hidden_layers,
+        n_hidden_units=n_hidden_units,
+        lr_pretraining=lr,
+        lr_online=_lr_online,
+        epochs=epochs,
+        threshold_quantile=1 - p_anomaly
+        if threshold_quantile is None
+        else threshold_quantile,
+        threshold_type=threshold_type,
+        window_size=threshold_win_size,
+        steepness=steepness,
+        device=device,
+    )
 
     clf_hparams = {
         "lr": 2**-4 if dataset == "Insects abrupt" else 2**-5,
@@ -146,7 +143,7 @@ def run_with_filter(
         y_stream[validation_samples:], dtype=torch.long, device=device
     )
 
-    if mode in ["pre-trained", "pre-trained+online"] and anom_filter is not None:
+    if mode in ["pre-trained", "pre-trained+online"]:
         anom_filter.pre_train(x_pre)
         anom_filter.calibrate(x_val)
 
@@ -162,7 +159,7 @@ def run_with_filter(
 
 
 if __name__ == "__main__":
-    run_name = "contam_filtering_v2_fix.jsonl"
+    run_name = "contam_filtering_v2.jsonl"
     logpath = Path(__file__).parent.parent.joinpath("reports", run_name)
 
     device_list = ["cuda:0", "cuda:1"]  # or just ["cuda:0"] if only one
@@ -172,11 +169,26 @@ if __name__ == "__main__":
 
     configs += get_config_grid(
         **{
-            "dataset": ["Covertype", "Insects abrupt", "Rotated MNIST"],
-            "anomaly_type": ["feature_swap", "ood_class"],
-            "p_anomaly": [0.02, 0.04, 0.08],
-            "len_anomaly": 2,
-            "mode": ["pre-trained", "online", "pre-trained+online"],
+            "dataset": [
+                "Covertype",
+                "Insects abrupt",
+                "Rotated MNIST",
+            ],
+            "anomaly_type": [
+                "feature_swap",
+                "ood_class",
+            ],
+            "p_anomaly": [
+                0.02,
+                0.04,
+                0.08,
+            ],
+            "len_anomaly": [2],
+            "mode": [
+                "pre-trained",
+            ],
+            # Test threshold sensitivity 
+            "threshold_quantile": [0.9, 0.92, 0.94, 0.96, 0.98],
             "threshold_type": ["linear", "hard", "sigmoid"],
             "seed": [0, 1, 2, 3, 4],
         }
@@ -184,12 +196,27 @@ if __name__ == "__main__":
 
     configs += get_config_grid(
         **{
-            "dataset": ["Covertype", "Insects abrupt", "Rotated MNIST"],
-            "anomaly_type": ["feature_swap", "ood_class"],
-            "p_anomaly": [0.02, 0.04, 0.08],
-            "len_anomaly": 2,
-            "mode": "pre-trained",
-            "threshold_type": "no_filter",
+            "dataset": [
+                "Covertype",
+                "Insects abrupt",
+                "Rotated MNIST",
+            ],
+            "anomaly_type": [
+                "feature_swap",
+                "ood_class",
+            ],
+            "p_anomaly": [
+                0.04,
+            ],
+            "len_anomaly": [2],
+            "mode": [
+                "online",
+            ],
+            "threshold_type": [
+                "linear",
+                # "hard",
+                # "sigmoid",
+            ],
             "seed": [0, 1, 2, 3, 4],
         }
     )
@@ -213,5 +240,5 @@ if __name__ == "__main__":
         config["device"] = device_list[i % len(device_list)]
         config["verbose"] = False
         # run_with_filter(**config)
-        
+
     run_configs_parallel(configs, num_workers, logpath)
